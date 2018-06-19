@@ -37,6 +37,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     </include>
 
     <!-- Launch UAL server for uav id=1 ///// -pose_frame_id=map-->
-    <node pkg="tfm" type="pFollower" name="server_1" output="screen" args="-uav_id=1 -ns_prefix=$(arg ns_prefix)"/>
+    <node pkg="tfm" type="setup" name="Setup" output="screen" required="true"/>
+    <node pkg="tfm" type="pManager" name="pManager" output="screen" required="true"/>
+    <node pkg="rviz" type="rviz" name="Visualization" required="true"/>
+    <node pkg="tfm" type="pFollower" name="server_1" output="screen" args="-uav_id=1 -ns_prefix=$(arg ns_prefix)" required="true"/>
 
 </launch>

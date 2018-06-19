@@ -172,12 +172,12 @@ int main(int _argc, char** _argv) {
 			funcCambiaLookAhead(p); // Comentar para tener el generador V1
 			// Determina la distancia normal
       dist_normal = funcCalcDistNormal();
-			std::cout << "comienza pure pursuit" << '\n';
-			std::cout << "p = " << p << '\n';
+			// std::cout << "comienza pure pursuit" << '\n';
+			// std::cout << "p = " << p << '\n';
       // Determina cual es el waypoint objetivo.
       pure_pursuit();
       p=p+pos_pure_pursuit;
-			std::cout << "p = " << p << '\n';
+			// std::cout << "p = " << p << '\n';
       // Asignación de variables del waypoint objetivo.
       targetX = path_ok[p].pose.position.x;
       targetY = path_ok[p].pose.position.y;
@@ -189,7 +189,7 @@ int main(int _argc, char** _argv) {
       ros::spinOnce();
       // El dron está dentro del path. Se le otorga la velocidad necesaria para que vaya hacia
       // el waypoint objetivo.
-			std::cout << dist_normal << " < " << lookAhead << " & " << dist_toTarget << " > " << lookAhead << '\n';
+			// std::cout << dist_normal << " < " << lookAhead << " & " << dist_toTarget << " > " << lookAhead << '\n';
       while(dist_normal<lookAhead    && dist_toTarget>lookAhead){
         dist_normal = funcCalcDistNormal();
         dist_toTarget = funcMod(targetX, actualPosX, targetY, actualPosY, targetZ, actualPosZ);
@@ -295,11 +295,11 @@ void  pure_pursuit(){
   dist_normal = funcCalcDistNormal();
   // Obtiene la posición en el path de la distancia normal.
   pos_path = funcCalcDistNormalPos();
-	std::cout << "pos path = " << pos_path << '\n';
+	// std::cout << "pos path = " << pos_path << '\n';
   // Determinar que waypoint está a una distancia similar a la distancia look ahead,
   // respecto del waypoint que corresponde con la normal del dron en este instante.
   if(dist_normal<lookAhead){
-		std::cout << "dist_normal mas pequeña que look ahead" << '\n';
+		// std::cout << "dist_normal mas pequeña que look ahead" << '\n';
     for (pos_path; pos_path<path_ok.size()-1; pos_path++){
       comp_dist_resta = funcModDirection(path_ok[pos_path].pose.position.x,
                                          path_ok[pos_path].pose.position.y,
@@ -309,10 +309,10 @@ void  pure_pursuit(){
     }
     up = std::upper_bound(comp_dist.begin(), comp_dist.end(), lookAhead);
     pos_pure_pursuit = up-comp_dist.begin();
-		std::cout << "pos pure pursuit = " << pos_pure_pursuit << '\n';
+		// std::cout << "pos pure pursuit = " << pos_pure_pursuit << '\n';
     // Se actualiza la distancia look ahead en funcion de como evoluciona la distancia
     // normal en el timepo.
-		std::cout << "cambia LookAhead" << '\n';
+		// std::cout << "cambia LookAhead" << '\n';
     // funcCambiaLookAheadVariable(); // Descomentar para tener el generador V1
   // Si el dron está lejos del path, se le da la orden de que se aproxime por la
   // distancia mas corta.
@@ -350,12 +350,12 @@ void  funcCambiaLookAheadVariable(){
   dist_normal = funcCalcDistNormal();
   // Si el dron está lejos del path, la distancia look ahead toma el valor de la distancia
   // normal en ese momento.
-	std::cout << "dist normal      = " << dist_normal << '\n';
-	std::cout << "dist normal prev = " << dist_normal_prev << '\n';
-	std::cout << "lookAhead        = " << lookAhead << '\n';
+	// std::cout << "dist normal      = " << dist_normal << '\n';
+	// std::cout << "dist normal prev = " << dist_normal_prev << '\n';
+	// std::cout << "lookAhead        = " << lookAhead << '\n';
   if(dist_normal>lookAhead_init*3){
     lookAhead = lookAhead - lookAhead_init*0.1;
-    std::cout << "[ TEST] Lejos -> dist_normal = " << dist_normal << ", lookAhead = " << lookAhead << '\n';
+    // std::cout << "[ TEST] Lejos -> dist_normal = " << dist_normal << ", lookAhead = " << lookAhead << '\n';
    // Si la distancia normal disminuye respecto del instante anterior y el dron está cerca del path
    // aumenta la distancia look ahead un 10% de la distancia look ahead inicial.
  }else if(dist_normal<dist_normal_prev*0.95 && lookAhead<lookAhead_init*3){
