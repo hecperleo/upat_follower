@@ -1,198 +1,43 @@
-#include <uav_abstraction_layer/ual.h>
-#include <ros/ros.h>
-#include "nav_msgs/Path.h"
-#include "geometry_msgs/PoseArray.h"
-#include "geometry_msgs/PoseStamped.h"
-#include "geometry_msgs/Pose.h"
-#include "std_msgs/Header.h"
-#include <tf/tf.h>
-#include "ecl/geometry.hpp"
-#include <fstream>
-// Para el interp1
-#include <iostream>
-#include <vector>
-#include <limits>
-#include <cmath>
+#include <pathFollower/manager.h>
 
-double actualPosX, actualPosY, actualPosZ;
-
-std::vector<double> newPoseListX, newPoseListY, newPoseListZ;
-std::vector<double> vectorT, newvectorT, lastSplinevectorT;
-
-float t;
-int i = 0;
-float sumVecT = 0;
-bool flagSpline = true;
-bool flagSubPath = true;
-bool flagSubvectorT = true;
-const float velocidadMax = 1;
-
-nav_msgs::Path msgDrawPath, msgnewvectorT;
-nav_msgs::Path path, smoothedPath, splinePath;
-nav_msgs::Path spline_msg, splineV_msg, spline_msg1, spline_msg2;
-std::vector<grvc::ual::Waypoint> vecAux;
-grvc::ual::Waypoint waypoint;
-std::vector<double> poseListX, poseListY, poseListZ;
-
-void UALPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &msg1);
-void UALPathCallback(const nav_msgs::Path &msg);
-void vectorTCallback(const nav_msgs::Path &msg);
-void spline();
-bool lastOne = false;
-bool flagFinishSpline = false;
-void eclSpline(float minT, float dist_total);
-void funcInterpvectorT(int splineSize);
-void funcPreprocesamiento();
-void funcCompruebaTiempos();
-float funcMod(float x1, float x2, float y1, float y2, float z1, float z2);
-bool funcOtraSpline(std::vector<double> vVz, int splineSize, bool safe);
-std::vector<double> funcAumentaVector(std::vector<double> vect, int finalSize);
-std::vector<double> interpolaWps(std::vector<double> wp, double t);
-
-nav_msgs::Path Construct_Path_Msg(double *x, double *y, double *z, int length)
+Manager::Manager()
 {
-	nav_msgs::Path msg;
-	std::vector<geometry_msgs::PoseStamped> poses(length);
-	msg.header.frame_id = "map";
-	for (int i = 0; i < length; i++)
-	{
-		poses.at(i).pose.position.x = x[i];
-		poses.at(i).pose.position.y = y[i];
-		poses.at(i).pose.position.z = z[i];
-	}
-	msg.poses = poses;
-	return msg;
+    n = ros::NodeHandle();
+    params();
+    // Subscriptions
+    subPose = n.subscribe("/uav_1/ual/pose", 0, &Manager::UALPoseCallback, this);
+	subPath = n.subscribe("initPath", 0, &Manager::UALPathCallback, this);
+	subvectorT = n.subscribe("vectorT", 0, &Manager::vectorTCallback, this);
+
+    // Publishers
+    pubDrawPath = n.advertise<nav_msgs::Path>("drawInitPath", 1000);
+	pubEclPath = n.advertise<nav_msgs::Path>("posSpline", 1000);
+	pubEclPathV = n.advertise<nav_msgs::Path>("velSpline", 1000);
+	pubEclPath1 = n.advertise<nav_msgs::Path>("posSpline1", 1000);
+	pubEclPath2 = n.advertise<nav_msgs::Path>("posSpline2", 1000);
+	pubnewvectorT = n.advertise<nav_msgs::Path>("newVectorT", 1000);
+
+    loop();
 }
 
-// interp1
-template <typename Real>
-int nearestNeighbourIndex(std::vector<Real> &x, Real &value)
+Manager::~Manager()
 {
-	Real dist = std::numeric_limits<Real>::max();
-	Real newDist = dist;
-	size_t idx = 0;
-
-	for (size_t i = 0; i < x.size(); ++i)
-	{
-		newDist = std::abs(value - x[i]);
-		if (newDist <= dist)
-		{
-			dist = newDist;
-			idx = i;
-		}
-	}
-
-	return idx;
 }
 
-template <typename Real>
-std::vector<Real> interp1(std::vector<Real> &x, std::vector<Real> &y, std::vector<Real> &x_new)
+void Manager::params()
 {
-	std::vector<Real> y_new;
-	Real dx, dy, m, b;
-	size_t x_max_idx = x.size() - 1;
-	size_t x_new_size = x_new.size();
-
-	y_new.reserve(x_new_size);
-
-	for (size_t i = 0; i < x_new_size; ++i)
-	{
-		size_t idx = nearestNeighbourIndex(x, x_new[i]);
-
-		if (x[idx] > x_new[i])
-		{
-			dx = idx > 0 ? (x[idx] - x[idx - 1]) : (x[idx + 1] - x[idx]);
-			dy = idx > 0 ? (y[idx] - y[idx - 1]) : (y[idx + 1] - y[idx]);
-		}
-		else
-		{
-			dx = idx < x_max_idx ? (x[idx + 1] - x[idx]) : (x[idx] - x[idx - 1]);
-			dy = idx < x_max_idx ? (y[idx + 1] - y[idx]) : (y[idx] - y[idx - 1]);
-		}
-
-		m = dy / dx;
-		b = y[idx] - x[idx] * m;
-
-		y_new.push_back(x_new[i] * m + b);
-	}
-
-	return y_new;
-}
-// interp1
-
-// -----------------------------------------------------------------------------------------------------------
-
-int main(int _argc, char **_argv)
-{
-	ros::init(_argc, _argv, "pManager");
-	ros::NodeHandle n;
-
-	ros::Publisher pubDrawPath =
-		n.advertise<nav_msgs::Path>("drawInitPath", 1000);
-	ros::Publisher pubEclPath =
-		n.advertise<nav_msgs::Path>("posSpline", 1000);
-	ros::Publisher pubEclPathV =
-		n.advertise<nav_msgs::Path>("velSpline", 1000);
-	ros::Publisher pubEclPath1 =
-		n.advertise<nav_msgs::Path>("posSpline1", 1000);
-	ros::Publisher pubEclPath2 =
-		n.advertise<nav_msgs::Path>("posSpline2", 1000);
-	ros::Publisher pubnewvectorT =
-		n.advertise<nav_msgs::Path>("newVectorT", 1000);
-
-	ros::Subscriber subPose =
-		n.subscribe("/uav_1/ual/pose", 0, UALPoseCallback);
-	ros::Subscriber subPath =
-		n.subscribe("initPath", 0, UALPathCallback);
-	ros::Subscriber subvectorT =
-		n.subscribe("vectorT", 0, vectorTCallback);
-
-	ros::Rate loop_rate(100);
-
-	while (ros::ok())
-	{
-		// Spline ------------------------------------------------------------------
-		if (path.poses.size() != 0 && flagSpline == true)
-		{
-			for (int i = 0; i < vectorT.size(); i++)
-			{
-				sumVecT = sumVecT + vectorT[i];
-			}
-			std::cout << "[ TEST] sumVecT = " << sumVecT << '\n';
-			float distTotal = 0;
-			for (int i = 0; i < poseListX.size() - 1; i++)
-			{
-				distTotal = distTotal + funcMod(poseListX[i], poseListX[i + 1],
-												poseListY[i], poseListY[i + 1],
-												poseListZ[i], poseListZ[i + 1]);
-			}
-			funcCompruebaTiempos();
-			while (flagFinishSpline == false)
-			{ // Comentar para tener el generador V1
-				eclSpline(sumVecT, distTotal);
-			} // Comentar para tener el generador V1
-			funcPreprocesamiento();
-			//std::cout << "[ TEST] distTotal = " << distTotal << '\n';
-			flagSpline = false;
-		}
-		// Publicacion de splines
-		pubEclPath.publish(spline_msg);
-		pubEclPathV.publish(splineV_msg);
-		pubEclPath1.publish(spline_msg1);
-		pubEclPath2.publish(spline_msg2);
-		// Publicacion de ambas trayectorias
-		pubDrawPath.publish(msgDrawPath);
-		pubnewvectorT.publish(msgnewvectorT);
-
-		ros::spinOnce();
-		loop_rate.sleep();
-		i++;
-	}
+    // ros::NodeHandle nparam("~");
+    // if (nparam.getParam("phase", phase))
+    // {
+    //     ROS_WARN("Got Manager param phase: %i", phase);
+    // }
+    // else
+    // {
+    //     ROS_WARN("Failed to get Manager param phase: %i", phase);
+    // }
 }
 
-// -----------------------------------------------------------------------------------------------------------
-
-void funcPreprocesamiento()
+void Manager::funcPreprocesamiento()
 {
 	float dist_entreWp, tempo, tempoMin, vel;
 	float sumTempo = 0;
@@ -214,7 +59,7 @@ void funcPreprocesamiento()
 	//std::cout << "[ ... ] sumTempoMin     = " << sumTempoMin << '\n';
 }
 
-void funcCompruebaTiempos()
+void Manager::funcCompruebaTiempos()
 {
 	for (int i = 0; i < vectorT.size(); i++)
 	{
@@ -230,7 +75,8 @@ void funcCompruebaTiempos()
 	}
 }
 
-void UALPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &msg1)
+/* CALLBACKS */
+void Manager::UALPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &msg1)
 {
 	// Corrección respecto del mapa
 	actualPosX = msg1->pose.position.x;
@@ -240,7 +86,7 @@ void UALPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &msg1)
 	return;
 }
 
-void UALPathCallback(const nav_msgs::Path &msg)
+void Manager::UALPathCallback(const nav_msgs::Path &msg)
 {
 	double poseX, poseY, poseZ;
 	std::vector<grvc::ual::Waypoint> poseList;
@@ -277,7 +123,7 @@ void UALPathCallback(const nav_msgs::Path &msg)
 	return;
 }
 
-void vectorTCallback(const nav_msgs::Path &msg)
+void Manager::vectorTCallback(const nav_msgs::Path &msg)
 {
 	if (flagSubvectorT == true)
 	{
@@ -293,8 +139,33 @@ void vectorTCallback(const nav_msgs::Path &msg)
 	flagSubvectorT = false;
 	return;
 }
+/* CALLBACKS */
 
-void eclSpline(float minT, float dist_total)
+nav_msgs::Path Manager::Construct_Path_Msg(double *x, double *y, double *z, int length)
+{
+	nav_msgs::Path msg;
+	std::vector<geometry_msgs::PoseStamped> poses(length);
+	msg.header.frame_id = "map";
+	for (int i = 0; i < length; i++)
+	{
+		poses.at(i).pose.position.x = x[i];
+		poses.at(i).pose.position.y = y[i];
+		poses.at(i).pose.position.z = z[i];
+	}
+	msg.poses = poses;
+	return msg;
+}
+
+float Manager::funcMod(float x1, float x2, float y1, float y2, float z1, float z2)
+{
+	float mod;
+	mod = sqrt((x2 - x1) * (x2 - x1) +
+			   (y2 - y1) * (y2 - y1) +
+			   (z2 - z1) * (z2 - z1));
+	return mod;
+}
+
+void Manager::eclSpline(float minT, float dist_total)
 {
 	if (lastOne == false)
 	{					// Comentar para tener el generador V1
@@ -303,7 +174,7 @@ void eclSpline(float minT, float dist_total)
 	}					// Comentar para tener el generador V1
 	if (lastOne == true)
 	{
-		std::cout << "[ TEST] lastOne " << lastOne << " | flagFinishSpline " << flagFinishSpline << " | t " << t << '\n';
+		// std::cout << "[ TEST] lastOne " << lastOne << " | flagFinishSpline " << flagFinishSpline << " | t " << t << '\n';
 	}
 	bool safe = false;
 	while (safe == false)
@@ -500,12 +371,12 @@ void eclSpline(float minT, float dist_total)
 				flagFinishSpline = true;
 			}
 		}
-		std::cout << "[ TEST] safe " << safe << " | lastOne " << lastOne << " | flagFinishSpline " << flagFinishSpline << '\n';
+		// std::cout << "[ TEST] safe " << safe << " | lastOne " << lastOne << " | flagFinishSpline " << flagFinishSpline << '\n';
 		// Comentar para tener el generador V1
 	}
 }
 
-bool funcOtraSpline(std::vector<double> vVz, int splineSize, bool safe)
+bool Manager::funcOtraSpline(std::vector<double> vVz, int splineSize, bool safe)
 {
 	auto smallest_Vz_min = std::min_element(vVz.begin(), vVz.end());
 	int tiempo = t;
@@ -521,7 +392,7 @@ bool funcOtraSpline(std::vector<double> vVz, int splineSize, bool safe)
 	return safe;
 }
 
-void funcInterpvectorT(int splineSize)
+void Manager::funcInterpvectorT(int splineSize)
 {
 	std::ofstream fileNewVectorT;
 	fileNewVectorT.open("/home/hector/Matlab_ws/newVectorT.dat");
@@ -550,16 +421,7 @@ void funcInterpvectorT(int splineSize)
 	msgnewvectorT.poses = times;
 }
 
-float funcMod(float x1, float x2, float y1, float y2, float z1, float z2)
-{
-	float mod;
-	mod = sqrt((x2 - x1) * (x2 - x1) +
-			   (y2 - y1) * (y2 - y1) +
-			   (z2 - z1) * (z2 - z1));
-	return mod;
-}
-
-std::vector<double> funcAumentaVector(std::vector<double> vect, int finalSize)
+std::vector<double> Manager::funcAumentaVector(std::vector<double> vect, int finalSize)
 {
 	std::vector<double> newVector;
 	std::vector<double> otroVector;
@@ -583,7 +445,7 @@ std::vector<double> funcAumentaVector(std::vector<double> vect, int finalSize)
 	return otroVector;
 }
 
-std::vector<double> interpolaWps(std::vector<double> wp, double t)
+std::vector<double> Manager::interpolaWps(std::vector<double> wp, double t)
 {
 	std::vector<double> t_axis;
 	std::vector<double> newWpList;
@@ -608,4 +470,98 @@ std::vector<double> interpolaWps(std::vector<double> wp, double t)
 	auto res = interp1(t_axis, wp, newWpList);
 
 	return res;
+}
+
+template <typename Real> int Manager::nearestNeighbourIndex(std::vector<Real> &x, Real &value)
+{
+	Real dist = std::numeric_limits<Real>::max();
+	Real newDist = dist;
+	size_t idx = 0;
+
+	for (size_t i = 0; i < x.size(); ++i)
+	{
+		newDist = std::abs(value - x[i]);
+		if (newDist <= dist)
+		{
+			dist = newDist;
+			idx = i;
+		}
+	}
+
+	return idx;
+}
+
+template <typename Real> std::vector<Real> Manager::interp1(std::vector<Real> &x, std::vector<Real> &y, std::vector<Real> &x_new)
+{
+	std::vector<Real> y_new;
+	Real dx, dy, m, b;
+	size_t x_max_idx = x.size() - 1;
+	size_t x_new_size = x_new.size();
+
+	y_new.reserve(x_new_size);
+
+	for (size_t i = 0; i < x_new_size; ++i)
+	{
+		size_t idx = nearestNeighbourIndex(x, x_new[i]);
+
+		if (x[idx] > x_new[i])
+		{
+			dx = idx > 0 ? (x[idx] - x[idx - 1]) : (x[idx + 1] - x[idx]);
+			dy = idx > 0 ? (y[idx] - y[idx - 1]) : (y[idx + 1] - y[idx]);
+		}
+		else
+		{
+			dx = idx < x_max_idx ? (x[idx + 1] - x[idx]) : (x[idx] - x[idx - 1]);
+			dy = idx < x_max_idx ? (y[idx + 1] - y[idx]) : (y[idx] - y[idx - 1]);
+		}
+
+		m = dy / dx;
+		b = y[idx] - x[idx] * m;
+
+		y_new.push_back(x_new[i] * m + b);
+	}
+
+	return y_new;
+}
+
+void Manager::loop()
+{
+    while (ros::ok())
+    {
+        if (path.poses.size() != 0 && flagSpline == true)
+		{
+			for (int i = 0; i < vectorT.size(); i++)
+			{
+				sumVecT = sumVecT + vectorT[i];
+			}
+			std::cout << "[ TEST] sumVecT = " << sumVecT << '\n';
+			float distTotal = 0;
+			for (int i = 0; i < poseListX.size() - 1; i++)
+			{
+				distTotal = distTotal + funcMod(poseListX[i], poseListX[i + 1],
+												poseListY[i], poseListY[i + 1],
+												poseListZ[i], poseListZ[i + 1]);
+			}
+			funcCompruebaTiempos();
+			while (flagFinishSpline == false)
+			{ // Comentar para tener el generador V1
+				eclSpline(sumVecT, distTotal);
+			} // Comentar para tener el generador V1
+			funcPreprocesamiento();
+			//std::cout << "[ TEST] distTotal = " << distTotal << '\n';
+			flagSpline = false;
+		}
+		// Publicacion de splines
+		pubEclPath.publish(spline_msg);
+		pubEclPathV.publish(splineV_msg);
+		pubEclPath1.publish(spline_msg1);
+		pubEclPath2.publish(spline_msg2);
+		// Publicacion de ambas trayectorias
+		pubDrawPath.publish(msgDrawPath);
+		pubnewvectorT.publish(msgnewvectorT);
+
+		i++;
+		sleep(0.1);
+		ros::spinOnce();
+    }
 }

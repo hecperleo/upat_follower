@@ -97,13 +97,11 @@ public:
 
 int main(int _argc, char** _argv) {
 
-    grvc::utils::ArgumentParser args(_argc, _argv);
+    
     // Sirve para poner los servicios de UAL.
-    args.setArgument("ual_server", "on");
-    grvc::ual::UAL ual(args);
-
+    grvc::ual::UAL ual(_argc,_argv);
     while (!ual.isReady() && ros::ok()) {
-        std::cout << "[ TEST] UAL not ready!" << std::endl;
+        std::cout << "UAL not ready!" << std::endl;
         sleep(1);
     }
 
@@ -130,8 +128,18 @@ int main(int _argc, char** _argv) {
 		ros::Publisher pubDrawPathActual =
 					nh.advertise<nav_msgs::Path>("drawActualPath", 1000);
 
+    ROS_WARN("-1-");
+    int size = path_ok.size();
+    while(flagSubPath == true){
+      ROS_WARN("wait size -> %i > 2?", size);
+      size = path_ok.size();
+      ros::spinOnce();
+    }
+    size = path_ok.size();
+    std::cout << "size = " << size << " path_ok size = " << path_ok.size() << '\n';
+    ROS_WARN("wait size -> %i > 2?", size);
     // Despega el dron
-    ual.takeOff(flight_level, true);
+    ual.takeOff(flight_level, false);
     // Establece dos waypoints, uno como home y otro como punto inicial de la mision
     // (se usará en caso de que se desee)
     origen.header.frame_id = "map";
@@ -142,8 +150,9 @@ int main(int _argc, char** _argv) {
     home.pose.position.x = 0.0;
     home.pose.position.y = 0.0;
     home.pose.position.z = flight_level;
-
-    ual.goToWaypoint(path_ok[0], true);
+    ual.goToWaypoint(path_ok[0], false);
+    //std::cout << "[ --- ] x = " << path_ok[0].pose.position.x << "y = " << path_ok[0].pose.position.y << "z = " << path_ok[0].pose.position.z << '\n';
+    ROS_WARN("-2-");
     int windowsAvg = 3;
     movingAvg mavgVx(windowsAvg); movingAvg mavgVy(windowsAvg); movingAvg mavgVz(windowsAvg);
     for (int i = 0; i<windowsAvg; i++){
@@ -169,15 +178,15 @@ int main(int _argc, char** _argv) {
     for (int p=0; p<path_ok.size(); p++){
 			// Determina el look ahead de este instante en funcion del tiempo que tiene
 			// el dron para llegar al waypoint objetivo.
-			funcCambiaLookAhead(p); // Comentar para tener el generador V1
+			//funcCambiaLookAhead(p); // Comentar para tener el generador V1
 			// Determina la distancia normal
       dist_normal = funcCalcDistNormal();
-			std::cout << "comienza pure pursuit" << '\n';
-			std::cout << "p = " << p << '\n';
+			//std::cout << "comienza pure pursuit" << '\n';
+			//std::cout << "p = " << p << '\n';
       // Determina cual es el waypoint objetivo.
       pure_pursuit();
       p=p+pos_pure_pursuit;
-			std::cout << "p = " << p << '\n';
+			//std::cout << "p = " << p << '\n';
       // Asignación de variables del waypoint objetivo.
       targetX = path_ok[p].pose.position.x;
       targetY = path_ok[p].pose.position.y;
@@ -189,7 +198,7 @@ int main(int _argc, char** _argv) {
       ros::spinOnce();
       // El dron está dentro del path. Se le otorga la velocidad necesaria para que vaya hacia
       // el waypoint objetivo.
-			std::cout << dist_normal << " < " << lookAhead << " & " << dist_toTarget << " > " << lookAhead << '\n';
+			//std::cout << dist_normal << " < " << lookAhead << " & " << dist_toTarget << " > " << lookAhead << '\n';
       while(dist_normal<lookAhead    && dist_toTarget>lookAhead){
         dist_normal = funcCalcDistNormal();
         dist_toTarget = funcMod(targetX, actualPosX, targetY, actualPosY, targetZ, actualPosZ);
@@ -255,6 +264,7 @@ int main(int _argc, char** _argv) {
         ros::Duration(0.1).sleep();
         if(!(dist_normal>lookAhead)){continue;}
       }
+
 			// Calcula la suma de todas las distancias normales.
       funcSumDistNormal();
       // Cuenta los cambios de waypoint.
@@ -295,11 +305,11 @@ void  pure_pursuit(){
   dist_normal = funcCalcDistNormal();
   // Obtiene la posición en el path de la distancia normal.
   pos_path = funcCalcDistNormalPos();
-	std::cout << "pos path = " << pos_path << '\n';
+	//std::cout << "pos path = " << pos_path << '\n';
   // Determinar que waypoint está a una distancia similar a la distancia look ahead,
   // respecto del waypoint que corresponde con la normal del dron en este instante.
   if(dist_normal<lookAhead){
-		std::cout << "dist_normal mas pequeña que look ahead" << '\n';
+		//std::cout << "dist_normal mas pequeña que look ahead" << '\n';
     for (pos_path; pos_path<path_ok.size()-1; pos_path++){
       comp_dist_resta = funcModDirection(path_ok[pos_path].pose.position.x,
                                          path_ok[pos_path].pose.position.y,
@@ -309,10 +319,10 @@ void  pure_pursuit(){
     }
     up = std::upper_bound(comp_dist.begin(), comp_dist.end(), lookAhead);
     pos_pure_pursuit = up-comp_dist.begin();
-		std::cout << "pos pure pursuit = " << pos_pure_pursuit << '\n';
+		//std::cout << "pos pure pursuit = " << pos_pure_pursuit << '\n';
     // Se actualiza la distancia look ahead en funcion de como evoluciona la distancia
     // normal en el timepo.
-		std::cout << "cambia LookAhead" << '\n';
+		//std::cout << "cambia LookAhead" << '\n';
     // funcCambiaLookAheadVariable(); // Descomentar para tener el generador V1
   // Si el dron está lejos del path, se le da la orden de que se aproxime por la
   // distancia mas corta.
@@ -342,8 +352,9 @@ void  funcCambiaLookAhead(int p){
 	float targetY = path_ok[p].pose.position.y;
 	float targetZ = path_ok[p].pose.position.z;
 	dist_toTarget = funcMod(targetX, actualPosX, targetY, actualPosY, targetZ, actualPosZ);
-	lookAhead = 1/newVectorT[p];
-	//std::cout << "[ TEST] Look Ahead = " << lookAhead << " | Target = " << 1/newVectorT[p] << " | P = " << p << '\n';
+	//lookAhead = 1/newVectorT[p];
+	lookAhead = lookAhead;
+  //std::cout << "[ TEST] Look Ahead = " << lookAhead << " | Target = " << 1/newVectorT[p] << " | P = " << p << '\n';
 }
 
 void  funcCambiaLookAheadVariable(){

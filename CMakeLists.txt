@@ -8,7 +8,6 @@ add_compile_options(-std=c++11)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  argument_parser 
   geometry_msgs 
   nav_msgs
   std_msgs
@@ -109,7 +108,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES pure_pursuit
-  CATKIN_DEPENDS argument_parser geometry_msgs nav_msgs roscpp uav_abstraction_layer std_msgs ecl_geometry
+  CATKIN_DEPENDS geometry_msgs nav_msgs roscpp uav_abstraction_layer std_msgs ecl_geometry
 #  DEPENDS system_lib
 )
 
@@ -172,6 +171,13 @@ target_link_libraries(pManager
 target_link_libraries(pFollower
   ${catkin_LIBRARIES}
 )
+
+add_library(manager src/manager.cpp)
+add_dependencies(manager ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(manager_node src/manager_node.cpp)
+target_link_libraries(manager_node manager ${catkin_LIBRARIES})
+add_dependencies(manager_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 #############
 ## Install ##
