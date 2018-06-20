@@ -4,7 +4,7 @@
 #include "nav_msgs/Path.h"
 
 //std::vector<double> vectorT = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-std::vector<double> vectorT = {2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0/*, 2.0, 2.0, 2.0, 2.0, 2.0*/};
+std::vector<double> vectorT = {2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0 , 2.0, 2.0, 2.0, 2.0/*, 2.0*/};
 //std::vector<double> vectorT = {3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0};
 //std::vector<double> vectorT = {2.0, 3.0, 2.0, 1.0, 2.0, 3.0, 2.0, 1.0, 2.0, 3.0, 2.0/*, 1.0, 2.0*/};
 // std::vector<double> vectorT = {3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0};
@@ -64,48 +64,68 @@ void defaultVectorT()
 
 void defaultPath()
 {
-  float mult_wp = 1.2;
+  float mult_wp = 1.0;
   std::vector<grvc::ual::Waypoint> waypointList;
   grvc::ual::Waypoint waypoint;
   msgPath.header.frame_id = "map";
   if (flagPath == true)
   {
-    waypoint.pose.position.x = 7.5 * mult_wp;
-    waypoint.pose.position.y = 8.0 * mult_wp;
+    waypoint.pose.position.x = 5.0 * mult_wp;
+    waypoint.pose.position.y = 5.0 * mult_wp;
+    waypoint.pose.position.z = 10.01 * mult_wp;
+    waypointList.push_back(waypoint);
+    waypoint.pose.position.x = 5.0 * mult_wp;
+    waypoint.pose.position.y = 10.0 * mult_wp;
     waypoint.pose.position.z = 10.0 * mult_wp;
     waypointList.push_back(waypoint);
     waypoint.pose.position.x = 5.0 * mult_wp;
-    waypoint.pose.position.y = 11.0 * mult_wp;
-    waypoint.pose.position.z = 10.0 * mult_wp;
-    waypointList.push_back(waypoint);
-    waypoint.pose.position.x = 3.0 * mult_wp;
-    waypoint.pose.position.y = 8.0 * mult_wp;
-    waypoint.pose.position.z = 10.0 * mult_wp;
+    waypoint.pose.position.y = 10.0 * mult_wp;
+    waypoint.pose.position.z = 5.0 * mult_wp;
     waypointList.push_back(waypoint);
     waypoint.pose.position.x = 5.0 * mult_wp;
     waypoint.pose.position.y = 5.0 * mult_wp;
-    waypoint.pose.position.z = 10.0 * mult_wp;
-    waypointList.push_back(waypoint);
-    waypoint.pose.position.x = 7.5 * mult_wp;
-    waypoint.pose.position.y = 8.0 * mult_wp;
-    waypoint.pose.position.z = 10.0 * mult_wp;
+    waypoint.pose.position.z = 5.0 * mult_wp;
     waypointList.push_back(waypoint);
     waypoint.pose.position.x = 10.0 * mult_wp;
-    waypoint.pose.position.y = 11.0 * mult_wp;
-    waypoint.pose.position.z = 10.0 * mult_wp;
-    waypointList.push_back(waypoint);
-    waypoint.pose.position.x = 12.0 * mult_wp;
-    waypoint.pose.position.y = 8.0 * mult_wp;
-    waypoint.pose.position.z = 10.0 * mult_wp;
+    waypoint.pose.position.y = 5.0 * mult_wp;
+    waypoint.pose.position.z = 5.0 * mult_wp;
     waypointList.push_back(waypoint);
     waypoint.pose.position.x = 10.0 * mult_wp;
     waypoint.pose.position.y = 5.0 * mult_wp;
     waypoint.pose.position.z = 10.0 * mult_wp;
     waypointList.push_back(waypoint);
-    waypoint.pose.position.x = 7.5 * mult_wp;
-    waypoint.pose.position.y = 8.0 * mult_wp;
+    waypoint.pose.position.x = 10.0 * mult_wp;
+    waypoint.pose.position.y = 10.0 * mult_wp;
     waypoint.pose.position.z = 10.0 * mult_wp;
     waypointList.push_back(waypoint);
+    waypoint.pose.position.x = 15.0 * mult_wp;
+    waypoint.pose.position.y = 10.0 * mult_wp;
+    waypoint.pose.position.z = 10.0 * mult_wp;
+    waypointList.push_back(waypoint);
+    waypoint.pose.position.x = 15.0 * mult_wp;
+    waypoint.pose.position.y = 10.0 * mult_wp;
+    waypoint.pose.position.z = 5.0 * mult_wp;
+    waypointList.push_back(waypoint);
+    waypoint.pose.position.x = 15.0 * mult_wp;
+    waypoint.pose.position.y = 5.0 * mult_wp;
+    waypoint.pose.position.z = 5.0 * mult_wp;
+    waypointList.push_back(waypoint);
+    waypoint.pose.position.x = 20.0 * mult_wp;
+    waypoint.pose.position.y = 5.0 * mult_wp;
+    waypoint.pose.position.z = 5.0 * mult_wp;
+    waypointList.push_back(waypoint);
+    waypoint.pose.position.x = 20.0 * mult_wp;
+    waypoint.pose.position.y = 5.0 * mult_wp;
+    waypoint.pose.position.z = 10.0 * mult_wp;
+    waypointList.push_back(waypoint);
+    waypoint.pose.position.x = 20.0 * mult_wp;
+    waypoint.pose.position.y = 10.0 * mult_wp;
+    waypoint.pose.position.z = 10.0 * mult_wp;
+    waypointList.push_back(waypoint);
+    // waypoint.pose.position.x = 25.0 * mult_wp;
+    // waypoint.pose.position.y = 10.0 * mult_wp;
+    // waypoint.pose.position.z = 10.0 * mult_wp;
+    // waypointList.push_back(waypoint);
 
     std::cout << "[ TEST] Running!" << '\n';
     flagPath = false;
@@ -255,6 +275,45 @@ void defaultPath()
   waypoint.pose.position.x = 7.5*mult_wp;
   waypoint.pose.position.y = 8.0*mult_wp;
   waypoint.pose.position.z = 10.0*mult_wp;
+  waypointList.push_back(waypoint);
+*/
+
+/* OCHO Diff alturas
+  waypoint.pose.position.x = 7.5 * mult_wp;
+  waypoint.pose.position.y = 8.0 * mult_wp;
+  waypoint.pose.position.z = 9.0 * mult_wp;
+  waypointList.push_back(waypoint);
+  waypoint.pose.position.x = 5.0 * mult_wp;
+  waypoint.pose.position.y = 11.0 * mult_wp;
+  waypoint.pose.position.z = 10.0 * mult_wp;
+  waypointList.push_back(waypoint);
+  waypoint.pose.position.x = 3.0 * mult_wp;
+  waypoint.pose.position.y = 8.0 * mult_wp;
+  waypoint.pose.position.z = 10.0 * mult_wp;
+  waypointList.push_back(waypoint);
+  waypoint.pose.position.x = 5.0 * mult_wp;
+  waypoint.pose.position.y = 5.0 * mult_wp;
+  waypoint.pose.position.z = 11.0 * mult_wp;
+  waypointList.push_back(waypoint);
+  waypoint.pose.position.x = 7.5 * mult_wp;
+  waypoint.pose.position.y = 8.0 * mult_wp;
+  waypoint.pose.position.z = 10.0 * mult_wp;
+  waypointList.push_back(waypoint);
+  waypoint.pose.position.x = 10.0 * mult_wp;
+  waypoint.pose.position.y = 11.0 * mult_wp;
+  waypoint.pose.position.z = 9.0 * mult_wp;
+  waypointList.push_back(waypoint);
+  waypoint.pose.position.x = 12.0 * mult_wp;
+  waypoint.pose.position.y = 8.0 * mult_wp;
+  waypoint.pose.position.z = 10.0 * mult_wp;
+  waypointList.push_back(waypoint);
+  waypoint.pose.position.x = 10.0 * mult_wp;
+  waypoint.pose.position.y = 5.0 * mult_wp;
+  waypoint.pose.position.z = 10.0 * mult_wp;
+  waypointList.push_back(waypoint);
+  waypoint.pose.position.x = 7.5 * mult_wp;
+  waypoint.pose.position.y = 8.0 * mult_wp;
+  waypoint.pose.position.z = 11.0 * mult_wp;
   waypointList.push_back(waypoint);
 */
 
