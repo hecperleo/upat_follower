@@ -1,4 +1,5 @@
 #include <uav_abstraction_layer/ual.h>
+
 #include <ros/ros.h>
 #include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/TwistStamped.h"
@@ -141,7 +142,7 @@ int main(int _argc, char **_argv)
   ros::Publisher vis_pub = nh.advertise<visualization_msgs::Marker>("visualization_marker", 0);
 
   // Despega el dron
-  ual.takeOff(flight_level, false);
+  ual.takeOff(flight_level, true);
   // Establece dos waypoints, uno como home y otro como punto inicial de la mision
   // (se usará en caso de que se desee)
   origen.header.frame_id = "map";
@@ -152,6 +153,10 @@ int main(int _argc, char **_argv)
   home.pose.position.x = 0.0;
   home.pose.position.y = 0.0;
   home.pose.position.z = flight_level;
+  path_ok[0].pose.orientation.x = 0;
+  path_ok[0].pose.orientation.y = 0;
+  path_ok[0].pose.orientation.z = 0;
+  path_ok[0].pose.orientation.w = 1;
 
   ual.goToWaypoint(path_ok[0], true);
   int windowsAvg = 3;
@@ -505,7 +510,7 @@ void funcDrawTriangles(int p)
   marker.action = visualization_msgs::Marker::ADD;
   marker.pose.position.x = actualPosX;
   marker.pose.position.y = actualPosY;
-  marker.pose.position.z = actualPosZ-0.2;
+  marker.pose.position.z = actualPosZ - 0.2;
   marker.pose.orientation.x = 0.0;
   marker.pose.orientation.y = 0.0;
   marker.pose.orientation.z = 0.0;
