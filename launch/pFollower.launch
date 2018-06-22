@@ -39,11 +39,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     </include>
 
     <!-- Other nodes -->
-    <node pkg="tfm" type="setup" name="setup" output="screen" required="true"/>
-    <node pkg="tfm" type="pManager" name="pManager" output="screen" required="true"/> 
+    <node pkg="tfm" type="initiator_node" name="initiator_node" output="screen" required="true"/>
+    <node pkg="tfm" type="pManager" name="manager_node" output="screen" required="true"/> 
     
     <!-- Launch UAL server for uav id=1 -->
-    <node pkg="tfm" type="pFollower" name="server_1" output="screen">
+    <node pkg="tfm" type="pFollower" name="uav1" output="screen">
         <param name="uav_id" value="1"/>
         <param name="ns_prefix" value="$(arg ns_prefix)"/>
         <param name="pose_frame_id" value="$(arg pose_frame_id)"/>

@@ -4,7 +4,7 @@
 #include "nav_msgs/Path.h"
 
 //std::vector<double> vectorT = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-std::vector<double> vectorT = {2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0 , 2.0, 2.0, 2.0, 2.0/*, 2.0*/};
+std::vector<double> vectorT = {2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0 /*, 2.0*/};
 //std::vector<double> vectorT = {3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0};
 //std::vector<double> vectorT = {2.0, 3.0, 2.0, 1.0, 2.0, 3.0, 2.0, 1.0, 2.0, 3.0, 2.0/*, 1.0, 2.0*/};
 // std::vector<double> vectorT = {3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0};
@@ -122,10 +122,6 @@ void defaultPath()
     waypoint.pose.position.y = 10.0 * mult_wp;
     waypoint.pose.position.z = 10.0 * mult_wp;
     waypointList.push_back(waypoint);
-    // waypoint.pose.position.x = 25.0 * mult_wp;
-    // waypoint.pose.position.y = 10.0 * mult_wp;
-    // waypoint.pose.position.z = 10.0 * mult_wp;
-    // waypointList.push_back(waypoint);
 
     std::cout << "[ TEST] Running!" << '\n';
     flagPath = false;

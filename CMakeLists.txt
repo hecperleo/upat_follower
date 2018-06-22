@@ -179,6 +179,20 @@ add_executable(manager_node src/manager_node.cpp)
 target_link_libraries(manager_node manager ${catkin_LIBRARIES})
 add_dependencies(manager_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+add_library(initiator src/initiator.cpp)
+add_dependencies(initiator ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(initiator_node src/initiator_node.cpp)
+target_link_libraries(initiator_node initiator ${catkin_LIBRARIES})
+add_dependencies(initiator_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_library(follower src/follower.cpp)
+add_dependencies(follower ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(follower_node src/follower_node.cpp)
+target_link_libraries(follower_node follower ${catkin_LIBRARIES})
+add_dependencies(follower_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
 #############
 ## Install ##
 #############
