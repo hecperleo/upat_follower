@@ -25,6 +25,41 @@ Follower::~Follower()
 {
 }
 
+// Moving Average
+using ecl::FiFo;
+class movingAvg
+{
+  public:
+    movingAvg(const unsigned int widowsSize) : sum(0.0), average(0.0), windows_size(widowsSize), first(true)
+    {
+        fifo.resize(windows_size);
+    }
+    void reset()
+    {
+        fifo.fill(0);
+        sum = 0;
+        average = 0.0;
+    }
+    void update(const double &incomingData)
+    {
+        if (first)
+        {
+            fifo.fill(incomingData);
+            first = false;
+        }
+
+        sum -= fifo[0];
+        sum += incomingData;
+        fifo.push_back(incomingData);
+        average = sum / (double)(windows_size);
+    }
+    double sum;
+    double average;
+    unsigned int windows_size;
+    FiFo<double> fifo;
+    bool first;
+};
+
 void Follower::pure_pursuit()
 {
     float comp_dist_resta;
@@ -378,41 +413,6 @@ void Follower::newVectorTCallback(const nav_msgs::Path &msg)
     flagSubVectorT = false;
     return;
 }
-
-// Moving Average
-using ecl::FiFo;
-class movingAvg
-{
-  public:
-    movingAvg(const unsigned int widowsSize) : sum(0.0), average(0.0), windows_size(widowsSize), first(true)
-    {
-        fifo.resize(windows_size);
-    }
-    void reset()
-    {
-        fifo.fill(0);
-        sum = 0;
-        average = 0.0;
-    }
-    void update(const double &incomingData)
-    {
-        if (first)
-        {
-            fifo.fill(incomingData);
-            first = false;
-        }
-
-        sum -= fifo[0];
-        sum += incomingData;
-        fifo.push_back(incomingData);
-        average = sum / (double)(windows_size);
-    }
-    double sum;
-    double average;
-    unsigned int windows_size;
-    FiFo<double> fifo;
-    bool first;
-};
 
 void Follower::mision()
 {
