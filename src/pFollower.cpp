@@ -141,7 +141,6 @@ int main(int _argc, char **_argv)
   ros::Publisher vis_pub =
       nh.advertise<visualization_msgs::Marker>("visualization_marker", 0);
 
-  
   // Despega el dron
   ual.takeOff(flight_level, true);
   // Establece dos waypoints, uno como home y otro como punto inicial de la mision
@@ -381,7 +380,7 @@ void funcCambiaLookAhead(int p)
   float targetZ = path_ok[p].pose.position.z;
   dist_toTarget = funcMod(targetX, actualPosX, targetY, actualPosY, targetZ, actualPosZ);
   lookAhead = 1 / newVectorT[p];
-  //std::cout << "[ TEST] Look Ahead = " << lookAhead << " | Target = " << 1/newVectorT[p] << " | P = " << p << '\n';
+  std::cout << "[ TEST] Look Ahead = " << lookAhead << " | Target = " << 1 / newVectorT[p] << " | P = " << p << '\n';
 }
 
 void funcCambiaLookAheadVariable()

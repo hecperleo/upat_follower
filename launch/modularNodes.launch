@@ -22,7 +22,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
     <group if="$(eval mode=='sitl')">
         <!-- Launch Gazebo simulation TODO: world location? -->
-        <node pkg="px4_bringup" type="launch_gzworld.py" name="gazebo_world" output="screen" args="-physics=ode -world=$(find px4_bringup)/config/empty_light.world"/>
+        <node pkg="px4_bringup" type="launch_gzworld.py" name="gazebo_world" output="screen" args="-physics=none -world=$(find px4_bringup)/config/empty_light.world"/>
     </group>
 
     <!-- Launch robots. Argument mode can be:
@@ -38,20 +38,21 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         <arg name="ns_prefix" value="$(arg ns_prefix)"/>
     </include>
 
-    <!-- Other nodes -->
-    <node pkg="tfm" type="initiator_node" name="initiator_node" output="screen" required="true"/>
-    <node pkg="tfm" type="pManager" name="manager_node" output="screen" required="true"/>
+
 
     <!-- Launch UAL server for uav id=1 -->
-    <node pkg="tfm" type="pFollower" name="follower" output="screen">
+    <node pkg="uav_abstraction_layer" type="server" name="server_1" output="screen" required="true">
         <param name="uav_id" value="1"/>
         <param name="ns_prefix" value="$(arg ns_prefix)"/>
         <param name="pose_frame_id" value="$(arg pose_frame_id)"/>
         <param name="ual_server" value="$(arg ual_server)"/>
     </node>
 
-    <node pkg="rviz" type="rviz" name="Visualization" args="-d /home/hector/.rviz/tfm.rviz"/>
 
-    <!-- <node pkg="tfm" type="pFollower" name="Drone_1" output="screen" args="-uav_id=1 -ns_prefix=$(arg ns_prefix)"/> -->
+    <!-- Other nodes -->
+    <node pkg="tfm" type="initiator_node" name="initiator_node" output="screen" required="true"/>
+    <node pkg="tfm" type="pManager" name="manager_node" output="screen" required="true"/>
+    <node pkg="tfm" type="follower_node" name="follower" output="screen"/>
+    <node pkg="rviz" type="rviz" name="Visualization" args="-d /home/hector/.rviz/tfm.rviz"/>
 
 </launch>

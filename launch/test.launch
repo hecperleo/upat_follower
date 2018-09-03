@@ -1,9 +1,0 @@
-<launch>
-
-    <node pkg="rviz" type="rviz" name="Visualization" args="-d /home/hector/.rviz/tfm.rviz" required="true"/>
-    <node pkg="tfm" type="initiator_node" name="Initiator" required="true"/>
-    <!-- <node pkg="tfm" type="pManager" name="Manager" required="true"/> -->
-    <node pkg="tfm" type="manager_node" name="Manager" output="screen" required="true"/>
-
-    <node pkg="tfm" type="follower_node" name="Follower" output="screen" required="true"/>
-</launch>

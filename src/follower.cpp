@@ -5,11 +5,11 @@ Follower::Follower()
     nh = ros::NodeHandle();
 
     // Subscriptions
-    subPose = nh.subscribe("/uav_1/ual/pose", 0, &Follower::UALPoseCallback, this);
-    subActualVel = nh.subscribe("/uav_1/mavros/local_position/velocity", 0, &Follower::UALVelocityCallback, this);
-    subVel = nh.subscribe("velSpline", 0, &Follower::UALPathVCallback, this);
-    subPath = nh.subscribe("posSpline", 0, &Follower::UALPathCallback, this);
-    subNewVectorT = nh.subscribe("newVectorT", 0, &Follower::newVectorTCallback, this);
+    subPose = nh.subscribe("/uav_1/ual/pose", 10, &Follower::UALPoseCallback, this);
+    subActualVel = nh.subscribe("/uav_1/mavros/local_position/velocity", 10, &Follower::UALVelocityCallback, this);
+    subVel = nh.subscribe("velSpline", 10, &Follower::UALPathVCallback, this);
+    subPath = nh.subscribe("posSpline", 10, &Follower::UALPathCallback, this);
+    subNewVectorT = nh.subscribe("newVectorT", 10, &Follower::newVectorTCallback, this);
 
     // Publishers
     pubToTarget = nh.advertise<nav_msgs::Path>("distToTarget", 1000);
@@ -17,6 +17,12 @@ Follower::Follower()
     pubLookAhead = nh.advertise<nav_msgs::Path>("distLookAhead", 1000);
     pubDrawPathActual = nh.advertise<nav_msgs::Path>("drawActualPath", 1000);
     vis_pub = nh.advertise<visualization_msgs::Marker>("visualization_marker", 0);
+
+    // Service
+    srvTakeOff = nh.serviceClient<uav_abstraction_layer::TakeOff>("/uav_1/ual/take_off");
+    srvLand = nh.serviceClient<uav_abstraction_layer::Land>("/uav_1/ual/land");
+    srvGoToWaypoint = nh.serviceClient<uav_abstraction_layer::GoToWaypoint>("/uav_1/ual/go_to_waypoint");
+    srvSetVelocity = nh.serviceClient<uav_abstraction_layer::SetVelocity>("/uav_1/ual/set_velocity");
 
     mision();
 }
@@ -71,30 +77,30 @@ void Follower::pure_pursuit()
     pos_path = funcCalcDistNormalPos();
     // Determinar que waypoint está a una distancia similar a la distancia look ahead,
     // respecto del waypoint que corresponde con la normal del dron en este instante.
-    if (dist_normal < lookAhead)
+    // if (dist_normal < lookAhead)
+    // {
+    for (pos_path; pos_path < path_ok.size() - 1; pos_path++)
     {
-        for (pos_path; pos_path < path_ok.size() - 1; pos_path++)
-        {
-            comp_dist_resta = funcModDirection(path_ok[pos_path].pose.position.x,
-                                               path_ok[pos_path].pose.position.y,
-                                               path_ok[pos_path].pose.position.z, lookAhead);
+        comp_dist_resta = funcModDirection(path_ok[pos_path].pose.position.x,
+                                           path_ok[pos_path].pose.position.y,
+                                           path_ok[pos_path].pose.position.z, lookAhead);
 
-            comp_dist.push_back(comp_dist_resta);
-        }
-        up = std::upper_bound(comp_dist.begin(), comp_dist.end(), lookAhead);
-        pos_pure_pursuit = up - comp_dist.begin();
-        // Se actualiza la distancia look ahead en funcion de como evoluciona la distancia
-        // normal en el timepo.
-        // funcCambiaLookAheadVariable(); // Descomentar para tener el generador V1
-        // Si el dron está lejos del path, se le da la orden de que se aproxime por la
-        // distancia mas corta.
+        comp_dist.push_back(comp_dist_resta);
     }
-    else if (dist_normal > lookAhead)
-    {
-        pos_pure_pursuit = pos_path;
-        flagPurePursuit = false;
-        std::cout << "[ TEST] Going Closer" << '\n';
-    }
+    up = std::upper_bound(comp_dist.begin(), comp_dist.end(), lookAhead);
+    pos_pure_pursuit = up - comp_dist.begin();
+    // Se actualiza la distancia look ahead en funcion de como evoluciona la distancia
+    // normal en el timepo.
+    // funcCambiaLookAheadVariable(); // Descomentar para tener el generador V1
+    // Si el dron está lejos del path, se le da la orden de que se aproxime por la
+    // distancia mas corta.
+    // }
+    // else if (dist_normal > lookAhead /* && pos_pure_pursuit > 0 */)
+    // {
+    //     pos_pure_pursuit = pos_path;
+    //     flagPurePursuit = false;
+    //     std::cout << "[ TEST] Going Closer" << '\n';
+    // }
     // Limpia el vector
     comp_dist.clear();
 }
@@ -118,6 +124,7 @@ void Follower::funcCambiaLookAhead(int p)
     float targetZ = path_ok[p].pose.position.z;
     dist_toTarget = funcMod(targetX, actualPosX, targetY, actualPosY, targetZ, actualPosZ);
     lookAhead = 1 / newVectorT[p];
+    // std::cout << "[ TEST] Look Ahead = " << lookAhead << " | Target = " << 1 / newVectorT[p] << " | P = " << p << '\n';
 }
 
 void Follower::funcCambiaLookAheadVariable()
@@ -366,7 +373,7 @@ void Follower::UALVelocityCallback(const geometry_msgs::TwistStamped &msg)
 
 void Follower::UALPathCallback(const nav_msgs::Path &msg)
 {
-    grvc::ual::Waypoint waypoint;
+    geometry_msgs::PoseStamped waypoint;
     if (flagSubPath == true)
     {
         for (int p = 0; p < msg.poses.size(); p++)
@@ -378,6 +385,7 @@ void Follower::UALPathCallback(const nav_msgs::Path &msg)
             path_ok.push_back(waypoint);
         }
     }
+    // ROS_WARN("path 0 x: %f", path_ok[0].pose.position.x);
     flagSubPath = false;
 
     return;
@@ -417,23 +425,34 @@ void Follower::newVectorTCallback(const nav_msgs::Path &msg)
 void Follower::mision()
 {
 
-    grvc::ual::UAL ual;
+    // grvc::ual::UAL ual;
 
-    while (!ual.isReady() && ros::ok())
+    // while (!ual.isReady() && ros::ok())
+    // {
+    //     std::cout << "[ TEST] UAL not ready!" << std::endl;
+    //     sleep(1);
+    // }
+    while (!srvTakeOff.exists() && ros::ok())
     {
-        std::cout << "[ TEST] UAL not ready!" << std::endl;
+        ROS_WARN("Waiting server");
         sleep(1);
     }
-
+    ros::spinOnce();
     // Despega el dron
-    // ROS_WARN("x: %f, y: %f, z: %f", path_ok[0].pose.position.x, path_ok[0].pose.position.y, path_ok[0].pose.position.z);
-    ual.takeOff(flight_level, true);
+    // ual.takeOff(flight_level, true);
+    take_off.request.height = 5.0;
+    take_off.request.blocking = true;
+    srvTakeOff.call(take_off);
+    // Lleva el dron al waypoint inicial
     path_ok[0].pose.orientation.x = 0;
     path_ok[0].pose.orientation.y = 0;
     path_ok[0].pose.orientation.z = 0;
     path_ok[0].pose.orientation.w = 1;
-    // Lleva el dron al waypoint inicial
-    ual.goToWaypoint(path_ok[0], true);
+    go_to_waypoint.request.waypoint = path_ok[0];
+    go_to_waypoint.request.blocking = true;
+    srvGoToWaypoint.call(go_to_waypoint);
+
+    // ual.goToWaypoint(path_ok[0], true);
     // Inicializa Moving Average
     int windowsAvg = 3;
     movingAvg mavgVx(windowsAvg);
@@ -446,7 +465,7 @@ void Follower::mision()
         mavgVz.update(0);
     }
     // Espera en el waypoint inicial para tratar de empezar con velocidad 0
-    ros::Duration(1).sleep();
+    ros::Duration(3).sleep();
     // Empieza a contar el tiempo para saber cuanto tarda en realizar la misión
     ros::Time begin = ros::Time::now();
     // ---------------------------------------------- MISION ----------------------------------------------
@@ -490,10 +509,16 @@ void Follower::mision()
             mavgVx.update(targetX - actualPosX);
             mavgVy.update(targetY - actualPosY);
             mavgVz.update(targetZ - actualPosZ);
+            Vel_goClose.header.frame_id = "map";
             Vel_goClose.twist.linear.x = mavgVx.average;
             Vel_goClose.twist.linear.y = mavgVy.average;
             Vel_goClose.twist.linear.z = mavgVz.average;
-            ual.setVelocity(Vel_goClose);
+            Vel_goClose.twist.angular.x = 0.0;
+            Vel_goClose.twist.angular.y = 0.0;
+            Vel_goClose.twist.angular.z = 0.0;
+            set_velocity.request.velocity = Vel_goClose;
+            srvSetVelocity.call(set_velocity);
+            // ual.setVelocity(Vel_goClose);
             fileMovingAvg << mavgVx.average << " "
                           << mavgVy.average << " "
                           << mavgVz.average << "\n";
@@ -514,7 +539,8 @@ void Follower::mision()
             pubDrawPathActual.publish(msgDrawActual);
             i++;
             // Espera
-            ros::Duration(0.1).sleep();
+            ros::Duration(0.05).sleep();
+            ros::spinOnce();
             if (!(dist_normal < lookAhead && dist_toTarget > lookAhead))
             {
                 continue;
@@ -528,10 +554,16 @@ void Follower::mision()
             mavgVx.update(targetX - actualPosX);
             mavgVy.update(targetY - actualPosY);
             mavgVz.update(targetZ - actualPosZ);
+            Vel_goClose.header.frame_id = "map";
             Vel_goClose.twist.linear.x = mavgVx.average;
             Vel_goClose.twist.linear.y = mavgVy.average;
             Vel_goClose.twist.linear.z = mavgVz.average;
-            ual.setVelocity(Vel_goClose);
+            Vel_goClose.twist.angular.x = 0.0;
+            Vel_goClose.twist.angular.y = 0.0;
+            Vel_goClose.twist.angular.z = 0.0;
+            set_velocity.request.velocity = Vel_goClose;
+            srvSetVelocity.call(set_velocity);
+            // ual.setVelocity(Vel_goClose);
             fileMovingAvg << mavgVx.average << " "
                           << mavgVy.average << " "
                           << mavgVz.average << "\n";
@@ -549,7 +581,8 @@ void Follower::mision()
             vis_pub.publish(marker);
             i++;
             // Espera
-            ros::Duration(0.1).sleep();
+            ros::Duration(0.05).sleep();
+            ros::spinOnce();
             if (!(dist_normal > lookAhead))
             {
                 continue;
@@ -573,5 +606,7 @@ void Follower::mision()
     std::cout << "[ TEST] Time: " << ros::Time::now() - begin << std::endl;
     std::cout << "[ TEST] Media dist_normal: " << funcSumDistNormal() / cont << '\n';
 
-    ual.land(1);
+    // ual.land(1);
+    land.request.blocking = true;
+    srvLand.call(land);
 }
