@@ -3,8 +3,8 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "nav_msgs/Path.h"
 
-//std::vector<double> vectorT = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-std::vector<double> vectorT = {2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0 /*, 2.0*/};
+std::vector<double> vectorT = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0/*, 1.0*/};
+// std::vector<double> vectorT = {2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0 /*, 2.0*/};
 //std::vector<double> vectorT = {3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0};
 //std::vector<double> vectorT = {2.0, 3.0, 2.0, 1.0, 2.0, 3.0, 2.0, 1.0, 2.0, 3.0, 2.0/*, 1.0, 2.0*/};
 // std::vector<double> vectorT = {3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0};

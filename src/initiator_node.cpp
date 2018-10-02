@@ -1,4 +1,4 @@
-#include <pathFollower/initiator.h>
+#include <path_follower/initiator.h>
 
 int main(int _argc, char **_argv)
 {
