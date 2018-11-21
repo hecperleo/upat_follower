@@ -141,6 +141,7 @@ include_directories(
 add_executable(setup     src/setup.cpp)
 add_executable(pManager  src/pManager.cpp)
 add_executable(pFollower src/pFollower.cpp)
+add_executable(plot_ual src/plot_ual.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -155,6 +156,7 @@ add_executable(pFollower src/pFollower.cpp)
 add_dependencies(setup     ${catkin_EXPORTED_TARGETS})
 add_dependencies(pManager  ${catkin_EXPORTED_TARGETS})
 add_dependencies(pFollower ${catkin_EXPORTED_TARGETS})
+add_dependencies(plot_ual  ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
@@ -168,6 +170,9 @@ target_link_libraries(pManager
   ${catkin_LIBRARIES}
 )
 target_link_libraries(pFollower
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(plot_ual
   ${catkin_LIBRARIES}
 )
 
@@ -191,6 +196,8 @@ add_dependencies(follower ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_
 add_executable(follower_node src/follower_node.cpp)
 target_link_libraries(follower_node follower ${catkin_LIBRARIES})
 add_dependencies(follower_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+
 
 #############
 ## Install ##

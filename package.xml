@@ -2,7 +2,7 @@
 <package>
   <name>path_follower</name>
   <version>0.0.0</version>
-  <description>The pathFollower package</description>
+  <description>The path_follower package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->

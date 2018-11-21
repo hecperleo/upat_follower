@@ -13,16 +13,18 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <arg name="multi" default="false"/>
     <arg name="ns_prefix" default="uav_"/>
     <arg name="mode" default="sitl"/>
-    <arg name="pose_frame_id" default="map"/>
-    <!-- To publish ual/pose in other frame than local, e.g. map -->
+    <arg name="pose_frame_id" default=""/><!-- To publish ual/pose in other frame than local, e.g. map -->
     <arg name="ual_server" default="on"/>
-
-    <!-- Load frame transforms for map and UAVs -->
-    <rosparam file="$(find px4_bringup)/config/simulation_params.yaml" command="load" />
+    <arg name="ual_pub_rate" default="30.0"/>
+    <arg name="mavros_offboard_rate" default="30.0"/>
 
     <group if="$(eval mode=='sitl')">
-        <!-- Launch Gazebo simulation TODO: world location? -->
-        <node pkg="px4_bringup" type="launch_gzworld.py" name="gazebo_world" output="screen" args="-physics=none -world=$(find px4_bringup)/config/empty_light.world"/>
+        <!-- Launch Gazebo simulation -->
+        <rosparam param="/use_sim_time">true</rosparam>
+        <node pkg="px4_bringup" type="launch_gzworld.py" name="gazebo_world" output="screen"
+        args="-physics=ode -world=$(find px4_bringup)/config/empty_light.world">
+            <rosparam param="sim_origin">[37.558542, -5.931074, 7.89]</rosparam><!-- [lat,lon,alt] -->
+        </node>
     </group>
 
     <!-- Launch robots. Argument mode can be:
@@ -31,28 +33,36 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         - udp: for udp connection to px4
     -->
     <!-- Launch robot id=1 -->
-    <include file="$(find px4_bringup)/launch/spawn_robot.launch">
+    <include file="$(find px4_bringup)/launch/spawn_robot.launch" ns="$(arg ns_prefix)1">
         <arg name="id" value="1"/>
         <arg name="material" value="Orange"/>
         <arg name="mode" value="$(arg mode)"/>
-        <arg name="ns_prefix" value="$(arg ns_prefix)"/>
+        <arg name="x" value="0"/>
+        <arg name="y" value="0"/>
+        <arg name="z" value="0"/>
+        <arg name="yaw" value="0"/>
     </include>
 
 
-
     <!-- Launch UAL server for uav id=1 -->
-    <node pkg="uav_abstraction_layer" type="server" name="server_1" output="screen" required="true">
+    <node pkg="uav_abstraction_layer" type="server" name="ual" ns="$(arg ns_prefix)1" output="screen">
         <param name="uav_id" value="1"/>
-        <param name="ns_prefix" value="$(arg ns_prefix)"/>
         <param name="pose_frame_id" value="$(arg pose_frame_id)"/>
         <param name="ual_server" value="$(arg ual_server)"/>
+        <param name="ual_pub_rate" value="$(arg ual_pub_rate)"/>
+        <param name="mavros_offboard_rate" value="$(arg mavros_offboard_rate)"/>
+        <param name="home_pose_parent_frame" value="map"/><!-- default= map -->
+        <!-- Define home pose relative to global map frame -->
+        <rosparam param="home_pose">[0, 0, 0]</rosparam><!-- [x,y,z] -->
+        <!-- Define the global map frame geo position and let the UAL estimate the relative home pose -->
+        <!-- <rosparam param="map_origin_geo">[37.558542, -5.931074, 7.89]</rosparam> --><!-- [lat,lon,alt] -->
     </node>
 
 
     <!-- Other nodes -->
     <node pkg="path_follower" type="initiator_node" name="initiator_node" output="screen" required="true"/>
     <node pkg="path_follower" type="pManager" name="manager_node" output="screen" required="true"/>
-    <node pkg="path_follower" type="follower_node" name="follower" output="screen"/>
-    <node pkg="rviz" type="rviz" name="Visualization" args="-d /home/hector/tfm_ws/src/path_follower/rviz/tfm.rviz"/>
+    <node pkg="path_follower" type="follower_node" name="follower" output="screen" required="true"/>
+    <node pkg="rviz" type="rviz" name="Visualization" args="-d /home/hector/tfm_ws/src/pathFollower/rviz/tfm.rviz" required="true"/>
 
 </launch>
