@@ -108,35 +108,44 @@ int main(int _argc, char** _argv) {
     intendeed_wp.pose.position.z = 2.0;
     uav_path_intendeed.poses.push_back(intendeed_wp);
     intendeed_wp.pose.position.x = 0.0;
-    intendeed_wp.pose.position.y = -10.0;
-    intendeed_wp.pose.position.z = 2.0;
-    uav_path_intendeed.poses.push_back(intendeed_wp);
-    intendeed_wp.pose.position.x = 10.0;
-    intendeed_wp.pose.position.y = 0.0;
+    intendeed_wp.pose.position.y = 10.0;
     intendeed_wp.pose.position.z = 10.0;
     uav_path_intendeed.poses.push_back(intendeed_wp);
+    // intendeed_wp.pose.position.x = 10.0;
+    // intendeed_wp.pose.position.y = 0.0;
+    // intendeed_wp.pose.position.z = 3.0;
+    // uav_path_intendeed.poses.push_back(intendeed_wp);
     ros::Rate rate(10);
     while (ros::ok()) {
-        for (int i = 1; i < uav_path_intendeed.poses.size(); i++) {
-            while (!next_wp) {
-                geometry_msgs::TwistStamped velocity_to_pub = calculateSmoothVelocity(ual.pose(), uav_path_intendeed.poses.at(i).pose.position);
-                uav_path_actual.poses.push_back(ual.pose());
-                pub_velocity.publish(velocity_to_pub);
-                pub_uav_path_actual.publish(uav_path_actual);
-                pub_uav_path_intendeed.publish(uav_path_intendeed);
-                ros::spinOnce();
-                rate.sleep();
-            }
-            grvc::ual::Waypoint hover;
-            hover.header = uav_path_intendeed.poses.at(i).header;
-            hover.pose = uav_path_intendeed.poses.at(i).pose;
-            uav_path_actual.poses.push_back(ual.pose());
-            ROS_WARN("Goal!");
-            ual.goToWaypoint(hover, false);
-            ros::Duration(10).sleep();
-            ROS_WARN("Go to next WP");
-            next_wp = false;
-        }
+        grvc::ual::Waypoint wp;
+        wp.header = uav_path_intendeed.poses.at(1).header;
+        wp.pose = uav_path_intendeed.poses.at(1).pose;
+        uav_path_actual.poses.push_back(ual.pose());
+        pub_uav_path_actual.publish(uav_path_actual);
+        pub_uav_path_intendeed.publish(uav_path_intendeed);
+        ual.goToWaypoint(wp, false);
+        ros::spinOnce();
+        rate.sleep();
+        // for (int i = 1; i < uav_path_intendeed.poses.size(); i++) {
+        // while (!next_wp) {
+        //     geometry_msgs::TwistStamped velocity_to_pub = calculateSmoothVelocity(ual.pose(), uav_path_intendeed.poses.at(i).pose.position);
+        //     uav_path_actual.poses.push_back(ual.pose());
+        //     pub_velocity.publish(velocity_to_pub);
+        //     pub_uav_path_actual.publish(uav_path_actual);
+        //     pub_uav_path_intendeed.publish(uav_path_intendeed);
+        //     ros::spinOnce();
+        //     rate.sleep();
+        // }
+        // grvc::ual::Waypoint hover;
+        // hover.header = uav_path_intendeed.poses.at(i).header;
+        // hover.pose = uav_path_intendeed.poses.at(i).pose;
+        // uav_path_actual.poses.push_back(ual.pose());
+        // ROS_WARN("Goal!");
+        // ual.goToWaypoint(hover, false);
+        // ros::Duration(10).sleep();
+        // ROS_WARN("Go to next WP");
+        // next_wp = false;
+        // }
         ros::spinOnce();
         rate.sleep();
     }
