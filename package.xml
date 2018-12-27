@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>tfm</name>
+  <name>path_follower</name>
   <version>0.0.0</version>
-  <description>The tfm package</description>
+  <description>The path_follower package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
@@ -38,16 +38,15 @@
   <!-- Use test_depend for packages you need only for testing: -->
   <!--   <test_depend>gtest</test_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>argument_parser</build_depend>
   <build_depend>geometry_msgs</build_depend>
   <build_depend>nav_msgs</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>uav_abstraction_layer</build_depend>
   <build_depend>ecl_geometry</build_depend>
-  <run_depend>argument_parser</run_depend>
+
   <run_depend>geometry_msgs</run_depend>
-  <run_depend>nav_msgs</run_depend>  
+  <run_depend>nav_msgs</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>std_msgs</run_depend>
   <run_depend>uav_abstraction_layer</run_depend>

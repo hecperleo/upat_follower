@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(tfm)
+project(path_follower)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)
@@ -8,7 +8,6 @@ add_compile_options(-std=c++11)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  argument_parser 
   geometry_msgs 
   nav_msgs
   std_msgs
@@ -53,8 +52,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate messages in the 'msg' folder
 # add_message_files(
 #   FILES
-#   Message1.msg
-#   Message2.msg
+#   example.msg
 # )
 
 ## Generate services in the 'srv' folder
@@ -107,9 +105,9 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES pure_pursuit
-  CATKIN_DEPENDS argument_parser geometry_msgs nav_msgs roscpp uav_abstraction_layer std_msgs ecl_geometry
+  # INCLUDE_DIRS include
+  # LIBRARIES pathFollower
+  CATKIN_DEPENDS geometry_msgs nav_msgs roscpp uav_abstraction_layer std_msgs ecl_geometry
 #  DEPENDS system_lib
 )
 
@@ -143,6 +141,7 @@ include_directories(
 add_executable(setup     src/setup.cpp)
 add_executable(pManager  src/pManager.cpp)
 add_executable(pFollower src/pFollower.cpp)
+add_executable(plot_ual src/plot_ual.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -157,6 +156,7 @@ add_executable(pFollower src/pFollower.cpp)
 add_dependencies(setup     ${catkin_EXPORTED_TARGETS})
 add_dependencies(pManager  ${catkin_EXPORTED_TARGETS})
 add_dependencies(pFollower ${catkin_EXPORTED_TARGETS})
+add_dependencies(plot_ual  ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
@@ -172,6 +172,32 @@ target_link_libraries(pManager
 target_link_libraries(pFollower
   ${catkin_LIBRARIES}
 )
+target_link_libraries(plot_ual
+  ${catkin_LIBRARIES}
+)
+
+add_library(manager src/manager.cpp)
+add_dependencies(manager ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(manager_node src/manager_node.cpp)
+target_link_libraries(manager_node manager ${catkin_LIBRARIES})
+add_dependencies(manager_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_library(initiator src/initiator.cpp)
+add_dependencies(initiator ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(initiator_node src/initiator_node.cpp)
+target_link_libraries(initiator_node initiator ${catkin_LIBRARIES})
+add_dependencies(initiator_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_library(follower src/follower.cpp)
+add_dependencies(follower ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(follower_node src/follower_node.cpp)
+target_link_libraries(follower_node follower ${catkin_LIBRARIES})
+add_dependencies(follower_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+
 
 #############
 ## Install ##
