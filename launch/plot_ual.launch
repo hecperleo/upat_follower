@@ -3,7 +3,8 @@
     <arg name="multi" default="false"/>
     <arg name="ns_prefix" default="uav_"/>
     <arg name="mode" default="sitl"/>
-    <arg name="pose_frame_id" default=""/><!-- To publish ual/pose in other frame than local, e.g. map -->
+    <arg name="pose_frame_id" default=""/>
+    <!-- To publish ual/pose in other frame than local, e.g. map -->
     <arg name="ual_server" default="on"/>
     <arg name="ual_pub_rate" default="30.0"/>
     <arg name="mavros_offboard_rate" default="30.0"/>
@@ -11,9 +12,8 @@
     <group if="$(eval mode=='sitl')">
         <!-- Launch Gazebo simulation -->
         <rosparam param="/use_sim_time">true</rosparam>
-        <node pkg="px4_bringup" type="launch_gzworld.py" name="gazebo_world" output="screen"
-        args="-physics=ode -world=$(find px4_bringup)/config/empty_light.world">
-            <rosparam param="sim_origin">[37.558542, -5.931074, 7.89]</rosparam><!-- [lat,lon,alt] -->
+        <node pkg="px4_bringup" type="launch_gzworld.py" name="gazebo_world" output="screen" args="-physics=ode -world=$(find px4_bringup)/config/empty_light.world">
+            <rosparam param="sim_origin">[37.558542, -5.931074, 7.89]</rosparam>            <!-- [lat,lon,alt] -->
         </node>
     </group>
 
@@ -64,11 +64,12 @@
         <param name="ual_server" value="$(arg ual_server)"/>
         <param name="ual_pub_rate" value="$(arg ual_pub_rate)"/>
         <param name="mavros_offboard_rate" value="$(arg mavros_offboard_rate)"/>
-        <param name="home_pose_parent_frame" value="map"/><!-- default= map -->
+        <param name="home_pose_parent_frame" value="map"/>
+        <!-- default= map -->
         <!-- Define home pose relative to global map frame -->
-        <rosparam param="home_pose">[0, 0, 0]</rosparam><!-- [x,y,z] -->
+        <rosparam param="home_pose">[0, 0, 0]</rosparam>        <!-- [x,y,z] -->
         <!-- Define the global map frame geo position and let the UAL estimate the relative home pose -->
-        <!-- <rosparam param="map_origin_geo">[37.558542, -5.931074, 7.89]</rosparam> --><!-- [lat,lon,alt] -->
+        <!-- <rosparam param="map_origin_geo">[37.558542, -5.931074, 7.89]</rosparam> -->        <!-- [lat,lon,alt] -->
     </node>
 
     <group if="$(arg multi)">
@@ -79,11 +80,12 @@
             <param name="ual_server" value="$(arg ual_server)"/>
             <param name="ual_pub_rate" value="$(arg ual_pub_rate)"/>
             <param name="mavros_offboard_rate" value="$(arg mavros_offboard_rate)"/>
-            <param name="home_pose_parent_frame" value="map"/><!-- default= map -->
+            <param name="home_pose_parent_frame" value="map"/>
+            <!-- default= map -->
             <!-- Define home pose relative to global map frame -->
-            <rosparam param="home_pose">[-10, 10, 0]</rosparam><!-- [x,y,z] -->
+            <rosparam param="home_pose">[-10, 10, 0]</rosparam>            <!-- [x,y,z] -->
             <!-- Define the global map frame geo position and let the UAL estimate the relative home pose -->
-            <!-- <rosparam param="map_origin_geo">[37.558542, -5.931074, 7.89]</rosparam> --><!-- [lat,lon,alt] -->
+            <!-- <rosparam param="map_origin_geo">[37.558542, -5.931074, 7.89]</rosparam> -->            <!-- [lat,lon,alt] -->
         </node>
         <!-- Launch UAL server for uav id=3 -->
         <node pkg="path_follower" type="plot_ual" name="ual" ns="$(arg ns_prefix)3" output="screen">
@@ -92,14 +94,15 @@
             <param name="ual_server" value="$(arg ual_server)"/>
             <param name="ual_pub_rate" value="$(arg ual_pub_rate)"/>
             <param name="mavros_offboard_rate" value="$(arg mavros_offboard_rate)"/>
-            <param name="home_pose_parent_frame" value="map"/><!-- default= map -->
+            <param name="home_pose_parent_frame" value="map"/>
+            <!-- default= map -->
             <!-- Define home pose relative to global map frame -->
-            <rosparam param="home_pose">[10, 10, 0]</rosparam><!-- [x,y,z] -->
+            <rosparam param="home_pose">[10, 10, 0]</rosparam>            <!-- [x,y,z] -->
             <!-- Define the global map frame geo position and let the UAL estimate the relative home pose -->
-            <!-- <rosparam param="map_origin_geo">[37.558542, -5.931074, 7.89]</rosparam> --><!-- [lat,lon,alt] -->
+            <!-- <rosparam param="map_origin_geo">[37.558542, -5.931074, 7.89]</rosparam> -->            <!-- [lat,lon,alt] -->
         </node>
     </group>
 
-<node pkg="rviz" type="rviz" args="-d $(find path_follower)/rviz/plot_ual.rviz" name="rviz"/>
+    <node pkg="rviz" type="rviz" args="-d $(find path_follower)/rviz/plot_ual.rviz" name="rviz"/>
 
 </launch>

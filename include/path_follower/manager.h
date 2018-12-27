@@ -1,30 +1,28 @@
 #include <ros/ros.h>
 
+#include <tf/tf.h>
 #include <uav_abstraction_layer/ual.h>
-#include "nav_msgs/Path.h"
+#include <fstream>
+#include "ecl/geometry.hpp"
+#include "geometry_msgs/Pose.h"
 #include "geometry_msgs/PoseArray.h"
 #include "geometry_msgs/PoseStamped.h"
-#include "geometry_msgs/Pose.h"
+#include "nav_msgs/Path.h"
 #include "std_msgs/Header.h"
-#include <tf/tf.h>
-#include "ecl/geometry.hpp"
-#include <fstream>
 // Para el interp1
-#include <iostream>
-#include <vector>
-#include <limits>
 #include <cmath>
+#include <iostream>
+#include <limits>
+#include <vector>
 
-class Manager
-{
-
-  public:
+class Manager {
+   public:
     Manager();
     ~Manager();
 
     void loop();
 
-  private:
+   private:
     // Callbacks
     // void matrix_cb(const mapping::vectorVector input);
 
@@ -42,8 +40,10 @@ class Manager
     bool funcOtraSpline(std::vector<double> vVz, int splineSize, bool safe);
     std::vector<double> funcAumentaVector(std::vector<double> vect, int finalSize);
     std::vector<double> interpolaWps(std::vector<double> wp, double t);
-    template <typename Real> int nearestNeighbourIndex(std::vector<Real> &x, Real &value);
-    template <typename Real> std::vector<Real> interp1(std::vector<Real> &x, std::vector<Real> &y, std::vector<Real> &x_new);
+    template <typename Real>
+    int nearestNeighbourIndex(std::vector<Real> &x, Real &value);
+    template <typename Real>
+    std::vector<Real> interp1(std::vector<Real> &x, std::vector<Real> &y, std::vector<Real> &x_new);
     nav_msgs::Path Construct_Path_Msg(double *x, double *y, double *z, int length);
 
     // Node handlers
@@ -75,5 +75,4 @@ class Manager
     nav_msgs::Path msgDrawPath, msgnewvectorT, path, smoothedPath, splinePath, spline_msg, splineV_msg, spline_msg1, spline_msg2;
 
     // Params
-    
 };
