@@ -21,6 +21,7 @@ class Manager {
     ~Manager();
 
     void loop();
+    float funcMod(float x1, float x2, float y1, float y2, float z1, float z2);
 
    private:
     // Callbacks
@@ -36,7 +37,6 @@ class Manager {
     void funcInterpvectorT(int splineSize);
     void funcPreprocesamiento();
     void funcCompruebaTiempos();
-    float funcMod(float x1, float x2, float y1, float y2, float z1, float z2);
     bool funcOtraSpline(std::vector<double> vVz, int splineSize, bool safe);
     std::vector<double> funcAumentaVector(std::vector<double> vect, int finalSize);
     std::vector<double> interpolaWps(std::vector<double> wp, double t);
