@@ -23,7 +23,7 @@ class Initiator {
     // Subscribers
 
     // Publishers
-    ros::Publisher pubPath, pubVectorT;
+    ros::Publisher pub_path, pub_vectorT;
 
     // Variables
     //std::vector<double> vectorT = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
@@ -32,9 +32,9 @@ class Initiator {
     std::vector<double> vectorT = {2.0, 3.0, 2.0, 1.0, 2.0, 3.0, 2.0, 1.0, 2.0, 3.0, 2.0, 1.0 /*, 2.0*/};
     // std::vector<double> vectorT = {3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0};
     double flight_level = 10.0;
-    bool flagPath = true;
-    bool flagVectorT = true;
+    bool flag_path = true;
+    bool flag_vectorT = true;
 
-    nav_msgs::Path msgPath, msgVectorT;
+    nav_msgs::Path msg_path, msg_vectorT;
     // Params
 };
