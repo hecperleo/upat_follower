@@ -4,18 +4,18 @@ Follower::Follower() {
     nh = ros::NodeHandle();
 
     // Subscriptions
-    subPose = nh.subscribe("/uav_1/ual/pose", 10, &Follower::UALPoseCallback, this);
-    subActualVel = nh.subscribe("/uav_1/mavros/local_position/velocity", 10, &Follower::UALVelocityCallback, this);
-    subVel = nh.subscribe("velSpline", 10, &Follower::UALPathVCallback, this);
-    subPath = nh.subscribe("posSpline", 10, &Follower::UALPathCallback, this);
-    subNewVectorT = nh.subscribe("newVectorT", 10, &Follower::newVectorTCallback, this);
+    sub_pose = nh.subscribe("/uav_1/ual/pose", 10, &Follower::UALPoseCallback, this);
+    sub_current_velocity = nh.subscribe("/uav_1/mavros/local_position/velocity", 10, &Follower::UALVelocityCallback, this);
+    sub_velocity = nh.subscribe("velSpline", 10, &Follower::UALPathVCallback, this);
+    sub_path = nh.subscribe("posSpline", 10, &Follower::UALPathCallback, this);
+    sub_new_vectorT = nh.subscribe("newVectorT", 10, &Follower::newVectorTCallback, this);
 
     // Publishers
-    pubToTarget = nh.advertise<nav_msgs::Path>("distToTarget", 1000);
-    pubNormalDist = nh.advertise<nav_msgs::Path>("distNormal", 1000);
-    pubLookAhead = nh.advertise<nav_msgs::Path>("distLookAhead", 1000);
-    pubDrawPathActual = nh.advertise<nav_msgs::Path>("drawActualPath", 1000);
-    vis_pub = nh.advertise<visualization_msgs::Marker>("visualization_marker", 0);
+    pub_to_target = nh.advertise<nav_msgs::Path>("distToTarget", 1000);
+    pub_normal_distance = nh.advertise<nav_msgs::Path>("distNormal", 1000);
+    pub_look_ahead = nh.advertise<nav_msgs::Path>("distLookAhead", 1000);
+    pub_draw_current_path = nh.advertise<nav_msgs::Path>("drawActualPath", 1000);
+    pub_visualization_marker = nh.advertise<visualization_msgs::Marker>("visualization_marker", 0);
 
     // Service
     srvTakeOff = nh.serviceClient<uav_abstraction_layer::TakeOff>("/uav_1/ual/take_off");
@@ -59,85 +59,85 @@ class movingAvg {
     bool first;
 };
 
-void Follower::pure_pursuit() {
+void Follower::purePursuit() {
     float comp_dist_resta;
     std::vector<float> comp_dist;
     std::vector<float>::iterator up;
     // Obtiene la magnitud de la distancia normal.
-    dist_normal = funcCalcDistNormal();
+    normal_distance = calculateNormalDistance();
     // Obtiene la posición en el path de la distancia normal.
-    pos_path = funcCalcDistNormalPos();
+    pos_path = calculateNormalDistancePos();
     // Determinar que waypoint está a una distancia similar a la distancia look ahead,
     // respecto del waypoint que corresponde con la normal del dron en este instante.
-    // if (dist_normal < lookAhead)
+    // if (normal_distance < look_ahead)
     // {
     for (pos_path; pos_path < path_ok.size() - 1; pos_path++) {
-        comp_dist_resta = funcModDirection(path_ok[pos_path].pose.position.x,
+        comp_dist_resta = distance2PointsDirection(path_ok[pos_path].pose.position.x,
                                            path_ok[pos_path].pose.position.y,
-                                           path_ok[pos_path].pose.position.z, lookAhead);
+                                           path_ok[pos_path].pose.position.z, look_ahead);
 
         comp_dist.push_back(comp_dist_resta);
     }
-    up = std::upper_bound(comp_dist.begin(), comp_dist.end(), lookAhead);
-    pos_pure_pursuit = up - comp_dist.begin();
+    up = std::upper_bound(comp_dist.begin(), comp_dist.end(), look_ahead);
+    pure_pursuit_pos = up - comp_dist.begin();
     // Se actualiza la distancia look ahead en funcion de como evoluciona la distancia
     // normal en el timepo.
-    // funcCambiaLookAheadVariable(); // Descomentar para tener el generador V1
+    // changeLookAheadVariable(); // Descomentar para tener el generador V1
     // Si el dron está lejos del path, se le da la orden de que se aproxime por la
     // distancia mas corta.
     // }
-    // else if (dist_normal > lookAhead /* && pos_pure_pursuit > 0 */)
+    // else if (normal_distance > look_ahead /* && pure_pursuit_pos > 0 */)
     // {
-    //     pos_pure_pursuit = pos_path;
-    //     flagPurePursuit = false;
+    //     pure_pursuit_pos = pos_path;
+    //     flag_pure_pursuit = false;
     //     std::cout << "[ TEST] Going Closer" << '\n';
     // }
     // Limpia el vector
     comp_dist.clear();
 }
 
-void Follower::funcCambiaLookAhead(int p) {
-    // Si el lookAhead del estado anterior es diferente que el waypoint objetivo,
+void Follower::changeLookAhead(int p) {
+    // Si el look_ahead del estado anterior es diferente que el waypoint objetivo,
     // suma o resta un porcentaje para suavizar las aceleraciones.
-    /*if 			 	((1/newVectorT[p]) !=  prev_lookAhead){
-		if      ((1/newVectorT[p]) > prev_lookAhead){
-			lookAhead = prev_lookAhead + 1 * 0.001;
-		}else if((1/newVectorT[p]) < prev_lookAhead){
-			lookAhead = prev_lookAhead - 1 * 0.001;
+    /*if 			 	((1/new_vectorT[p]) !=  prev_look_ahead){
+		if      ((1/new_vectorT[p]) > prev_look_ahead){
+			look_ahead = prev_look_ahead + 1 * 0.001;
+		}else if((1/new_vectorT[p]) < prev_look_ahead){
+			look_ahead = prev_look_ahead - 1 * 0.001;
 		}
-	}else if  ((1/newVectorT[p]) == prev_lookAhead){
-		lookAhead = 1/newVectorT[p];
+	}else if  ((1/new_vectorT[p]) == prev_look_ahead){
+		look_ahead = 1/new_vectorT[p];
 	}
-	prev_lookAhead = lookAhead;*/
+	prev_look_ahead = look_ahead;*/
     float targetX = path_ok[p].pose.position.x;
     float targetY = path_ok[p].pose.position.y;
     float targetZ = path_ok[p].pose.position.z;
-    dist_toTarget = funcMod(targetX, actualPosX, targetY, actualPosY, targetZ, actualPosZ);
-    lookAhead = 1 / newVectorT[p];
-    // std::cout << "[ TEST] Look Ahead = " << lookAhead << " | Target = " << 1 / newVectorT[p] << " | P = " << p << '\n';
+    to_target_distance = distance2Points(targetX, current_x, targetY, current_y, targetZ, current_z);
+    look_ahead = 1 / new_vectorT[p];
+    // std::cout << "[ TEST] Look Ahead = " << look_ahead << " | Target = " << 1 / new_vectorT[p] << " | P = " << p << '\n';
 }
 
-void Follower::funcCambiaLookAheadVariable() {
-    dist_normal = funcCalcDistNormal();
+void Follower::changeLookAheadVariable() {
+    normal_distance = calculateNormalDistance();
     // Si el dron está lejos del path, la distancia look ahead toma el valor de la distancia
     // normal en ese momento.
-    if (dist_normal > lookAhead_init * 3) {
-        lookAhead = lookAhead - lookAhead_init * 0.1;
+    if (normal_distance > init_look_ahead * 3) {
+        look_ahead = look_ahead - init_look_ahead * 0.1;
         // Si la distancia normal disminuye respecto del instante anterior y el dron está cerca del path
         // aumenta la distancia look ahead un 10% de la distancia look ahead inicial.
-    } else if (dist_normal < dist_normal_prev * 0.95 && lookAhead < lookAhead_init * 3) {
-        lookAhead = lookAhead + lookAhead_init * 0.1;
+    } else if (normal_distance < prev_normal_distance * 0.95 && look_ahead < init_look_ahead * 3) {
+        look_ahead = look_ahead + init_look_ahead * 0.1;
         // Si la distancia normal aumenta respecto del instante anterior y el dron está cerca del path
         // disminuye la distancia look ahead un 10% de la distancia look ahead inicial.
-    } else if (dist_normal > dist_normal_prev * 1.05 && lookAhead > lookAhead_init * 1.05) {
-        lookAhead = lookAhead - lookAhead_init * 0.1;
+    } else if (normal_distance > prev_normal_distance * 1.05 && look_ahead > init_look_ahead * 1.05) {
+        look_ahead = look_ahead - init_look_ahead * 0.1;
     }
     // Guarda el valor actual de la distancia normal, para poder utilizarlo en el siguiente instante
     // como comprobación.
-    dist_normal_prev = dist_normal;
+    prev_normal_distance = normal_distance;
 }
 
-float Follower::funcMod(float x1, float x2, float y1, float y2, float z1, float z2) {
+float Follower::distance2Points(float x1, float x2, float y1, float y2, float z1, float z2) {
     float mod;
     mod = sqrt((x2 - x1) * (x2 - x1) +
                (y2 - y1) * (y2 - y1) +
@@ -145,7 +145,7 @@ float Follower::funcMod(float x1, float x2, float y1, float y2, float z1, float 
     return mod;
 }
 
-float Follower::funcModDirection(float x1, float y1, float z1, float LA) {
+float Follower::distance2PointsDirection(float x1, float y1, float z1, float LA) {
     float mod;
     float x2, y2, z2;
     // Calcula el módulo teniendo en cuenta el signo del waypoint para poder sumar
@@ -169,18 +169,18 @@ float Follower::funcModDirection(float x1, float y1, float z1, float LA) {
         z2 = z1 + LA;
     }
 
-    mod = funcMod(x1, x2, y1, y2, z1, z2);
+    mod = distance2Points(x1, x2, y1, y2, z1, z2);
 
     return mod;
 }
 
-float Follower::funcCalcDistNormal() {
+float Follower::calculateNormalDistance() {
     std::vector<float> smallest_dist;
     float smallest_dist_sqrt;
     for (int x = 0; x < path_ok.size() - 1; x++) {
-        smallest_dist_sqrt = funcMod(path_ok[x].pose.position.x, actualPosX,
-                                     path_ok[x].pose.position.y, actualPosY,
-                                     path_ok[x].pose.position.z, actualPosZ);
+        smallest_dist_sqrt = distance2Points(path_ok[x].pose.position.x, current_x,
+                                     path_ok[x].pose.position.y, current_y,
+                                     path_ok[x].pose.position.z, current_z);
         smallest_dist.push_back(smallest_dist_sqrt);
     }
     auto smallest_dist_min = std::min_element(smallest_dist.begin(), smallest_dist.end());
@@ -188,13 +188,13 @@ float Follower::funcCalcDistNormal() {
     return *smallest_dist_min;
 }
 
-float Follower::funcCalcDistNormalPos() {
+float Follower::calculateNormalDistancePos() {
     std::vector<float> smallest_dist;
     float smallest_dist_sqrt;
     for (int x = 0; x < path_ok.size() - 1; x++) {
-        smallest_dist_sqrt = funcMod(path_ok[x].pose.position.x, actualPosX,
-                                     path_ok[x].pose.position.y, actualPosY,
-                                     path_ok[x].pose.position.z, actualPosZ);
+        smallest_dist_sqrt = distance2Points(path_ok[x].pose.position.x, current_x,
+                                     path_ok[x].pose.position.y, current_y,
+                                     path_ok[x].pose.position.z, current_z);
         smallest_dist.push_back(smallest_dist_sqrt);
     }
     auto smallest_dist_min = std::min_element(smallest_dist.begin(), smallest_dist.end());
@@ -203,21 +203,21 @@ float Follower::funcCalcDistNormalPos() {
     return comp_dist_pos;
 }
 
-float Follower::funcSumDistNormal() {
-    suma_distNormal = suma_distNormal + funcCalcDistNormal();
-    return suma_distNormal;
+float Follower::calculateSumNormalDistance() {
+    sum_normal_distance = sum_normal_distance + calculateNormalDistance();
+    return sum_normal_distance;
 }
 
-void Follower::funcDrawCylinder() {
+void Follower::drawCylinder() {
     marker.header.frame_id = "map";
     marker.header.stamp = ros::Time();
     marker.ns = "my_namespace";
     marker.id = 0;
     marker.type = visualization_msgs::Marker::CYLINDER;
     marker.action = visualization_msgs::Marker::ADD;
-    marker.pose.position.x = actualPosX;
-    marker.pose.position.y = actualPosY;
-    marker.pose.position.z = actualPosZ - 0.2;
+    marker.pose.position.x = current_x;
+    marker.pose.position.y = current_y;
+    marker.pose.position.z = current_z - 0.2;
     marker.pose.orientation.x = 0.0;
     marker.pose.orientation.y = 0.0;
     marker.pose.orientation.z = 0.0;
@@ -231,17 +231,17 @@ void Follower::funcDrawCylinder() {
     marker.color.b = 0.5;
 }
 
-void Follower::funcDrawTriangles(int p) {
+void Follower::drawTriangles(int p) {
     std::vector<grvc::ual::Waypoint> wpList_distToTarget;
     std::vector<grvc::ual::Waypoint> wpList_distNormal;
-    std::vector<grvc::ual::Waypoint> wpList_lookAhead;
+    std::vector<grvc::ual::Waypoint> wpList_look_ahead;
     grvc::ual::Waypoint wp_distToTarget;
     grvc::ual::Waypoint wp_distNormal;
-    grvc::ual::Waypoint wp_lookAhead;
+    grvc::ual::Waypoint wp_look_ahead;
 
-    wp_distToTarget.pose.position.x = actualPosX;
-    wp_distToTarget.pose.position.y = actualPosY;
-    wp_distToTarget.pose.position.z = actualPosZ;
+    wp_distToTarget.pose.position.x = current_x;
+    wp_distToTarget.pose.position.y = current_y;
+    wp_distToTarget.pose.position.z = current_z;
     wpList_distToTarget.push_back(wp_distToTarget);
     wp_distToTarget.pose.position.x = path_ok[p].pose.position.x;
     wp_distToTarget.pose.position.y = path_ok[p].pose.position.y;
@@ -253,14 +253,14 @@ void Follower::funcDrawTriangles(int p) {
         posesToTarget.at(x).pose.position.y = wpList_distToTarget[x].pose.position.y;
         posesToTarget.at(x).pose.position.z = wpList_distToTarget[x].pose.position.z;
     }
-    pathDistToTarget.header.frame_id = "map";
-    pathDistToTarget.poses = posesToTarget;
+    path_to_target_distance.header.frame_id = "map";
+    path_to_target_distance.poses = posesToTarget;
 
-    pos_path = funcCalcDistNormalPos();
+    pos_path = calculateNormalDistancePos();
 
-    wp_distNormal.pose.position.x = actualPosX;
-    wp_distNormal.pose.position.y = actualPosY;
-    wp_distNormal.pose.position.z = actualPosZ;
+    wp_distNormal.pose.position.x = current_x;
+    wp_distNormal.pose.position.y = current_y;
+    wp_distNormal.pose.position.z = current_z;
     wpList_distNormal.push_back(wp_distNormal);
     wp_distNormal.pose.position.x = path_ok[pos_path].pose.position.x;
     wp_distNormal.pose.position.y = path_ok[pos_path].pose.position.y;
@@ -272,70 +272,70 @@ void Follower::funcDrawTriangles(int p) {
         posesNormal.at(x).pose.position.y = wpList_distNormal[x].pose.position.y;
         posesNormal.at(x).pose.position.z = wpList_distNormal[x].pose.position.z;
     }
-    pathNormalDist.header.frame_id = "map";
-    pathNormalDist.poses = posesNormal;
+    path_normal_distance.header.frame_id = "map";
+    path_normal_distance.poses = posesNormal;
 
-    wp_lookAhead.pose.position.x = path_ok[p].pose.position.x;
-    wp_lookAhead.pose.position.y = path_ok[p].pose.position.y;
-    wp_lookAhead.pose.position.z = path_ok[p].pose.position.z;
-    wpList_lookAhead.push_back(wp_lookAhead);
-    wp_lookAhead.pose.position.x = path_ok[pos_path].pose.position.x;
-    wp_lookAhead.pose.position.y = path_ok[pos_path].pose.position.y;
-    wp_lookAhead.pose.position.z = path_ok[pos_path].pose.position.z;
-    wpList_lookAhead.push_back(wp_lookAhead);
-    std::vector<geometry_msgs::PoseStamped> posesLookAhead(wpList_lookAhead.size());
-    for (int x = 0; x < wpList_lookAhead.size(); x++) {
-        posesLookAhead.at(x).pose.position.x = wpList_lookAhead[x].pose.position.x;
-        posesLookAhead.at(x).pose.position.y = wpList_lookAhead[x].pose.position.y;
-        posesLookAhead.at(x).pose.position.z = wpList_lookAhead[x].pose.position.z;
+    wp_look_ahead.pose.position.x = path_ok[p].pose.position.x;
+    wp_look_ahead.pose.position.y = path_ok[p].pose.position.y;
+    wp_look_ahead.pose.position.z = path_ok[p].pose.position.z;
+    wpList_look_ahead.push_back(wp_look_ahead);
+    wp_look_ahead.pose.position.x = path_ok[pos_path].pose.position.x;
+    wp_look_ahead.pose.position.y = path_ok[pos_path].pose.position.y;
+    wp_look_ahead.pose.position.z = path_ok[pos_path].pose.position.z;
+    wpList_look_ahead.push_back(wp_look_ahead);
+    std::vector<geometry_msgs::PoseStamped> posesLookAhead(wpList_look_ahead.size());
+    for (int x = 0; x < wpList_look_ahead.size(); x++) {
+        posesLookAhead.at(x).pose.position.x = wpList_look_ahead[x].pose.position.x;
+        posesLookAhead.at(x).pose.position.y = wpList_look_ahead[x].pose.position.y;
+        posesLookAhead.at(x).pose.position.z = wpList_look_ahead[x].pose.position.z;
     }
-    pathLookAhead.header.frame_id = "map";
-    pathLookAhead.poses = posesLookAhead;
+    path_look_ahead.header.frame_id = "map";
+    path_look_ahead.poses = posesLookAhead;
 }
 
-void Follower::trayectoriaActual() {
+void Follower::currentTrajectory() {
     grvc::ual::Waypoint waypoint;
     // Se guarda en un vector auxiliar la posicion de cada instante
-    waypoint.pose.position.x = actualPosX;
-    waypoint.pose.position.y = actualPosY;
-    waypoint.pose.position.z = actualPosZ;
-    vecAux.push_back(waypoint);
+    waypoint.pose.position.x = current_x;
+    waypoint.pose.position.y = current_y;
+    waypoint.pose.position.z = current_z;
+    aux_vector.push_back(waypoint);
     // Se crea el vector de la trayectoria actual
     std::vector<geometry_msgs::PoseStamped> posesActual(i + 1);
-    msgDrawActual.header.frame_id = "map";
+    msg_current_draw.header.frame_id = "map";
     for (int j = 0; j < posesActual.size() - 1; j++) {
         // Se coloca en la trayectoria actual, las posiciones seguidas con anterioridad
-        posesActual.at(j).pose.position.x = vecAux.at(j).pose.position.x;
-        posesActual.at(j).pose.position.y = vecAux.at(j).pose.position.y;
-        posesActual.at(j).pose.position.z = vecAux.at(j).pose.position.z;
+        posesActual.at(j).pose.position.x = aux_vector.at(j).pose.position.x;
+        posesActual.at(j).pose.position.y = aux_vector.at(j).pose.position.y;
+        posesActual.at(j).pose.position.z = aux_vector.at(j).pose.position.z;
     }
     // Se coloca en la trayectoria actual, la posicion actual
-    posesActual.at(i).pose.position.x = actualPosX;
-    posesActual.at(i).pose.position.y = actualPosY;
-    posesActual.at(i).pose.position.z = actualPosZ;
+    posesActual.at(i).pose.position.x = current_x;
+    posesActual.at(i).pose.position.y = current_y;
+    posesActual.at(i).pose.position.z = current_z;
 
-    msgDrawActual.poses = posesActual;
+    msg_current_draw.poses = posesActual;
 }
 
 void Follower::UALPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &msg) {
-    actualPosX = msg->pose.position.x;
-    actualPosY = msg->pose.position.y;
-    actualPosZ = msg->pose.position.z;
+    current_x = msg->pose.position.x;
+    current_y = msg->pose.position.y;
+    current_z = msg->pose.position.z;
 
     return;
 }
 
 void Follower::UALVelocityCallback(const geometry_msgs::TwistStamped &msg) {
-    actualVelX = msg.twist.linear.x;
-    actualVelY = msg.twist.linear.y;
-    actualVelZ = msg.twist.linear.z;
+    current_velocity_x = msg.twist.linear.x;
+    current_velocity_y = msg.twist.linear.y;
+    current_velocity_z = msg.twist.linear.z;
 
     return;
 }
 
 void Follower::UALPathCallback(const nav_msgs::Path &msg) {
     geometry_msgs::PoseStamped waypoint;
-    if (flagSubPath == true) {
+    if (flag_sub_path == true) {
         for (int p = 0; p < msg.poses.size(); p++) {
             waypoint.header.frame_id = msg.header.frame_id;
             waypoint.pose.position.x = msg.poses.at(p).pose.position.x;
@@ -345,14 +345,14 @@ void Follower::UALPathCallback(const nav_msgs::Path &msg) {
         }
     }
     // ROS_WARN("path 0 x: %f", path_ok[0].pose.position.x);
-    flagSubPath = false;
+    flag_sub_path = false;
 
     return;
 }
 
 void Follower::UALPathVCallback(const nav_msgs::Path &msg) {
     grvc::ual::Velocity v;
-    if (flagSubVel == true) {
+    if (flag_sub_velocity == true) {
         for (int p = 0; p < msg.poses.size(); p++) {
             v.twist.linear.x = msg.poses.at(p).pose.position.x;
             v.twist.linear.y = msg.poses.at(p).pose.position.y;
@@ -360,18 +360,18 @@ void Follower::UALPathVCallback(const nav_msgs::Path &msg) {
             path_v.push_back(v);
         }
     }
-    flagSubVel = false;
+    flag_sub_velocity = false;
 
     return;
 }
 
 void Follower::newVectorTCallback(const nav_msgs::Path &msg) {
-    if (flagSubVectorT == true) {
+    if (flag_sub_vectorT == true) {
         for (int p = 0; p < msg.poses.size(); p++) {
-            newVectorT.push_back(msg.poses.at(p).pose.position.x);
+            new_vectorT.push_back(msg.poses.at(p).pose.position.x);
         }
     }
-    flagSubVectorT = false;
+    flag_sub_vectorT = false;
     return;
 }
 
@@ -432,108 +432,108 @@ void Follower::mision() {
     for (int p = 0; p < path_ok.size(); p++) {
         // Determina el look ahead de este instante en funcion del tiempo que tiene
         // el dron para llegar al waypoint objetivo.
-        funcCambiaLookAhead(p);  // Comentar para tener el generador V1
+        changeLookAhead(p);  // Comentar para tener el generador V1
         // Determina la distancia normal
-        dist_normal = funcCalcDistNormal();
+        normal_distance = calculateNormalDistance();
         // Determina cual es el waypoint objetivo.
-        pure_pursuit();
-        p = p + pos_pure_pursuit;
+        purePursuit();
+        p = p + pure_pursuit_pos;
         // Asignación de variables del waypoint objetivo.
         targetX = path_ok[p].pose.position.x;
         targetY = path_ok[p].pose.position.y;
         targetZ = path_ok[p].pose.position.z;
-        dist_toTarget = funcMod(targetX, actualPosX, targetY, actualPosY, targetZ, actualPosZ);
+        to_target_distance = distance2Points(targetX, current_x, targetY, current_y, targetZ, current_z);
         // Publica el triangulos que se dibujan en rviz, donde los lados son: la distancia normal,
         // la distancia look ahead y la distancia hasta el objetivo.
-        funcDrawCylinder();
-        funcDrawTriangles(p);
+        drawCylinder();
+        drawTriangles(p);
         ros::spinOnce();
         // El dron está dentro del path. Se le otorga la velocidad necesaria para que vaya hacia
         // el waypoint objetivo.
-        while (dist_normal < lookAhead && dist_toTarget > lookAhead) {
-            dist_normal = funcCalcDistNormal();
-            dist_toTarget = funcMod(targetX, actualPosX, targetY, actualPosY, targetZ, actualPosZ);
-            mavgVx.update(targetX - actualPosX);
-            mavgVy.update(targetY - actualPosY);
-            mavgVz.update(targetZ - actualPosZ);
-            Vel_goClose.header.frame_id = "map";
-            Vel_goClose.twist.linear.x = mavgVx.average;
-            Vel_goClose.twist.linear.y = mavgVy.average;
-            Vel_goClose.twist.linear.z = mavgVz.average;
-            Vel_goClose.twist.angular.x = 0.0;
-            Vel_goClose.twist.angular.y = 0.0;
-            Vel_goClose.twist.angular.z = 0.0;
-            set_velocity.request.velocity = Vel_goClose;
+        while (normal_distance < look_ahead && to_target_distance > look_ahead) {
+            normal_distance = calculateNormalDistance();
+            to_target_distance = distance2Points(targetX, current_x, targetY, current_y, targetZ, current_z);
+            mavgVx.update(targetX - current_x);
+            mavgVy.update(targetY - current_y);
+            mavgVz.update(targetZ - current_z);
+            go_close_velocity.header.frame_id = "map";
+            go_close_velocity.twist.linear.x = mavgVx.average;
+            go_close_velocity.twist.linear.y = mavgVy.average;
+            go_close_velocity.twist.linear.z = mavgVz.average;
+            go_close_velocity.twist.angular.x = 0.0;
+            go_close_velocity.twist.angular.y = 0.0;
+            go_close_velocity.twist.angular.z = 0.0;
+            set_velocity.request.velocity = go_close_velocity;
             srvSetVelocity.call(set_velocity);
-            // ual.setVelocity(Vel_goClose);
+            // ual.setVelocity(go_close_velocity);
             fileMovingAvg << mavgVx.average << " "
                           << mavgVy.average << " "
                           << mavgVz.average << "\n";
             // Escribe en un .dat
-            fileVelocity << Vel_goClose.twist.linear.x << " " << actualVelX << " "
-                         << Vel_goClose.twist.linear.y << " " << actualVelY << " "
-                         << Vel_goClose.twist.linear.z << " " << actualVelZ << "\n";
-            filePosition << targetX << " " << actualPosX << " "
-                         << targetY << " " << actualPosY << " "
-                         << targetZ << " " << actualPosZ << "\n";
-            fileActualLA << lookAhead << " " << newVectorT[p] << "\n";
+            fileVelocity << go_close_velocity.twist.linear.x << " " << current_velocity_x << " "
+                         << go_close_velocity.twist.linear.y << " " << current_velocity_y << " "
+                         << go_close_velocity.twist.linear.z << " " << current_velocity_z << "\n";
+            filePosition << targetX << " " << current_x << " "
+                         << targetY << " " << current_y << " "
+                         << targetZ << " " << current_z << "\n";
+            fileActualLA << look_ahead << " " << new_vectorT[p] << "\n";
             // Publica
-            pubNormalDist.publish(pathNormalDist);
-            pubToTarget.publish(pathDistToTarget);
-            pubLookAhead.publish(pathLookAhead);
-            vis_pub.publish(marker);
-            trayectoriaActual();
-            pubDrawPathActual.publish(msgDrawActual);
+            pub_normal_distance.publish(path_normal_distance);
+            pub_to_target.publish(path_to_target_distance);
+            pub_look_ahead.publish(path_look_ahead);
+            pub_visualization_marker.publish(marker);
+            currentTrajectory();
+            pub_draw_current_path.publish(msg_current_draw);
             i++;
             // Espera
             ros::Duration(0.05).sleep();
             ros::spinOnce();
-            if (!(dist_normal < lookAhead && dist_toTarget > lookAhead)) {
+            if (!(normal_distance < look_ahead && to_target_distance > look_ahead)) {
                 continue;
             }
         }
         // El dron está fuera del path. Se le otorga la velocidad necesaria para que vaya hacia
         // el waypoint objetivo.
-        while (dist_normal > lookAhead) {
-            dist_normal = funcCalcDistNormal();
-            mavgVx.update(targetX - actualPosX);
-            mavgVy.update(targetY - actualPosY);
-            mavgVz.update(targetZ - actualPosZ);
-            Vel_goClose.header.frame_id = "map";
-            Vel_goClose.twist.linear.x = mavgVx.average;
-            Vel_goClose.twist.linear.y = mavgVy.average;
-            Vel_goClose.twist.linear.z = mavgVz.average;
-            Vel_goClose.twist.angular.x = 0.0;
-            Vel_goClose.twist.angular.y = 0.0;
-            Vel_goClose.twist.angular.z = 0.0;
-            set_velocity.request.velocity = Vel_goClose;
+        while (normal_distance > look_ahead) {
+            normal_distance = calculateNormalDistance();
+            mavgVx.update(targetX - current_x);
+            mavgVy.update(targetY - current_y);
+            mavgVz.update(targetZ - current_z);
+            go_close_velocity.header.frame_id = "map";
+            go_close_velocity.twist.linear.x = mavgVx.average;
+            go_close_velocity.twist.linear.y = mavgVy.average;
+            go_close_velocity.twist.linear.z = mavgVz.average;
+            go_close_velocity.twist.angular.x = 0.0;
+            go_close_velocity.twist.angular.y = 0.0;
+            go_close_velocity.twist.angular.z = 0.0;
+            set_velocity.request.velocity = go_close_velocity;
             srvSetVelocity.call(set_velocity);
-            // ual.setVelocity(Vel_goClose);
+            // ual.setVelocity(go_close_velocity);
             fileMovingAvg << mavgVx.average << " "
                           << mavgVy.average << " "
                           << mavgVz.average << "\n";
             // Escribe en un .dat
-            fileVelocity << Vel_goClose.twist.linear.x << " " << actualVelX << " "
-                         << Vel_goClose.twist.linear.y << " " << actualVelY << " "
-                         << Vel_goClose.twist.linear.z << " " << actualVelZ << "\n";
-            filePosition << targetX << " " << actualPosX << " "
-                         << targetY << " " << actualPosY << " "
-                         << targetZ << " " << actualPosZ << "\n";
-            fileActualLA << lookAhead << " " << newVectorT[p] << "\n";
+            fileVelocity << go_close_velocity.twist.linear.x << " " << current_velocity_x << " "
+                         << go_close_velocity.twist.linear.y << " " << current_velocity_y << " "
+                         << go_close_velocity.twist.linear.z << " " << current_velocity_z << "\n";
+            filePosition << targetX << " " << current_x << " "
+                         << targetY << " " << current_y << " "
+                         << targetZ << " " << current_z << "\n";
+            fileActualLA << look_ahead << " " << new_vectorT[p] << "\n";
             // Publica
-            trayectoriaActual();
-            pubDrawPathActual.publish(msgDrawActual);
-            vis_pub.publish(marker);
+            currentTrajectory();
+            pub_draw_current_path.publish(msg_current_draw);
+            pub_visualization_marker.publish(marker);
             i++;
             // Espera
             ros::Duration(0.05).sleep();
             ros::spinOnce();
-            if (!(dist_normal > lookAhead)) {
+            if (!(normal_distance > look_ahead)) {
                 continue;
             }
         }
         // Calcula la suma de todas las distancias normales.
-        funcSumDistNormal();
+        calculateSumNormalDistance();
         // Cuenta los cambios de waypoint.
         cont++;
     }
@@ -548,7 +548,7 @@ void Follower::mision() {
     // ---------------------------------------------- MISION ----------------------------------------------
     std::cout << "[ TEST] Mission complete! " << std::endl;
     std::cout << "[ TEST] Time: " << ros::Time::now() - begin << std::endl;
-    std::cout << "[ TEST] Media dist_normal: " << funcSumDistNormal() / cont << '\n';
+    std::cout << "[ TEST] Media normal_distance: " << calculateSumNormalDistance() / cont << '\n';
 
     // ual.land(1);
     land.request.blocking = true;
