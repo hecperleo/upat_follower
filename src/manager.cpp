@@ -40,8 +40,8 @@ void Manager::preProcessing() {
     float sumTempoMin = 0;
     for (int i = 0; i < list_pose_x.size() - 1; i++) {
         dist_entreWp = distance2Points(list_pose_x[i], list_pose_x[i + 1],
-                               list_pose_y[i], list_pose_y[i + 1],
-                               list_pose_z[i], list_pose_z[i + 1]);
+                                       list_pose_y[i], list_pose_y[i + 1],
+                                       list_pose_z[i], list_pose_z[i + 1]);
         vel = max_velocity / vectorT[i];
         tempo = dist_entreWp / vel;
         tempoMin = dist_entreWp / max_velocity;
@@ -147,9 +147,9 @@ float Manager::distance2Points(float x1, float x2, float y1, float y2, float z1,
 
 void Manager::eclSpline(float minT, float dist_total) {
     if (flag_last_one == false) {  // Comentar para tener el generador V1
-        t = dist_total;      // Comentar para tener el generador V1
-                             //t = 0; // Descomentar para tener el generador V1
-    }                        // Comentar para tener el generador V1
+        t = dist_total;            // Comentar para tener el generador V1
+                                   //t = 0; // Descomentar para tener el generador V1
+    }                              // Comentar para tener el generador V1
     if (flag_last_one == true) {
         // std::cout << "[ TEST] flag_last_one " << flag_last_one << " | flag_finish_spline " << flag_finish_spline << " | t " << t << '\n';
     }
@@ -467,8 +467,8 @@ void Manager::loop() {
             float distTotal = 0;
             for (int i = 0; i < list_pose_x.size() - 1; i++) {
                 distTotal = distTotal + distance2Points(list_pose_x[i], list_pose_x[i + 1],
-                                                list_pose_y[i], list_pose_y[i + 1],
-                                                list_pose_z[i], list_pose_z[i + 1]);
+                                                        list_pose_y[i], list_pose_y[i + 1],
+                                                        list_pose_z[i], list_pose_z[i + 1]);
             }
             checkTimes();
             while (flag_finish_spline == false) {  // Comentar para tener el generador V1

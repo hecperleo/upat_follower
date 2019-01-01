@@ -76,8 +76,8 @@ void Follower::purePursuit() {
     // {
     for (pos_path; pos_path < path_ok.size() - 1; pos_path++) {
         comp_dist_resta = distance2PointsDirection(path_ok[pos_path].pose.position.x,
-                                           path_ok[pos_path].pose.position.y,
-                                           path_ok[pos_path].pose.position.z, look_ahead);
+                                                   path_ok[pos_path].pose.position.y,
+                                                   path_ok[pos_path].pose.position.z, look_ahead);
 
         comp_dist.push_back(comp_dist_resta);
     }
@@ -112,10 +112,10 @@ void Follower::changeLookAhead(int p) {
 		look_ahead = 1/new_vectorT[p];
 	}
 	prev_look_ahead = look_ahead;*/
-    float targetX = path_ok[p].pose.position.x;
-    float targetY = path_ok[p].pose.position.y;
-    float targetZ = path_ok[p].pose.position.z;
-    to_target_distance = distance2Points(targetX, current_x, targetY, current_y, targetZ, current_z);
+    float target_x = path_ok[p].pose.position.x;
+    float target_y = path_ok[p].pose.position.y;
+    float target_z = path_ok[p].pose.position.z;
+    to_target_distance = distance2Points(target_x, current_x, target_y, current_y, target_z, current_z);
     look_ahead = 1 / new_vectorT[p];
     // std::cout << "[ TEST] Look Ahead = " << look_ahead << " | Target = " << 1 / new_vectorT[p] << " | P = " << p << '\n';
 }
@@ -182,8 +182,8 @@ float Follower::calculateNormalDistance() {
     float smallest_dist_sqrt;
     for (int x = 0; x < path_ok.size() - 1; x++) {
         smallest_dist_sqrt = distance2Points(path_ok[x].pose.position.x, current_x,
-                                     path_ok[x].pose.position.y, current_y,
-                                     path_ok[x].pose.position.z, current_z);
+                                             path_ok[x].pose.position.y, current_y,
+                                             path_ok[x].pose.position.z, current_z);
         smallest_dist.push_back(smallest_dist_sqrt);
     }
     auto smallest_dist_min = std::min_element(smallest_dist.begin(), smallest_dist.end());
@@ -196,8 +196,8 @@ float Follower::calculateNormalDistancePos() {
     float smallest_dist_sqrt;
     for (int x = 0; x < path_ok.size() - 1; x++) {
         smallest_dist_sqrt = distance2Points(path_ok[x].pose.position.x, current_x,
-                                     path_ok[x].pose.position.y, current_y,
-                                     path_ok[x].pose.position.z, current_z);
+                                             path_ok[x].pose.position.y, current_y,
+                                             path_ok[x].pose.position.z, current_z);
         smallest_dist.push_back(smallest_dist_sqrt);
     }
     auto smallest_dist_min = std::min_element(smallest_dist.begin(), smallest_dist.end());
@@ -334,7 +334,6 @@ void Follower::UALStateCallback(const uav_abstraction_layer::State &msg) {
     return;
 }
 
-
 void Follower::UALVelocityCallback(const geometry_msgs::TwistStamped &msg) {
     current_velocity_x = msg.twist.linear.x;
     current_velocity_y = msg.twist.linear.y;
@@ -422,7 +421,7 @@ void Follower::mision() {
     ros::Time begin = ros::Time::now();
     // ---------------------------------------------- MISION ----------------------------------------------
     std::cout << "[ TEST] Start mission!" << '\n';
-    float targetX, targetY, targetZ;
+    float target_x, target_y, target_z;
     float cont = 0;
     // Abre el fichero .dat
     std::ofstream fileVelocity, filePosition, fileMovingAvg, fileActualLA, fileT;
@@ -442,10 +441,10 @@ void Follower::mision() {
         purePursuit();
         p = p + pure_pursuit_pos;
         // Asignación de variables del waypoint objetivo.
-        targetX = path_ok[p].pose.position.x;
-        targetY = path_ok[p].pose.position.y;
-        targetZ = path_ok[p].pose.position.z;
-        to_target_distance = distance2Points(targetX, current_x, targetY, current_y, targetZ, current_z);
+        target_x = path_ok[p].pose.position.x;
+        target_y = path_ok[p].pose.position.y;
+        target_z = path_ok[p].pose.position.z;
+        to_target_distance = distance2Points(target_x, current_x, target_y, current_y, target_z, current_z);
         // Publica el triangulos que se dibujan en rviz, donde los lados son: la distancia normal,
         // la distancia look ahead y la distancia hasta el objetivo.
         drawCylinder();
@@ -455,10 +454,10 @@ void Follower::mision() {
         // el waypoint objetivo.
         while (normal_distance < look_ahead && to_target_distance > look_ahead) {
             normal_distance = calculateNormalDistance();
-            to_target_distance = distance2Points(targetX, current_x, targetY, current_y, targetZ, current_z);
-            mavgVx.update(targetX - current_x);
-            mavgVy.update(targetY - current_y);
-            mavgVz.update(targetZ - current_z);
+            to_target_distance = distance2Points(target_x, current_x, target_y, current_y, target_z, current_z);
+            mavgVx.update(target_x - current_x);
+            mavgVy.update(target_y - current_y);
+            mavgVz.update(target_z - current_z);
             go_close_velocity.header.frame_id = "uav_1_home";
             go_close_velocity.twist.linear.x = mavgVx.average;
             go_close_velocity.twist.linear.y = mavgVy.average;
@@ -477,9 +476,9 @@ void Follower::mision() {
             fileVelocity << go_close_velocity.twist.linear.x << " " << current_velocity_x << " "
                          << go_close_velocity.twist.linear.y << " " << current_velocity_y << " "
                          << go_close_velocity.twist.linear.z << " " << current_velocity_z << "\n";
-            filePosition << targetX << " " << current_x << " "
-                         << targetY << " " << current_y << " "
-                         << targetZ << " " << current_z << "\n";
+            filePosition << target_x << " " << current_x << " "
+                         << target_y << " " << current_y << " "
+                         << target_z << " " << current_z << "\n";
             fileActualLA << look_ahead << " " << new_vectorT[p] << "\n";
             // Publica
             pub_normal_distance.publish(path_normal_distance);
@@ -500,9 +499,9 @@ void Follower::mision() {
         // el waypoint objetivo.
         while (normal_distance > look_ahead) {
             normal_distance = calculateNormalDistance();
-            mavgVx.update(targetX - current_x);
-            mavgVy.update(targetY - current_y);
-            mavgVz.update(targetZ - current_z);
+            mavgVx.update(target_x - current_x);
+            mavgVy.update(target_y - current_y);
+            mavgVz.update(target_z - current_z);
             go_close_velocity.header.frame_id = "uav_1_home";
             go_close_velocity.twist.linear.x = mavgVx.average;
             go_close_velocity.twist.linear.y = mavgVy.average;
@@ -521,9 +520,9 @@ void Follower::mision() {
             fileVelocity << go_close_velocity.twist.linear.x << " " << current_velocity_x << " "
                          << go_close_velocity.twist.linear.y << " " << current_velocity_y << " "
                          << go_close_velocity.twist.linear.z << " " << current_velocity_z << "\n";
-            filePosition << targetX << " " << current_x << " "
-                         << targetY << " " << current_y << " "
-                         << targetZ << " " << current_z << "\n";
+            filePosition << target_x << " " << current_x << " "
+                         << target_y << " " << current_y << " "
+                         << target_z << " " << current_z << "\n";
             fileActualLA << look_ahead << " " << new_vectorT[p] << "\n";
             // Publica
             currentTrajectory();
