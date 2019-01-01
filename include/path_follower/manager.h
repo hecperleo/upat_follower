@@ -33,46 +33,46 @@ class Manager {
     void vectorTCallback(const nav_msgs::Path &msg);
     void spline();
     void eclSpline(float minT, float dist_total);
-    void funcInterpvectorT(int splineSize);
-    void funcPreprocesamiento();
-    void funcCompruebaTiempos();
-    float funcMod(float x1, float x2, float y1, float y2, float z1, float z2);
-    bool funcOtraSpline(std::vector<double> vVz, int splineSize, bool safe);
-    std::vector<double> funcAumentaVector(std::vector<double> vect, int finalSize);
-    std::vector<double> interpolaWps(std::vector<double> wp, double t);
+    void interpVectorT(int splineSize);
+    void preProcessing();
+    void checkTimes();
+    float distance2Points(float x1, float x2, float y1, float y2, float z1, float z2);
+    bool createOtherSpline(std::vector<double> vVz, int splineSize, bool safe);
+    std::vector<double> increaseVector(std::vector<double> vect, int finalSize);
+    std::vector<double> interpWaypoints(std::vector<double> wp, double t);
     template <typename Real>
     int nearestNeighbourIndex(std::vector<Real> &x, Real &value);
     template <typename Real>
     std::vector<Real> interp1(std::vector<Real> &x, std::vector<Real> &y, std::vector<Real> &x_new);
-    nav_msgs::Path Construct_Path_Msg(double *x, double *y, double *z, int length);
+    nav_msgs::Path constructPath(double *x, double *y, double *z, int length);
 
     // Node handlers
     ros::NodeHandle n;
 
     // Subscribers
-    ros::Subscriber subPose, subPath, subvectorT;
+    ros::Subscriber sub_pose, sub_path, sub_vectorT;
 
     // Publishers
-    ros::Publisher pubDrawPath, pubEclPath, pubEclPathV, pubEclPath1, pubEclPath2, pubnewvectorT;
+    ros::Publisher pub_draw_path, pub_ecl_path, pub_ecl_path_v, pub_ecl_path1, pub_ecl_path2, pub_new_vectorT;
 
     // Variables
     float t;
     int i = 0;
-    float sumVecT = 0;
-    const float velocidadMax = 1;
-    bool flagSpline = true;
-    bool flagSubPath = true;
-    bool flagSubvectorT = true;
-    bool lastOne = false;
-    bool flagFinishSpline = false;
-    double actualPosX, actualPosY, actualPosZ;
+    float sum_vectorT = 0;
+    const float max_velocity = 1;
+    bool flag_spline = true;
+    bool flag_sub_path = true;
+    bool flag_sub_vectorT = true;
+    bool flag_last_one = false;
+    bool flag_finish_spline = false;
+    double current_x, current_y, current_z;
 
     grvc::ual::Waypoint waypoint;
-    std::vector<grvc::ual::Waypoint> vecAux;
-    std::vector<double> poseListX, poseListY, poseListZ;
-    std::vector<double> newPoseListX, newPoseListY, newPoseListZ;
-    std::vector<double> vectorT, newvectorT, lastSplinevectorT;
-    nav_msgs::Path msgDrawPath, msgnewvectorT, path, smoothedPath, splinePath, spline_msg, splineV_msg, spline_msg1, spline_msg2;
+    std::vector<grvc::ual::Waypoint> aux_vector;
+    std::vector<double> list_pose_x, list_pose_y, list_pose_z;
+    std::vector<double> new_list_pose_x, new_list_pose_y, new_list_pose_z;
+    std::vector<double> vectorT, new_vectorT, last_spline_vectorT;
+    nav_msgs::Path msg_draw_path, msg_new_vectorT, path, smoothed_path, spline_path, spline_msg, splineV_msg, spline_msg1, spline_msg2;
 
     // Params
 };
