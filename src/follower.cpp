@@ -5,10 +5,11 @@ Follower::Follower() {
 
     // Subscriptions
     sub_pose = nh.subscribe("/uav_1/ual/pose", 10, &Follower::UALPoseCallback, this);
+    sub_state = nh.subscribe("/uav_1/ual/state", 10, &Follower::UALStateCallback, this);
     sub_current_velocity = nh.subscribe("/uav_1/mavros/local_position/velocity", 10, &Follower::UALVelocityCallback, this);
     sub_velocity = nh.subscribe("velSpline", 10, &Follower::UALPathVCallback, this);
     sub_path = nh.subscribe("posSpline", 10, &Follower::UALPathCallback, this);
-    sub_new_vectorT = nh.subscribe("newVectorT", 10, &Follower::newVectorTCallback, this);
+    sub_new_vectorT = nh.subscribe("new_vectorT", 10, &Follower::newVectorTCallback, this);
 
     // Publishers
     pub_to_target = nh.advertise<nav_msgs::Path>("distToTarget", 1000);
@@ -16,6 +17,8 @@ Follower::Follower() {
     pub_look_ahead = nh.advertise<nav_msgs::Path>("distLookAhead", 1000);
     pub_draw_current_path = nh.advertise<nav_msgs::Path>("drawActualPath", 1000);
     pub_visualization_marker = nh.advertise<visualization_msgs::Marker>("visualization_marker", 0);
+    pub_set_pose = nh.advertise<geometry_msgs::PoseStamped>("/uav_1/ual/set_pose", 1000);
+    pub_set_velocity = nh.advertise<geometry_msgs::TwistStamped>("/uav_1/ual/set_velocity", 1000);
 
     // Service
     srvTakeOff = nh.serviceClient<uav_abstraction_layer::TakeOff>("/uav_1/ual/take_off");
@@ -209,7 +212,7 @@ float Follower::calculateSumNormalDistance() {
 }
 
 void Follower::drawCylinder() {
-    marker.header.frame_id = "map";
+    marker.header.frame_id = "uav_1_home";
     marker.header.stamp = ros::Time();
     marker.ns = "my_namespace";
     marker.id = 0;
@@ -253,7 +256,7 @@ void Follower::drawTriangles(int p) {
         posesToTarget.at(x).pose.position.y = wpList_distToTarget[x].pose.position.y;
         posesToTarget.at(x).pose.position.z = wpList_distToTarget[x].pose.position.z;
     }
-    path_to_target_distance.header.frame_id = "map";
+    path_to_target_distance.header.frame_id = "uav_1_home";
     path_to_target_distance.poses = posesToTarget;
 
     pos_path = calculateNormalDistancePos();
@@ -272,7 +275,7 @@ void Follower::drawTriangles(int p) {
         posesNormal.at(x).pose.position.y = wpList_distNormal[x].pose.position.y;
         posesNormal.at(x).pose.position.z = wpList_distNormal[x].pose.position.z;
     }
-    path_normal_distance.header.frame_id = "map";
+    path_normal_distance.header.frame_id = "uav_1_home";
     path_normal_distance.poses = posesNormal;
 
     wp_look_ahead.pose.position.x = path_ok[p].pose.position.x;
@@ -289,7 +292,7 @@ void Follower::drawTriangles(int p) {
         posesLookAhead.at(x).pose.position.y = wpList_look_ahead[x].pose.position.y;
         posesLookAhead.at(x).pose.position.z = wpList_look_ahead[x].pose.position.z;
     }
-    path_look_ahead.header.frame_id = "map";
+    path_look_ahead.header.frame_id = "uav_1_home";
     path_look_ahead.poses = posesLookAhead;
 }
 
@@ -302,7 +305,7 @@ void Follower::currentTrajectory() {
     aux_vector.push_back(waypoint);
     // Se crea el vector de la trayectoria actual
     std::vector<geometry_msgs::PoseStamped> posesActual(i + 1);
-    msg_current_draw.header.frame_id = "map";
+    msg_current_draw.header.frame_id = "uav_1_home";
     for (int j = 0; j < posesActual.size() - 1; j++) {
         // Se coloca en la trayectoria actual, las posiciones seguidas con anterioridad
         posesActual.at(j).pose.position.x = aux_vector.at(j).pose.position.x;
@@ -324,6 +327,13 @@ void Follower::UALPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &msg) 
 
     return;
 }
+
+void Follower::UALStateCallback(const uav_abstraction_layer::State &msg) {
+    state = msg.state;
+
+    return;
+}
+
 
 void Follower::UALVelocityCallback(const geometry_msgs::TwistStamped &msg) {
     current_velocity_x = msg.twist.linear.x;
@@ -376,18 +386,10 @@ void Follower::newVectorTCallback(const nav_msgs::Path &msg) {
 }
 
 void Follower::mision() {
-    // grvc::ual::UAL ual;
-
-    // while (!ual.isReady() && ros::ok())
-    // {
-    //     std::cout << "[ TEST] UAL not ready!" << std::endl;
-    //     sleep(1);
-    // }
-    while (!srvTakeOff.exists() && ros::ok()) {
-        ROS_WARN("Waiting server");
+    while (state != 2 && ros::ok()) {
+        ros::spinOnce();
         sleep(1);
     }
-    ros::spinOnce();
     // Despega el dron
     // ual.takeOff(flight_level, true);
     take_off.request.height = 5.0;
@@ -398,9 +400,10 @@ void Follower::mision() {
     path_ok[0].pose.orientation.y = 0;
     path_ok[0].pose.orientation.z = 0;
     path_ok[0].pose.orientation.w = 1;
-    go_to_waypoint.request.waypoint = path_ok[0];
-    go_to_waypoint.request.blocking = true;
-    srvGoToWaypoint.call(go_to_waypoint);
+    // go_to_waypoint.request.waypoint = path_ok[0];
+    // go_to_waypoint.request.blocking = true;
+    // srvGoToWaypoint.call(go_to_waypoint);
+    pub_set_pose.publish(path_ok[0]);
 
     // ual.goToWaypoint(path_ok[0], true);
     // Inicializa Moving Average
@@ -414,7 +417,7 @@ void Follower::mision() {
         mavgVz.update(0);
     }
     // Espera en el waypoint inicial para tratar de empezar con velocidad 0
-    ros::Duration(3).sleep();
+    ros::Duration(10).sleep();
     // Empieza a contar el tiempo para saber cuanto tarda en realizar la misión
     ros::Time begin = ros::Time::now();
     // ---------------------------------------------- MISION ----------------------------------------------
@@ -456,15 +459,16 @@ void Follower::mision() {
             mavgVx.update(targetX - current_x);
             mavgVy.update(targetY - current_y);
             mavgVz.update(targetZ - current_z);
-            go_close_velocity.header.frame_id = "map";
+            go_close_velocity.header.frame_id = "uav_1_home";
             go_close_velocity.twist.linear.x = mavgVx.average;
             go_close_velocity.twist.linear.y = mavgVy.average;
             go_close_velocity.twist.linear.z = mavgVz.average;
             go_close_velocity.twist.angular.x = 0.0;
             go_close_velocity.twist.angular.y = 0.0;
             go_close_velocity.twist.angular.z = 0.0;
-            set_velocity.request.velocity = go_close_velocity;
-            srvSetVelocity.call(set_velocity);
+            // set_velocity.request.velocity = go_close_velocity;
+            // srvSetVelocity.call(set_velocity);
+            pub_set_velocity.publish(go_close_velocity);
             // ual.setVelocity(go_close_velocity);
             fileMovingAvg << mavgVx.average << " "
                           << mavgVy.average << " "
@@ -499,15 +503,16 @@ void Follower::mision() {
             mavgVx.update(targetX - current_x);
             mavgVy.update(targetY - current_y);
             mavgVz.update(targetZ - current_z);
-            go_close_velocity.header.frame_id = "map";
+            go_close_velocity.header.frame_id = "uav_1_home";
             go_close_velocity.twist.linear.x = mavgVx.average;
             go_close_velocity.twist.linear.y = mavgVy.average;
             go_close_velocity.twist.linear.z = mavgVz.average;
             go_close_velocity.twist.angular.x = 0.0;
             go_close_velocity.twist.angular.y = 0.0;
             go_close_velocity.twist.angular.z = 0.0;
-            set_velocity.request.velocity = go_close_velocity;
-            srvSetVelocity.call(set_velocity);
+            // set_velocity.request.velocity = go_close_velocity;
+            // srvSetVelocity.call(set_velocity);
+            pub_set_velocity.publish(go_close_velocity);
             // ual.setVelocity(go_close_velocity);
             fileMovingAvg << mavgVx.average << " "
                           << mavgVy.average << " "

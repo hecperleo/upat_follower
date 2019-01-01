@@ -3,6 +3,7 @@
 #include <uav_abstraction_layer/SetVelocity.h>
 #include <uav_abstraction_layer/TakeOff.h>
 #include <uav_abstraction_layer/ual.h>
+#include <uav_abstraction_layer/State.h>
 
 #include <ros/ros.h>
 #include <algorithm>
@@ -23,6 +24,7 @@ class Follower {
    private:
     // Callbacks
     void UALPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &msg);
+    void UALStateCallback(const uav_abstraction_layer::State &msg);
     void UALVelocityCallback(const geometry_msgs::TwistStamped &msg);
     void UALPathCallback(const nav_msgs::Path &msg);
     void UALPathVCallback(const nav_msgs::Path &msg);
@@ -46,9 +48,9 @@ class Follower {
     ros::NodeHandle nh;
 
     // Subscribers
-    ros::Subscriber sub_pose, sub_current_velocity, sub_velocity, sub_path, sub_new_vectorT;
+    ros::Subscriber sub_pose, sub_state, sub_current_velocity, sub_velocity, sub_path, sub_new_vectorT;
     // Publishers
-    ros::Publisher pub_to_target, pub_normal_distance, pub_look_ahead, pub_draw_current_path, pub_visualization_marker;
+    ros::Publisher pub_to_target, pub_set_pose, pub_set_velocity, pub_normal_distance, pub_look_ahead, pub_draw_current_path, pub_visualization_marker;
     // Services
     ros::ServiceClient srvTakeOff, srvLand, srvGoToWaypoint, srvSetVelocity;
     uav_abstraction_layer::TakeOff take_off;
@@ -57,6 +59,8 @@ class Follower {
     uav_abstraction_layer::SetVelocity set_velocity;
 
     // Variables
+    // uav_abstraction_layer::State state;
+    int state;
     int i = 0;
     int pos_path = 0;
     // Flags

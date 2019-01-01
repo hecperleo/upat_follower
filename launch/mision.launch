@@ -22,8 +22,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <group if="$(eval mode=='sitl')">
         <!-- Launch Gazebo simulation -->
         <rosparam param="/use_sim_time">true</rosparam>
-        <node pkg="px4_bringup" type="launch_gzworld.py" name="gazebo_world" output="screen" args="-physics=ode -world=$(find px4_bringup)/config/empty_light.world">
-            <rosparam param="sim_origin">[37.558542, -5.931074, 7.89]</rosparam>            <!-- [lat,lon,alt] -->
+        <node pkg="px4_bringup" type="launch_gzworld.py" name="gazebo_world" output="screen"
+        args="-physics=ode -world=$(find px4_bringup)/config/empty_light.world">
+            <rosparam param="sim_origin">[37.558542, -5.931074, 7.89]</rosparam><!-- [lat,lon,alt] -->
         </node>
     </group>
 
@@ -51,19 +52,18 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         <param name="ual_server" value="$(arg ual_server)"/>
         <param name="ual_pub_rate" value="$(arg ual_pub_rate)"/>
         <param name="mavros_offboard_rate" value="$(arg mavros_offboard_rate)"/>
-        <param name="home_pose_parent_frame" value="map"/>
-        <!-- default= map -->
+        <param name="home_pose_parent_frame" value="map"/><!-- default= map -->
         <!-- Define home pose relative to global map frame -->
-        <rosparam param="home_pose">[0, 0, 0]</rosparam>        <!-- [x,y,z] -->
+        <rosparam param="home_pose">[0, 0, 0]</rosparam><!-- [x,y,z] -->
         <!-- Define the global map frame geo position and let the UAL estimate the relative home pose -->
-        <!-- <rosparam param="map_origin_geo">[37.558542, -5.931074, 7.89]</rosparam> -->        <!-- [lat,lon,alt] -->
+        <!-- <rosparam param="map_origin_geo">[37.558542, -5.931074, 7.89]</rosparam> --><!-- [lat,lon,alt] -->
     </node>
 
 
     <!-- Other nodes -->
     <node pkg="path_follower" type="initiator_node" name="initiator_node" output="screen" required="true"/>
-    <node pkg="path_follower" type="manager_node" name="manager_node" output="screen" required="true"/>
-    <node pkg="path_follower" type="follower_node" name="follower" output="screen" required="true"/>
+    <node pkg="path_follower" type="manager_node" name="manager_node" output="screen"/>
+    <node pkg="path_follower" type="follower_node" name="follower_node" output="screen" required="true"/>
     <node pkg="rviz" type="rviz" name="Visualization" args="-d /home/hector/tfm_ws/src/pathFollower/rviz/tfm.rviz" required="true"/>
 
 </launch>
