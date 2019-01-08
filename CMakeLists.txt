@@ -162,6 +162,13 @@ add_executable(manager_node src/manager_node.cpp)
 target_link_libraries(manager_node manager ${catkin_LIBRARIES})
 add_dependencies(manager_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+add_library(manager_simple src/manager_simple.cpp)
+add_dependencies(manager_simple ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(manager_simple_node src/manager_simple_node.cpp)
+target_link_libraries(manager_simple_node manager_simple ${catkin_LIBRARIES})
+add_dependencies(manager_simple_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
 add_library(initiator src/initiator.cpp)
 add_dependencies(initiator ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 

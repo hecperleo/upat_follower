@@ -6,6 +6,7 @@ Initiator::Initiator() {
     // Publishers
     pub_path = n.advertise<nav_msgs::Path>("initPath", 1000);
     pub_vectorT = n.advertise<nav_msgs::Path>("vectorT", 1000);
+    pub_vectorT_simple = n.advertise<nav_msgs::Path>("vectorT_simple", 1000);
 
     loop();
 }
@@ -28,6 +29,24 @@ void Initiator::defaultVectorT() {
         msg_vectorT.poses = times;
         flag_vectorT = false;
         std::cout << "[ TEST] Vector T size  = " << msg_vectorT.poses.size() << '\n';
+    }
+}
+
+void Initiator::defaultVectorT_simple() {
+    std::vector<grvc::ual::Waypoint> tList_simple;
+    grvc::ual::Waypoint t_simple;
+    if (flag_vectorT_simple == true) {
+        for (int i = 0; i < vectorT.size(); i++) {
+            t_simple.pose.position.x = vectorT_simple[i];
+            tList_simple.push_back(t_simple);
+        }
+        std::vector<geometry_msgs::PoseStamped> times_simple(tList_simple.size());
+        for (int p = 0; p < tList_simple.size(); p++) {
+            times_simple.at(p).pose.position.x = tList_simple[p].pose.position.x;
+        }
+        msg_vectorT_simple.poses = times_simple;
+        flag_vectorT_simple = false;
+        std::cout << "[ TEST] Vector T size  = " << msg_vectorT_simple.poses.size() << '\n';
     }
 }
 
@@ -109,6 +128,7 @@ void Initiator::loop() {
     while (ros::ok()) {
         pub_path.publish(msg_path);
         pub_vectorT.publish(msg_vectorT);
+        pub_vectorT_simple.publish(msg_vectorT_simple);
         sleep(0.1);
         ros::spinOnce();
     }
