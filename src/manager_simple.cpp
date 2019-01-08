@@ -1,12 +1,12 @@
 #include <path_follower/manager_simple.h>
 
-Manager::Manager() {
+ManagerSimple::ManagerSimple() {
     n = ros::NodeHandle();
     params();
     // Subscriptions
-    sub_pose = n.subscribe("/uav_1/ual/pose", 0, &Manager::UALPoseCallback, this);
-    sub_path = n.subscribe("initPath", 0, &Manager::UALPathCallback, this);
-    sub_vectorT = n.subscribe("vectorT_simple", 0, &Manager::vectorTCallback, this);
+    sub_pose = n.subscribe("/uav_1/ual/pose", 0, &ManagerSimple::UALPoseCallback, this);
+    sub_path = n.subscribe("initPath", 0, &ManagerSimple::UALPathCallback, this);
+    sub_vectorT = n.subscribe("vectorT_simple", 0, &ManagerSimple::vectorTCallback, this);
 
     // Publishers
     pub_draw_path = n.advertise<nav_msgs::Path>("drawInitPath_simple", 1000);
@@ -19,22 +19,22 @@ Manager::Manager() {
     loop();
 }
 
-Manager::~Manager() {
+ManagerSimple::~ManagerSimple() {
 }
 
-void Manager::params() {
+void ManagerSimple::params() {
     // ros::NodeHandle nparam("~");
     // if (nparam.getParam("phase", phase))
     // {
-    //     ROS_WARN("Got Manager param phase: %i", phase);
+    //     ROS_WARN("Got ManagerSimple param phase: %i", phase);
     // }
     // else
     // {
-    //     ROS_WARN("Failed to get Manager param phase: %i", phase);
+    //     ROS_WARN("Failed to get ManagerSimple param phase: %i", phase);
     // }
 }
 
-void Manager::preProcessing() {
+void ManagerSimple::preProcessing() {
     float dist_entreWp, tempo, tempoMin, vel;
     float sumTempo = 0;
     float sumTempoMin = 0;
@@ -54,7 +54,7 @@ void Manager::preProcessing() {
     //std::cout << "[ ... ] sumTempoMin     = " << sumTempoMin << '\n';
 }
 
-void Manager::checkTimes() {
+void ManagerSimple::checkTimes() {
     for (int i = 0; i < vectorT.size(); i++) {
         if (vectorT[i] < 1) {
             vectorT[i] = 1;
@@ -67,7 +67,7 @@ void Manager::checkTimes() {
 }
 
 /* CALLBACKS */
-void Manager::UALPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &msg1) {
+void ManagerSimple::UALPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &msg1) {
     // Corrección respecto del mapa
     current_x = msg1->pose.position.x;
     current_y = msg1->pose.position.y;
@@ -76,7 +76,7 @@ void Manager::UALPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &msg1) 
     return;
 }
 
-void Manager::UALPathCallback(const nav_msgs::Path &msg) {
+void ManagerSimple::UALPathCallback(const nav_msgs::Path &msg) {
     double poseX, poseY, poseZ;
     std::vector<grvc::ual::Waypoint> poseList;
     // Corrección respecto del mapa
@@ -109,7 +109,7 @@ void Manager::UALPathCallback(const nav_msgs::Path &msg) {
     return;
 }
 
-void Manager::vectorTCallback(const nav_msgs::Path &msg) {
+void ManagerSimple::vectorTCallback(const nav_msgs::Path &msg) {
     if (flag_sub_vectorT == true) {
         std::ofstream fileVectorT;
         fileVectorT.open("/home/hector/Matlab_ws/vectorT.dat");
@@ -124,7 +124,7 @@ void Manager::vectorTCallback(const nav_msgs::Path &msg) {
 }
 /* CALLBACKS */
 
-nav_msgs::Path Manager::constructPath(double *x, double *y, double *z, int length) {
+nav_msgs::Path ManagerSimple::constructPath(double *x, double *y, double *z, int length) {
     nav_msgs::Path msg;
     std::vector<geometry_msgs::PoseStamped> poses(length);
     msg.header.frame_id = "map";
@@ -137,7 +137,7 @@ nav_msgs::Path Manager::constructPath(double *x, double *y, double *z, int lengt
     return msg;
 }
 
-float Manager::distance2Points(float x1, float x2, float y1, float y2, float z1, float z2) {
+float ManagerSimple::distance2Points(float x1, float x2, float y1, float y2, float z1, float z2) {
     float mod;
     mod = sqrt((x2 - x1) * (x2 - x1) +
                (y2 - y1) * (y2 - y1) +
@@ -145,7 +145,7 @@ float Manager::distance2Points(float x1, float x2, float y1, float y2, float z1,
     return mod;
 }
 
-void Manager::eclSpline(float minT, float dist_total) {
+void ManagerSimple::eclSpline(float minT, float dist_total) {
     if (flag_last_one == false) {  // Comentar para tener el generador V1
         t = dist_total;            // Comentar para tener el generador V1
                                    //t = 0; // Descomentar para tener el generador V1
@@ -332,7 +332,7 @@ void Manager::eclSpline(float minT, float dist_total) {
     }
 }
 
-bool Manager::createOtherSpline(std::vector<double> vVz, int splineSize, bool safe) {
+bool ManagerSimple::createOtherSpline(std::vector<double> vVz, int splineSize, bool safe) {
     auto smallest_Vz_min = std::min_element(vVz.begin(), vVz.end());
     int tiempo = t;
     if ((tiempo % vectorT.size()) != 0 || (splineSize % vectorT.size()) != 0) {
@@ -344,7 +344,7 @@ bool Manager::createOtherSpline(std::vector<double> vVz, int splineSize, bool sa
     return safe;
 }
 
-void Manager::interpVectorT(int splineSize) {
+void ManagerSimple::interpVectorT(int splineSize) {
     std::ofstream fileNewVectorT;
     fileNewVectorT.open("/home/hector/Matlab_ws/new_vectorT.dat");
     for (int i = 0; i < vectorT.size(); i++) {
@@ -368,7 +368,7 @@ void Manager::interpVectorT(int splineSize) {
     msg_new_vectorT.poses = times;
 }
 
-std::vector<double> Manager::increaseVector(std::vector<double> vect, int finalSize) {
+std::vector<double> ManagerSimple::increaseVector(std::vector<double> vect, int finalSize) {
     std::vector<double> newVector;
     std::vector<double> otroVector;
     int t = 0;
@@ -388,7 +388,7 @@ std::vector<double> Manager::increaseVector(std::vector<double> vect, int finalS
     return otroVector;
 }
 
-std::vector<double> Manager::interpWaypoints(std::vector<double> wp, double t) {
+std::vector<double> ManagerSimple::interpWaypoints(std::vector<double> wp, double t) {
     std::vector<double> t_axis;
     std::vector<double> newWpList;
     double porcion;
@@ -412,7 +412,7 @@ std::vector<double> Manager::interpWaypoints(std::vector<double> wp, double t) {
 }
 
 template <typename Real>
-int Manager::nearestNeighbourIndex(std::vector<Real> &x, Real &value) {
+int ManagerSimple::nearestNeighbourIndex(std::vector<Real> &x, Real &value) {
     Real dist = std::numeric_limits<Real>::max();
     Real newDist = dist;
     size_t idx = 0;
@@ -429,7 +429,7 @@ int Manager::nearestNeighbourIndex(std::vector<Real> &x, Real &value) {
 }
 
 template <typename Real>
-std::vector<Real> Manager::interp1(std::vector<Real> &x, std::vector<Real> &y, std::vector<Real> &x_new) {
+std::vector<Real> ManagerSimple::interp1(std::vector<Real> &x, std::vector<Real> &y, std::vector<Real> &x_new) {
     std::vector<Real> y_new;
     Real dx, dy, m, b;
     size_t x_max_idx = x.size() - 1;
@@ -457,7 +457,7 @@ std::vector<Real> Manager::interp1(std::vector<Real> &x, std::vector<Real> &y, s
     return y_new;
 }
 
-void Manager::loop() {
+void ManagerSimple::loop() {
     while (ros::ok()) {
         if (path.poses.size() != 0 && flag_spline == true) {
             for (int i = 0; i < vectorT.size(); i++) {

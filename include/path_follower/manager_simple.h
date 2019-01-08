@@ -15,10 +15,10 @@
 #include <limits>
 #include <vector>
 
-class Manager {
+class ManagerSimple {
    public:
-    Manager();
-    ~Manager();
+    ManagerSimple();
+    ~ManagerSimple();
 
     void loop();
 

@@ -36,7 +36,7 @@ void Initiator::defaultVectorT_simple() {
     std::vector<grvc::ual::Waypoint> tList_simple;
     grvc::ual::Waypoint t_simple;
     if (flag_vectorT_simple == true) {
-        for (int i = 0; i < vectorT.size(); i++) {
+        for (int i = 0; i < vectorT_simple.size(); i++) {
             t_simple.pose.position.x = vectorT_simple[i];
             tList_simple.push_back(t_simple);
         }
@@ -51,7 +51,7 @@ void Initiator::defaultVectorT_simple() {
 }
 
 void Initiator::defaultPath() {
-    float mult_wp = 1.12;
+    float mult_wp = 1.0;
     std::vector<grvc::ual::Waypoint> waypointList;
     grvc::ual::Waypoint waypoint;
     msg_path.header.frame_id = "map";
@@ -125,6 +125,7 @@ void Initiator::defaultPath() {
 void Initiator::loop() {
     defaultPath();
     defaultVectorT();
+    defaultVectorT_simple();
     while (ros::ok()) {
         pub_path.publish(msg_path);
         pub_vectorT.publish(msg_vectorT);
