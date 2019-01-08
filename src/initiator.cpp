@@ -51,7 +51,7 @@ void Initiator::defaultVectorT_simple() {
 }
 
 void Initiator::defaultPath() {
-    float mult_wp = 1.0;
+    float mult_wp = 1.12;
     std::vector<grvc::ual::Waypoint> waypointList;
     grvc::ual::Waypoint waypoint;
     msg_path.header.frame_id = "map";

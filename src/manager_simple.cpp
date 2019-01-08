@@ -6,14 +6,14 @@ Manager::Manager() {
     // Subscriptions
     sub_pose = n.subscribe("/uav_1/ual/pose", 0, &Manager::UALPoseCallback, this);
     sub_path = n.subscribe("initPath", 0, &Manager::UALPathCallback, this);
-    sub_vectorT = n.subscribe("vectorT", 0, &Manager::vectorTCallback, this);
+    sub_vectorT = n.subscribe("vectorT_simple", 0, &Manager::vectorTCallback, this);
 
     // Publishers
-    pub_draw_path = n.advertise<nav_msgs::Path>("drawInitPath", 1000);
-    pub_ecl_path = n.advertise<nav_msgs::Path>("posSpline", 1000);
-    pub_ecl_path_v = n.advertise<nav_msgs::Path>("velSpline", 1000);
-    pub_ecl_path1 = n.advertise<nav_msgs::Path>("posSpline1", 1000);
-    pub_ecl_path2 = n.advertise<nav_msgs::Path>("posSpline2", 1000);
+    pub_draw_path = n.advertise<nav_msgs::Path>("drawInitPath_simple", 1000);
+    pub_ecl_path = n.advertise<nav_msgs::Path>("posSpline_simple", 1000);
+    pub_ecl_path_v = n.advertise<nav_msgs::Path>("velSpline_simple", 1000);
+    pub_ecl_path1 = n.advertise<nav_msgs::Path>("posSpline1_simple", 1000);
+    pub_ecl_path2 = n.advertise<nav_msgs::Path>("posSpline2_simple", 1000);
     pub_new_vectorT = n.advertise<nav_msgs::Path>("new_vectorT_simple", 1000);
 
     loop();
