@@ -1,6 +1,7 @@
 #include <uav_abstraction_layer/GoToWaypoint.h>
 #include <uav_abstraction_layer/Land.h>
 #include <uav_abstraction_layer/SetVelocity.h>
+#include <uav_abstraction_layer/State.h>
 #include <uav_abstraction_layer/TakeOff.h>
 #include <uav_abstraction_layer/ual.h>
 
@@ -23,32 +24,33 @@ class Follower {
    private:
     // Callbacks
     void UALPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &msg);
+    void UALStateCallback(const uav_abstraction_layer::State &msg);
     void UALVelocityCallback(const geometry_msgs::TwistStamped &msg);
     void UALPathCallback(const nav_msgs::Path &msg);
     void UALPathVCallback(const nav_msgs::Path &msg);
     void newVectorTCallback(const nav_msgs::Path &msg);
 
     //
-    void pure_pursuit();
-    void trayectoriaActual();
-    void funcCambiaLookAhead(int p);
-    void funcCambiaLookAheadVariable();
-    void funcDrawCylinder();
-    void funcDrawTriangles(int path_pos);
-    float funcMod(float x1, float x2, float y1, float y2, float z1, float z2);
-    float funcModDirection(float x1, float y1, float z1, float LA);
-    float funcCalcDistNormal();
-    float funcCalcDistNormalPos();
-    float funcSumDistNormal();
+    void purePursuit();
+    void currentTrajectory();
+    void changeLookAhead(int p);
+    void changeLookAheadVariable();
+    void drawCylinder();
+    void drawTriangles(int path_pos);
+    float distance2Points(float x1, float x2, float y1, float y2, float z1, float z2);
+    float distance2PointsDirection(float x1, float y1, float z1, float LA);
+    float calculateNormalDistance();
+    float calculateNormalDistancePos();
+    float calculateSumNormalDistance();
     float movingAverageVx(float Vx);
 
     // Node handlers
     ros::NodeHandle nh;
 
     // Subscribers
-    ros::Subscriber subPose, subActualVel, subVel, subPath, subNewVectorT;
+    ros::Subscriber sub_pose, sub_state, sub_current_velocity, sub_velocity, sub_path, sub_new_vectorT;
     // Publishers
-    ros::Publisher pubToTarget, pubNormalDist, pubLookAhead, pubDrawPathActual, vis_pub;
+    ros::Publisher pub_to_target, pub_set_pose, pub_set_velocity, pub_normal_distance, pub_look_ahead, pub_draw_current_path, pub_visualization_marker;
     // Services
     ros::ServiceClient srvTakeOff, srvLand, srvGoToWaypoint, srvSetVelocity;
     uav_abstraction_layer::TakeOff take_off;
@@ -57,27 +59,29 @@ class Follower {
     uav_abstraction_layer::SetVelocity set_velocity;
 
     // Variables
+    // uav_abstraction_layer::State state;
+    int state;
     int i = 0;
     int pos_path = 0;
     // Flags
-    bool flagSubPath = true;
-    bool flagSubVel = true;
-    bool flagPurePursuit = true;
-    bool flagSubVectorT = true;
+    bool flag_sub_path = true;
+    bool flag_sub_velocity = true;
+    bool flag_pure_pursuit = true;
+    bool flag_sub_vectorT = true;
     // Velocidades
-    float actualVelX, actualVelY, actualVelZ;
+    float current_velocity_x, current_velocity_y, current_velocity_z;
     // Posiciones
-    float actualPosX, actualPosY, actualPosZ;
+    float current_x, current_y, current_z;
     // Distancias
-    float dist_normal, dist_toTarget, suma_distNormal, dist_normal_prev;
+    float normal_distance, to_target_distance, sum_normal_distance, prev_normal_distance;
     // Pure pursuit
-    float pos_pure_pursuit;
+    float pure_pursuit_pos;
     // Look Ahead
-    const float velocidadMax = 1;
-    const float lookAhead_init = 1;
-    float lookAhead = velocidadMax;  // Comentar para tener el generador V1
-    // float lookAhead = lookAhead_init; // Descomentar para tener el generador V1
-    float prev_lookAhead = lookAhead;
+    const float max_velocity = 1;
+    const float init_look_ahead = 1;
+    float look_ahead = max_velocity;  // Comentar para tener el generador V1
+    // float look_ahead = init_look_ahead; // Descomentar para tener el generador V1
+    float prev_look_ahead = look_ahead;
     // Flight level
     const double flight_level = 5.0;
     // Paths
@@ -86,12 +90,12 @@ class Follower {
     // Waypoints
     grvc::ual::Waypoint origen, home;
     // Velocidades
-    geometry_msgs::TwistStamped Vel_goClose;
+    geometry_msgs::TwistStamped go_close_velocity;
     // Visualizar look ahead y actual path
-    nav_msgs::Path pathDistToTarget, pathNormalDist, pathLookAhead, msgDrawActual;
-    std::vector<grvc::ual::Waypoint> vecAux;
+    nav_msgs::Path path_to_target_distance, path_normal_distance, path_look_ahead, msg_current_draw;
+    std::vector<grvc::ual::Waypoint> aux_vector;
     // Vector de tiempos
-    std::vector<double> newVectorT;
+    std::vector<double> new_vectorT;
     // Markers
     visualization_msgs::Marker marker;
 
