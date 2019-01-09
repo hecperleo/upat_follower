@@ -155,9 +155,9 @@ void Manager::eclSpline(float minT, float dist_total) {
     }
     bool safe = false;
     while (safe == false) {
-        new_list_pose_x = interpWaypoints(list_pose_x, t);
-        new_list_pose_y = interpWaypoints(list_pose_y, t);
-        new_list_pose_z = interpWaypoints(list_pose_z, t);
+        // new_list_pose_x = interpWaypoints(list_pose_x, t);
+        // new_list_pose_y = interpWaypoints(list_pose_y, t);
+        // new_list_pose_z = interpWaypoints(list_pose_z, t);
 
         int wp_total = new_list_pose_x.size();
         double *wp_x = (double *)malloc(sizeof(double) * wp_total);

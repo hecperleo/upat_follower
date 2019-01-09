@@ -39,12 +39,12 @@ class ManagerSimple {
     float distance2Points(float x1, float x2, float y1, float y2, float z1, float z2);
     bool createOtherSpline(std::vector<double> vVz, int splineSize, bool safe);
     std::vector<double> increaseVector(std::vector<double> vect, int finalSize);
-    std::vector<double> interpWaypoints(std::vector<double> wp, double t);
+    std::vector<double> interpWaypoints(std::vector<double> list_pose_axis);
     template <typename Real>
     int nearestNeighbourIndex(std::vector<Real> &x, Real &value);
     template <typename Real>
     std::vector<Real> interp1(std::vector<Real> &x, std::vector<Real> &y, std::vector<Real> &x_new);
-    nav_msgs::Path constructPath(double *x, double *y, double *z, int length);
+    nav_msgs::Path constructPath(std::vector<double> wps_x, std::vector<double> wps_y, std::vector<double> wps_z);
 
     // Node handlers
     ros::NodeHandle n;
