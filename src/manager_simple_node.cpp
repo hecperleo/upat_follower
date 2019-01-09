@@ -5,9 +5,7 @@ int main(int _argc, char **_argv) {
 
     ManagerSimple manager;
 
-    while (ros::ok()) {
-        sleep(1);
-    }
+    ros::spin();
 
     return 0;
 }

@@ -4,41 +4,25 @@ ManagerSimple::ManagerSimple() {
     n = ros::NodeHandle();
     // Subscriptions
     sub_path = n.subscribe("initPath", 0, &ManagerSimple::UALPathCallback, this);
-
     // Publishers
     pub_path_interp1 = n.advertise<nav_msgs::Path>("path_interp1", 1000);
-
-    loop();
 }
 
 ManagerSimple::~ManagerSimple() {
 }
 
 void ManagerSimple::UALPathCallback(const nav_msgs::Path &msg) {
-    double poseX, poseY, poseZ;
-    std::vector<grvc::ual::Waypoint> poseList;
-    if (flag_sub_path == true) {
-        for (auto p : msg.poses) {
-            waypoint.pose.position.x = p.pose.position.x;
-            waypoint.pose.position.y = p.pose.position.y;
-            waypoint.pose.position.z = p.pose.position.z;
-            poseList.push_back(waypoint);
-            poseX = p.pose.position.x;
-            list_pose_x.push_back(poseX);
-            poseY = p.pose.position.y;
-            list_pose_y.push_back(poseY);
-            poseZ = p.pose.position.z;
-            list_pose_z.push_back(poseZ);
-        }
-        for (int q = 0; q < poseList.size(); q++) {
-            waypoint.pose.position.x = poseList[q].pose.position.x;
-            waypoint.pose.position.y = poseList[q].pose.position.y;
-            waypoint.pose.position.z = poseList[q].pose.position.z;
-            path.poses.push_back(waypoint);
+    if (flag_sub_path == true && msg.poses.size() > 1) {
+        for (int i = 0; i < msg.poses.size(); i++) {
+            list_pose_x.push_back(msg.poses.at(i).pose.position.x);
+            list_pose_y.push_back(msg.poses.at(i).pose.position.y);
+            list_pose_z.push_back(msg.poses.at(i).pose.position.z);
         }
     }
     flag_sub_path = false;
-
+    path_interp1 = smoothingPath(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size());
+    // Publish path
+    pub_path_interp1.publish(path_interp1);
     return;
 }
 
@@ -63,11 +47,13 @@ std::vector<double> ManagerSimple::interpWaypoints(std::vector<double> list_pose
     double max_aux_axis = 100000;
     std::vector<double> aux_axis;
     std::vector<double> new_list_pose;
-    for (int i = 0; i < max_aux_axis; i++){ aux_axis.push_back(i);}
+    for (int i = 0; i < max_aux_axis; i++) {
+        aux_axis.push_back(i);
+    }
     double portion = (aux_axis.back() - aux_axis.front()) / (max_aux_axis);
     double new_pose = aux_axis.front();
     new_list_pose.push_back(new_pose);
-    for (int i = 1; i < path.poses.size(); i++) {
+    for (int i = 1; i < list_pose_axis.size(); i++) {
         new_pose = new_pose + portion;
         new_list_pose.push_back(new_pose);
     }
@@ -121,20 +107,14 @@ std::vector<Real> ManagerSimple::interp1(std::vector<Real> &x, std::vector<Real>
     return y_new;
 }
 
-void ManagerSimple::loop() {
-    nav_msgs::Path path_interp1;
-    while (ros::ok()) {
-        if (path.poses.size() > 1 && flag_spline == true) {
-            new_list_pose_x = interpWaypoints(list_pose_x);
-            new_list_pose_y = interpWaypoints(list_pose_y);
-            new_list_pose_z = interpWaypoints(list_pose_z);
-            path_interp1 = constructPath(new_list_pose_x, new_list_pose_y, new_list_pose_z);
-            flag_spline = false;
-        std::cout << "size path: " << path_interp1.poses.size() << '\n';
-        }
-        // Publish path
-        pub_path_interp1.publish(path_interp1);
-        sleep(0.1);
-        ros::spinOnce();
+nav_msgs::Path ManagerSimple::smoothingPath(std::vector<double> list_x, std::vector<double> list_y, std::vector<double> list_z, int path_size) {
+    nav_msgs::Path res;
+    std::vector<double> new_list_x, new_list_y, new_list_z;
+    if (path_size > 1) {
+        new_list_x = interpWaypoints(list_x);
+        new_list_y = interpWaypoints(list_y);
+        new_list_z = interpWaypoints(list_z);
+        res = constructPath(new_list_x, new_list_y, new_list_z);
     }
+    return res;
 }
