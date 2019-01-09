@@ -3,11 +3,10 @@
 ManagerSimple::ManagerSimple() {
     n = ros::NodeHandle();
     // Subscriptions
-    sub_pose = n.subscribe("/uav_1/ual/pose", 0, &ManagerSimple::UALPoseCallback, this);
     sub_path = n.subscribe("initPath", 0, &ManagerSimple::UALPathCallback, this);
 
     // Publishers
-    pub_ecl_path = n.advertise<nav_msgs::Path>("posSpline_simple", 1000);
+    pub_path_interp1 = n.advertise<nav_msgs::Path>("path_interp1", 1000);
 
     loop();
 }
@@ -15,33 +14,21 @@ ManagerSimple::ManagerSimple() {
 ManagerSimple::~ManagerSimple() {
 }
 
-void ManagerSimple::UALPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &msg1) {
-    // Corrección respecto del mapa
-    current_x = msg1->pose.position.x;
-    current_y = msg1->pose.position.y;
-    current_z = msg1->pose.position.z;
-
-    return;
-}
-
 void ManagerSimple::UALPathCallback(const nav_msgs::Path &msg) {
     double poseX, poseY, poseZ;
     std::vector<grvc::ual::Waypoint> poseList;
-    // Corrección respecto del mapa
-    msg_draw_path.header.frame_id = "map";
-    msg_draw_path.poses = msg.poses;
     if (flag_sub_path == true) {
         for (auto p : msg.poses) {
             waypoint.pose.position.x = p.pose.position.x;
             waypoint.pose.position.y = p.pose.position.y;
             waypoint.pose.position.z = p.pose.position.z;
             poseList.push_back(waypoint);
-            // poseX = p.pose.position.x;
-            // list_pose_x.push_back(poseX);
-            // poseY = p.pose.position.y;
-            // list_pose_y.push_back(poseY);
-            // poseZ = p.pose.position.z;
-            // list_pose_z.push_back(poseZ);
+            poseX = p.pose.position.x;
+            list_pose_x.push_back(poseX);
+            poseY = p.pose.position.y;
+            list_pose_y.push_back(poseY);
+            poseZ = p.pose.position.z;
+            list_pose_z.push_back(poseZ);
         }
         for (int q = 0; q < poseList.size(); q++) {
             waypoint.pose.position.x = poseList[q].pose.position.x;
@@ -49,8 +36,6 @@ void ManagerSimple::UALPathCallback(const nav_msgs::Path &msg) {
             waypoint.pose.position.z = poseList[q].pose.position.z;
             path.poses.push_back(waypoint);
         }
-        // std::cout << "[ TEST] Running!" << '\n';
-        // std::cout << "[ TEST] Path size = " << path.poses.size() << '\n';
     }
     flag_sub_path = false;
 
@@ -140,11 +125,6 @@ void ManagerSimple::loop() {
     nav_msgs::Path path_interp1;
     while (ros::ok()) {
         if (path.poses.size() > 1 && flag_spline == true) {
-            for (int i = 0; i < path.poses.size(); i++) {
-                list_pose_x[i] = path.poses.at(i).pose.position.x;
-                list_pose_y[i] = path.poses.at(i).pose.position.y;
-                list_pose_z[i] = path.poses.at(i).pose.position.z;
-            }
             new_list_pose_x = interpWaypoints(list_pose_x);
             new_list_pose_y = interpWaypoints(list_pose_y);
             new_list_pose_z = interpWaypoints(list_pose_z);
@@ -153,7 +133,7 @@ void ManagerSimple::loop() {
         std::cout << "size path: " << path_interp1.poses.size() << '\n';
         }
         // Publish path
-        pub_ecl_path.publish(path_interp1);
+        pub_path_interp1.publish(path_interp1);
         sleep(0.1);
         ros::spinOnce();
     }

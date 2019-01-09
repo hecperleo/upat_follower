@@ -53,7 +53,7 @@ class ManagerSimple {
     ros::Subscriber sub_pose, sub_path, sub_vectorT;
 
     // Publishers
-    ros::Publisher pub_draw_path, pub_ecl_path, pub_ecl_path_v, pub_ecl_path1, pub_ecl_path2, pub_new_vectorT;
+    ros::Publisher pub_draw_path, pub_path_interp1, pub_path_interp1_v, pub_path_interp11, pub_path_interp12, pub_new_vectorT;
 
     // Variables
     float t;
