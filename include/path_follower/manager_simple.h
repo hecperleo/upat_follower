@@ -1,15 +1,9 @@
 #include <ros/ros.h>
 
-#include <tf/tf.h>
 #include <uav_abstraction_layer/ual.h>
-#include <fstream>
-#include "ecl/geometry.hpp"
-#include "geometry_msgs/Pose.h"
-#include "geometry_msgs/PoseArray.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "nav_msgs/Path.h"
-#include "std_msgs/Header.h"
-// Para el interp1
+// interp1
 #include <cmath>
 #include <iostream>
 #include <limits>
