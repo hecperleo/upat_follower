@@ -233,6 +233,5 @@ add_dependencies(follower_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPO
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-catkin_add_gtest(mytest tests/tests_manager_simple.cpp)
-target_link_libraries(mytest manager_simple)
-target_link_libraries(mytest ${catkin_LIBRARIES})
+catkin_add_gtest(manager_simple-test tests/tests_manager_simple.cpp)
+target_link_libraries(manager_simple-test manager_simple ${catkin_LIBRARIES})
