@@ -24,21 +24,9 @@ class ManagerSimple {
 
    private:
     // Callbacks
-    // void matrix_cb(const mapping::vectorVector input);
+    void UALPathCallback(const nav_msgs::Path &msg);
 
     //
-    void params();
-    void UALPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &msg1);
-    void UALPathCallback(const nav_msgs::Path &msg);
-    void vectorTCallback(const nav_msgs::Path &msg);
-    void spline();
-    void eclSpline(float minT, float dist_total);
-    void interpVectorT(int splineSize);
-    void preProcessing();
-    void checkTimes();
-    float distance2Points(float x1, float x2, float y1, float y2, float z1, float z2);
-    bool createOtherSpline(std::vector<double> vVz, int splineSize, bool safe);
-    std::vector<double> increaseVector(std::vector<double> vect, int finalSize);
     std::vector<double> interpWaypoints(std::vector<double> list_pose_axis);
     template <typename Real>
     int nearestNeighbourIndex(std::vector<Real> &x, Real &value);
@@ -50,29 +38,18 @@ class ManagerSimple {
     ros::NodeHandle n;
 
     // Subscribers
-    ros::Subscriber sub_pose, sub_path, sub_vectorT;
+    ros::Subscriber sub_path;
 
     // Publishers
-    ros::Publisher pub_draw_path, pub_path_interp1, pub_path_interp1_v, pub_path_interp11, pub_path_interp12, pub_new_vectorT;
+    ros::Publisher pub_path_interp1;
 
     // Variables
-    float t;
-    int i = 0;
-    float sum_vectorT = 0;
-    const float max_velocity = 1;
+    nav_msgs::Path path;
     bool flag_spline = true;
     bool flag_sub_path = true;
-    bool flag_sub_vectorT = true;
-    bool flag_last_one = false;
-    bool flag_finish_spline = false;
-    double current_x, current_y, current_z;
-
     grvc::ual::Waypoint waypoint;
-    std::vector<grvc::ual::Waypoint> aux_vector;
     std::vector<double> list_pose_x, list_pose_y, list_pose_z;
     std::vector<double> new_list_pose_x, new_list_pose_y, new_list_pose_z;
-    std::vector<double> vectorT, new_vectorT, last_spline_vectorT;
-    nav_msgs::Path msg_draw_path, msg_new_vectorT, path, smoothed_path, spline_path, spline_msg, splineV_msg, spline_msg1, spline_msg2;
 
     // Params
 };
