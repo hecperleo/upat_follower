@@ -14,13 +14,13 @@ class ManagerSimple {
     ManagerSimple();
     ~ManagerSimple();
 
-    nav_msgs::Path smoothingPath(std::vector<double> list_x, std::vector<double> list_y, std::vector<double> list_z, int path_size);
+    nav_msgs::Path smoothingInterp1(std::vector<double> list_x, std::vector<double> list_y, std::vector<double> list_z, int path_size, int new_path_size);
 
    private:
     // Callbacks
     void UALPathCallback(const nav_msgs::Path &msg);
     // Methods
-    std::vector<double> interpWaypoints(std::vector<double> list_pose_axis);
+    std::vector<double> interpWaypoints(std::vector<double> list_pose_axis, int amount_of_points);
     template <typename Real>
     int nearestNeighbourIndex(std::vector<Real> &x, Real &value);
     template <typename Real>
