@@ -54,7 +54,7 @@ void Initiator::defaultPath() {
     float mult_wp = 1.0;
     std::vector<grvc::ual::Waypoint> waypointList;
     grvc::ual::Waypoint waypoint;
-    msg_path.header.frame_id = "map";
+    msg_path.header.frame_id = "uav_1_home";
     if (flag_path == true) {
         waypoint.pose.position.x = 5.0 * mult_wp;
         waypoint.pose.position.y = 5.0 * mult_wp;

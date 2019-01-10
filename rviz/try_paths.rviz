@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /posSpline_simple1
       Splitter Ratio: 0.5
     Tree Height: 775
   - Class: rviz/Selection
@@ -66,7 +67,7 @@ Visualization Manager:
       Buffer Length: 1
       Class: rviz/Path
       Color: 111; 111; 111
-      Enabled: false
+      Enabled: true
       Head Diameter: 0.300000012
       Head Length: 0.200000003
       Length: 0.300000012
@@ -84,7 +85,7 @@ Visualization Manager:
       Shaft Length: 0.100000001
       Topic: /initPath
       Unreliable: false
-      Value: false
+      Value: true
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
@@ -128,14 +129,14 @@ Visualization Manager:
       Radius: 0.0299999993
       Shaft Diameter: 0.100000001
       Shaft Length: 0.100000001
-      Topic: /path_interp1
+      Topic: /output_path
       Unreliable: false
       Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: map
+    Fixed Frame: uav_1_home
     Frame Rate: 30
   Name: root
   Tools:
@@ -171,10 +172,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.490398258
+      Pitch: 0.495398253
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.11358404
+      Yaw: 4.11858416
     Saved: ~
 Window Geometry:
   Displays:
