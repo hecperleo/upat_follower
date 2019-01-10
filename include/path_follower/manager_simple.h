@@ -21,11 +21,10 @@ class ManagerSimple {
     void InitPathCallback(const nav_msgs::Path &msg);
     // Methods
     std::vector<double> InterpWaypointList(std::vector<double> list_pose_axis, int amount_of_points);
-    template <typename Real>
-    int nearestNeighbourIndex(std::vector<Real> &x, Real &value);
-    template <typename Real>
-    std::vector<Real> interp1(std::vector<Real> &x, std::vector<Real> &y, std::vector<Real> &x_new);
+    int nearestNeighbourIndex(std::vector<double> &x, double &value);
+    std::vector<double> interp1(std::vector<double> &x, std::vector<double> &y, std::vector<double> &x_new);
     nav_msgs::Path constructPath(std::vector<double> wps_x, std::vector<double> wps_y, std::vector<double> wps_z);
+    nav_msgs::Path pathManagement(nav_msgs::Path init_path, int mode);
     // Node handlers
     ros::NodeHandle n;
     // Subscribers

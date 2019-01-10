@@ -11,10 +11,9 @@ ManagerSimple::ManagerSimple() {
 ManagerSimple::~ManagerSimple() {
 }
 
-template <typename Real>
-int ManagerSimple::nearestNeighbourIndex(std::vector<Real> &x, Real &value) {
-    Real dist = std::numeric_limits<Real>::max();
-    Real newDist = dist;
+int ManagerSimple::nearestNeighbourIndex(std::vector<double> &x, double &value) {
+    double dist = std::numeric_limits<double>::max();
+    double newDist = dist;
     size_t idx = 0;
 
     for (size_t i = 0; i < x.size(); ++i) {
@@ -28,10 +27,9 @@ int ManagerSimple::nearestNeighbourIndex(std::vector<Real> &x, Real &value) {
     return idx;
 }
 
-template <typename Real>
-std::vector<Real> ManagerSimple::interp1(std::vector<Real> &x, std::vector<Real> &y, std::vector<Real> &x_new) {
-    std::vector<Real> y_new;
-    Real dx, dy, m, b;
+std::vector<double> ManagerSimple::interp1(std::vector<double> &x, std::vector<double> &y, std::vector<double> &x_new) {
+    std::vector<double> y_new;
+    double dx, dy, m, b;
     size_t x_max_idx = x.size() - 1;
     size_t x_new_size = x_new.size();
 
@@ -117,4 +115,8 @@ nav_msgs::Path ManagerSimple::createPathInterp1(std::vector<double> list_x, std:
         out_path = constructPath(new_list_x, new_list_y, new_list_z);
     }
     return out_path;
+}
+
+nav_msgs::Path ManagerSimple::pathManagement(nav_msgs::Path init_path, int mode){
+    
 }
