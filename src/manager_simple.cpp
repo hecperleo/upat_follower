@@ -28,7 +28,7 @@ int ManagerSimple::nearestNeighbourIndex(std::vector<double> &x, double &value) 
     return idx;
 }
 
-std::vector<double> ManagerSimple::interp1(std::vector<double> &x, std::vector<double> &y, std::vector<double> &x_new) {
+std::vector<double> ManagerSimple::linealInterp1(std::vector<double> &x, std::vector<double> &y, std::vector<double> &x_new) {
     std::vector<double> y_new;
     double dx, dy, m, b;
     size_t x_max_idx = x.size() - 1;
@@ -57,12 +57,21 @@ std::vector<double> ManagerSimple::interp1(std::vector<double> &x, std::vector<d
 }
 
 void ManagerSimple::modeCallback(std_msgs::Int8 _mode) {
-    mode = _mode.data;
+    switch (_mode.data) {
+        case 1:
+            mode = mode_interp1;
+            break;
+        case 2:
+            mode = mode_spline;
+            break;
+        default:
+            break;
+    }
     return;
 }
 
 void ManagerSimple::initPathCallback(const nav_msgs::Path &_init_path) {
-    if (_init_path.poses.size() > 1 && mode != 0) {
+    if (_init_path.poses.size() > 1 && mode != mode_idle) {
         if (flag_sub_path == true) {
             for (int i = 0; i < _init_path.poses.size(); i++) {
                 list_pose_x.push_back(_init_path.poses.at(i).pose.position.x);
@@ -76,7 +85,7 @@ void ManagerSimple::initPathCallback(const nav_msgs::Path &_init_path) {
     return;
 }
 
-std::vector<double> ManagerSimple::InterpWaypointList(std::vector<double> list_pose_axis, int amount_of_points) {
+std::vector<double> ManagerSimple::interpWaypointList(std::vector<double> list_pose_axis, int amount_of_points) {
     std::vector<double> aux_axis;
     std::vector<double> new_aux_axis;
     for (int i = 0; i < list_pose_axis.size(); i++) {
@@ -89,7 +98,7 @@ std::vector<double> ManagerSimple::InterpWaypointList(std::vector<double> list_p
         new_pose = new_pose + portion;
         new_aux_axis.push_back(new_pose);
     }
-    auto interp1_path = interp1(aux_axis, list_pose_axis, new_aux_axis);
+    auto interp1_path = linealInterp1(aux_axis, list_pose_axis, new_aux_axis);
     return interp1_path;
 }
 
@@ -114,9 +123,9 @@ nav_msgs::Path ManagerSimple::createPathInterp1(std::vector<double> list_x, std:
     nav_msgs::Path interp1_path;
     std::vector<double> new_list_x, new_list_y, new_list_z;
     if (path_size > 1) {
-        new_list_x = InterpWaypointList(list_x, interp1_final_size);
-        new_list_y = InterpWaypointList(list_y, interp1_final_size);
-        new_list_z = InterpWaypointList(list_z, interp1_final_size);
+        new_list_x = interpWaypointList(list_x, interp1_final_size);
+        new_list_y = interpWaypointList(list_y, interp1_final_size);
+        new_list_z = interpWaypointList(list_z, interp1_final_size);
         interp1_path = constructPath(new_list_x, new_list_y, new_list_z);
     }
     return interp1_path;
@@ -125,10 +134,10 @@ nav_msgs::Path ManagerSimple::createPathInterp1(std::vector<double> list_x, std:
 void ManagerSimple::pathManagement() {
     int interp1_final_size = 10000;
     switch (mode) {
-        case 1:
+        case mode_interp1:
             output_path_ = createPathInterp1(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), interp1_final_size);
             break;
-        case 2:
+        case mode_spline:
             // output_path_ =
             break;
         default:
