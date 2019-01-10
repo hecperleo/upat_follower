@@ -8,7 +8,7 @@ class Initiator {
     Initiator();
     ~Initiator();
 
-    void loop();
+    void pubMsgs();
 
    private:
     // Callbacks

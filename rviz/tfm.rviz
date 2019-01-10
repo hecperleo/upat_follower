@@ -99,7 +99,7 @@ Visualization Manager:
       Radius: 0.0299999993
       Shaft Diameter: 0.100000001
       Shaft Length: 0.100000001
-      Topic: /initPath
+      Topic: /init_path
       Unreliable: false
       Value: true
     - Alpha: 1

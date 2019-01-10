@@ -5,7 +5,11 @@ int main(int _argc, char **_argv) {
 
     ManagerSimple manager;
 
-    ros::spin();
+    ros::Rate rate(5);
+    while (ros::ok()) {
+        ros::spinOnce();
+        rate.sleep();
+    }
 
     return 0;
 }

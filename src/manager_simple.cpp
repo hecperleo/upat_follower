@@ -3,7 +3,7 @@
 ManagerSimple::ManagerSimple() {
     n = ros::NodeHandle();
     // Subscriptions
-    sub_path = n.subscribe("initPath", 0, &ManagerSimple::initPathCallback, this);
+    sub_path = n.subscribe("init_path", 0, &ManagerSimple::initPathCallback, this);
     sub_mode = n.subscribe("manager_mode", 0, &ManagerSimple::modeCallback, this);
     // Publishers
     pub_output_path = n.advertise<nav_msgs::Path>("output_path", 1000);
@@ -147,6 +147,5 @@ void ManagerSimple::pathManagement(std::vector<double> list_pose_x, std::vector<
     }
     pub_output_path.publish(output_path_);
     flag_sub_path = true;
-    sleep(1);
     return;
 }

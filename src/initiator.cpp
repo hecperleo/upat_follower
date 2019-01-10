@@ -4,11 +4,14 @@ Initiator::Initiator() {
     n = ros::NodeHandle();
 
     // Publishers
-    pub_path = n.advertise<nav_msgs::Path>("initPath", 1000);
+    pub_path = n.advertise<nav_msgs::Path>("init_path", 1000);
     pub_vectorT = n.advertise<nav_msgs::Path>("vectorT", 1000);
     pub_vectorT_simple = n.advertise<nav_msgs::Path>("vectorT_simple", 1000);
 
-    loop();
+    defaultPath();
+    defaultVectorT();
+    defaultVectorT_simple();
+    pubMsgs();
 }
 
 Initiator::~Initiator() {
@@ -28,7 +31,7 @@ void Initiator::defaultVectorT() {
         }
         msg_vectorT.poses = times;
         flag_vectorT = false;
-        std::cout << "[ TEST] Vector T size  = " << msg_vectorT.poses.size() << '\n';
+        // std::cout << "[ TEST] Vector T size  = " << msg_vectorT.poses.size() << '\n';
     }
 }
 
@@ -46,7 +49,7 @@ void Initiator::defaultVectorT_simple() {
         }
         msg_vectorT_simple.poses = times_simple;
         flag_vectorT_simple = false;
-        std::cout << "[ TEST] Vector T size  = " << msg_vectorT_simple.poses.size() << '\n';
+        // std::cout << "[ TEST] Vector T size  = " << msg_vectorT_simple.poses.size() << '\n';
     }
 }
 
@@ -109,7 +112,7 @@ void Initiator::defaultPath() {
         waypoint.pose.position.z = 10.0 * mult_wp;
         waypointList.push_back(waypoint);
 
-        std::cout << "[ TEST] Running!" << '\n';
+        // std::cout << "[ TEST] Running!" << '\n';
         flag_path = false;
     }
     std::vector<geometry_msgs::PoseStamped> poses(waypointList.size());
@@ -119,18 +122,11 @@ void Initiator::defaultPath() {
         poses.at(p).pose.position.z = waypointList[p].pose.position.z;
     }
     msg_path.poses = poses;
-    std::cout << "[ TEST] Vector WP size = " << msg_path.poses.size() << '\n';
+    // std::cout << "[ TEST] Vector WP size = " << msg_path.poses.size() << '\n';
 }
 
-void Initiator::loop() {
-    defaultPath();
-    defaultVectorT();
-    defaultVectorT_simple();
-    while (ros::ok()) {
-        pub_path.publish(msg_path);
-        pub_vectorT.publish(msg_vectorT);
-        pub_vectorT_simple.publish(msg_vectorT_simple);
-        sleep(0.1);
-        ros::spinOnce();
-    }
+void Initiator::pubMsgs() {
+    pub_path.publish(msg_path);
+    pub_vectorT.publish(msg_vectorT);
+    pub_vectorT_simple.publish(msg_vectorT_simple);
 }
