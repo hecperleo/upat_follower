@@ -18,7 +18,7 @@ void ManagerSimple::UALPathCallback(const nav_msgs::Path &msg) {
             list_pose_y.push_back(msg.poses.at(i).pose.position.y);
             list_pose_z.push_back(msg.poses.at(i).pose.position.z);
         }
-        int new_path_size = 1000;
+        int new_path_size = 10000;
         path_interp1 = smoothingInterp1(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), new_path_size);
     }
     flag_sub_path = false;
@@ -30,7 +30,7 @@ void ManagerSimple::UALPathCallback(const nav_msgs::Path &msg) {
 nav_msgs::Path ManagerSimple::constructPath(std::vector<double> wps_x, std::vector<double> wps_y, std::vector<double> wps_z) {
     nav_msgs::Path msg;
     std::vector<geometry_msgs::PoseStamped> poses(wps_x.size());
-    msg.header.frame_id = "map";
+    msg.header.frame_id = "uav_1_home";
     for (int i = 0; i < wps_x.size(); i++) {
         poses.at(i).pose.position.x = wps_x[i];
         poses.at(i).pose.position.y = wps_y[i];

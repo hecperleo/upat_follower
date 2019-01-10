@@ -8,8 +8,8 @@ Follower::Follower() {
     sub_state = nh.subscribe("/uav_1/ual/state", 10, &Follower::UALStateCallback, this);
     sub_current_velocity = nh.subscribe("/uav_1/mavros/local_position/velocity", 10, &Follower::UALVelocityCallback, this);
     sub_velocity = nh.subscribe("velSpline", 10, &Follower::UALPathVCallback, this);
-    sub_path = nh.subscribe("posSpline", 10, &Follower::UALPathCallback, this);
-    sub_new_vectorT = nh.subscribe("new_vectorT", 10, &Follower::newVectorTCallback, this);
+    sub_path = nh.subscribe("path_interp1", 10, &Follower::UALPathCallback, this);
+    sub_new_vectorT = nh.subscribe("path_interp1", 10, &Follower::newVectorTCallback, this);
 
     // Publishers
     pub_to_target = nh.advertise<nav_msgs::Path>("distToTarget", 1000);
@@ -116,7 +116,8 @@ void Follower::changeLookAhead(int p) {
     float target_y = path_ok[p].pose.position.y;
     float target_z = path_ok[p].pose.position.z;
     to_target_distance = distance2Points(target_x, current_x, target_y, current_y, target_z, current_z);
-    look_ahead = 1 / new_vectorT[p];
+    // look_ahead = 1 / new_vectorT[p]; // normal
+    look_ahead = 1; // Try manager simple
     // std::cout << "[ TEST] Look Ahead = " << look_ahead << " | Target = " << 1 / new_vectorT[p] << " | P = " << p << '\n';
 }
 
@@ -350,6 +351,10 @@ void Follower::UALPathCallback(const nav_msgs::Path &msg) {
             waypoint.pose.position.x = msg.poses.at(p).pose.position.x;
             waypoint.pose.position.y = msg.poses.at(p).pose.position.y;
             waypoint.pose.position.z = msg.poses.at(p).pose.position.z;
+            waypoint.pose.orientation.x = msg.poses.at(p).pose.orientation.x;
+            waypoint.pose.orientation.y = msg.poses.at(p).pose.orientation.y;
+            waypoint.pose.orientation.z = msg.poses.at(p).pose.orientation.z;
+            waypoint.pose.orientation.w = msg.poses.at(p).pose.orientation.w;
             path_ok.push_back(waypoint);
         }
     }
@@ -377,7 +382,7 @@ void Follower::UALPathVCallback(const nav_msgs::Path &msg) {
 void Follower::newVectorTCallback(const nav_msgs::Path &msg) {
     if (flag_sub_vectorT == true) {
         for (int p = 0; p < msg.poses.size(); p++) {
-            new_vectorT.push_back(msg.poses.at(p).pose.position.x);
+            new_vectorT.push_back(1);
         }
     }
     flag_sub_vectorT = false;
