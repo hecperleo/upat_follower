@@ -26,7 +26,7 @@ class ManagerSimple {
     int nearestNeighbourIndex(std::vector<double> &x, double &value);
     std::vector<double> interp1(std::vector<double> &x, std::vector<double> &y, std::vector<double> &x_new);
     nav_msgs::Path constructPath(std::vector<double> wps_x, std::vector<double> wps_y, std::vector<double> wps_z);
-    nav_msgs::Path pathManagement(nav_msgs::Path init_path, int mode);
+    void pathManagement();
     // Node handlers
     ros::NodeHandle n;
     // Subscribers
@@ -34,8 +34,8 @@ class ManagerSimple {
     // Publishers
     ros::Publisher pub_output_path;
     // Variables
-    int mode;
-    nav_msgs::Path output_path;
+    int mode = 0;
+    nav_msgs::Path output_path_;
     bool flag_sub_path = true;
     std::vector<double> list_pose_x, list_pose_y, list_pose_z;
 };

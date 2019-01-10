@@ -57,22 +57,22 @@ std::vector<double> ManagerSimple::interp1(std::vector<double> &x, std::vector<d
 }
 
 void ManagerSimple::modeCallback(std_msgs::Int8 _mode) {
+    mode = _mode.data;
     return;
 }
 
 void ManagerSimple::initPathCallback(const nav_msgs::Path &_init_path) {
-    if (flag_sub_path == true && _init_path.poses.size() > 1) {
-        for (int i = 0; i < _init_path.poses.size(); i++) {
-            list_pose_x.push_back(_init_path.poses.at(i).pose.position.x);
-            list_pose_y.push_back(_init_path.poses.at(i).pose.position.y);
-            list_pose_z.push_back(_init_path.poses.at(i).pose.position.z);
+    if (_init_path.poses.size() > 1 && mode != 0) {
+        if (flag_sub_path == true) {
+            for (int i = 0; i < _init_path.poses.size(); i++) {
+                list_pose_x.push_back(_init_path.poses.at(i).pose.position.x);
+                list_pose_y.push_back(_init_path.poses.at(i).pose.position.y);
+                list_pose_z.push_back(_init_path.poses.at(i).pose.position.z);
+            }
+            flag_sub_path = false;
         }
-        int new_path_size = 10000;
-        output_path = createPathInterp1(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), new_path_size);
+        pathManagement();
     }
-    flag_sub_path = false;
-    pub_output_path.publish(output_path);
-    sleep(1);
     return;
 }
 
@@ -110,25 +110,32 @@ nav_msgs::Path ManagerSimple::constructPath(std::vector<double> wps_x, std::vect
     return path_msg;
 }
 
-nav_msgs::Path ManagerSimple::createPathInterp1(std::vector<double> list_x, std::vector<double> list_y, std::vector<double> list_z, int path_size, int new_path_size) {
+nav_msgs::Path ManagerSimple::createPathInterp1(std::vector<double> list_x, std::vector<double> list_y, std::vector<double> list_z, int path_size, int interp1_final_size) {
     nav_msgs::Path interp1_path;
     std::vector<double> new_list_x, new_list_y, new_list_z;
     if (path_size > 1) {
-        new_list_x = InterpWaypointList(list_x, new_path_size);
-        new_list_y = InterpWaypointList(list_y, new_path_size);
-        new_list_z = InterpWaypointList(list_z, new_path_size);
+        new_list_x = InterpWaypointList(list_x, interp1_final_size);
+        new_list_y = InterpWaypointList(list_y, interp1_final_size);
+        new_list_z = InterpWaypointList(list_z, interp1_final_size);
         interp1_path = constructPath(new_list_x, new_list_y, new_list_z);
     }
     return interp1_path;
 }
 
-nav_msgs::Path ManagerSimple::pathManagement(nav_msgs::Path init_path, int mode) {
+void ManagerSimple::pathManagement() {
+    int interp1_final_size = 10000;
     switch (mode) {
         case 1:
+            output_path_ = createPathInterp1(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), interp1_final_size);
             break;
         case 2:
+            // output_path_ =
             break;
         default:
+            // output_path_ =
             break;
     }
+    pub_output_path.publish(output_path_);
+    sleep(1);
+    return;
 }

@@ -1,5 +1,6 @@
 <launch>
     <!-- Other nodes -->
+    <node pkg="rostopic" type="rostopic" name="pub_mode" args="pub /manager_mode std_msgs/Int8 1"/>
     <node pkg="path_follower" type="initiator_node" name="initiator_node" required="true"/>
     <!-- <node pkg="path_follower" type="manager_node" name="manager_node" output="screen" respawn="true"/> -->
     <node pkg="path_follower" type="manager_simple_node" name="manager_simple_node" output="screen"/>

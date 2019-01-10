@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /posSpline_simple1
       Splitter Ratio: 0.5
     Tree Height: 775
   - Class: rviz/Selection

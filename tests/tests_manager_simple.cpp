@@ -19,9 +19,9 @@ TEST_F(MyTestSuite, interp1) {
     list_pose_x = {5.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0, 15.0, 15.0, 15.0, 20.0, 20.0, 20.0};
     list_pose_y = {5.0, 10.0, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0, 5.0, 5.0, 5.0, 10.0};
     list_pose_z = {10.01, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0};
-    int new_path_size = 1000;
-    nav_msgs::Path path_interp1 = mg.createPathInterp1(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), new_path_size);
-    EXPECT_EQ(path_interp1.poses.size(), new_path_size);
+    int interp1_final_size = 1000;
+    nav_msgs::Path path_interp1 = mg.createPathInterp1(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), interp1_final_size);
+    EXPECT_EQ(path_interp1.poses.size(), interp1_final_size);
 }
 
 int main(int argc, char** argv) {
