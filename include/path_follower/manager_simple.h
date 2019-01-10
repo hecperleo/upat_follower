@@ -22,7 +22,7 @@ class ManagerSimple {
     void initPathCallback(const nav_msgs::Path &_init_path);
     void modeCallback(std_msgs::Int8 _mode);
     // Methods
-    void pathManagement();
+    void pathManagement(std::vector<double> list_pose_x, std::vector<double> list_pose_y, std::vector<double> list_pose_z);
     int nearestNeighbourIndex(std::vector<double> &x, double &value);
     std::vector<double> linealInterp1(std::vector<double> &x, std::vector<double> &y, std::vector<double> &x_new);
     std::vector<double> interpWaypointList(std::vector<double> list_pose_axis, int amount_of_points);
@@ -34,10 +34,9 @@ class ManagerSimple {
     // Publishers
     ros::Publisher pub_output_path;
     // Variables
-    // int mode = 0;
     nav_msgs::Path output_path_;
     bool flag_sub_path = true;
-    std::vector<double> list_pose_x, list_pose_y, list_pose_z;
-    enum mode_t { mode_interp1, mode_spline, mode_idle};
+    // std::vector<double> list_pose_x, list_pose_y, list_pose_z;
+    enum mode_t { mode_interp1, mode_cubic_spline, mode_idle};
     mode_t mode = mode_idle;
 };

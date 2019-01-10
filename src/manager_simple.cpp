@@ -62,7 +62,7 @@ void ManagerSimple::modeCallback(std_msgs::Int8 _mode) {
             mode = mode_interp1;
             break;
         case 2:
-            mode = mode_spline;
+            mode = mode_cubic_spline;
             break;
         default:
             break;
@@ -72,6 +72,7 @@ void ManagerSimple::modeCallback(std_msgs::Int8 _mode) {
 
 void ManagerSimple::initPathCallback(const nav_msgs::Path &_init_path) {
     if (_init_path.poses.size() > 1 && mode != mode_idle) {
+        std::vector<double> list_pose_x, list_pose_y, list_pose_z;
         if (flag_sub_path == true) {
             for (int i = 0; i < _init_path.poses.size(); i++) {
                 list_pose_x.push_back(_init_path.poses.at(i).pose.position.x);
@@ -80,7 +81,7 @@ void ManagerSimple::initPathCallback(const nav_msgs::Path &_init_path) {
             }
             flag_sub_path = false;
         }
-        pathManagement();
+        pathManagement(list_pose_x, list_pose_y, list_pose_z);
     }
     return;
 }
@@ -131,20 +132,21 @@ nav_msgs::Path ManagerSimple::createPathInterp1(std::vector<double> list_x, std:
     return interp1_path;
 }
 
-void ManagerSimple::pathManagement() {
+void ManagerSimple::pathManagement(std::vector<double> list_pose_x, std::vector<double> list_pose_y, std::vector<double> list_pose_z) {
     int interp1_final_size = 10000;
     switch (mode) {
         case mode_interp1:
             output_path_ = createPathInterp1(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), interp1_final_size);
             break;
-        case mode_spline:
-            // output_path_ =
+        case mode_cubic_spline:
+            // output_path_ = createPathCubicSpline();
             break;
         default:
             // output_path_ =
             break;
     }
     pub_output_path.publish(output_path_);
+    flag_sub_path = true;
     sleep(1);
     return;
 }

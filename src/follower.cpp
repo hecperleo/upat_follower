@@ -8,8 +8,8 @@ Follower::Follower() {
     sub_state = nh.subscribe("/uav_1/ual/state", 10, &Follower::UALStateCallback, this);
     sub_current_velocity = nh.subscribe("/uav_1/mavros/local_position/velocity", 10, &Follower::UALVelocityCallback, this);
     sub_velocity = nh.subscribe("velSpline", 10, &Follower::UALPathVCallback, this);
-    sub_path = nh.subscribe("path_interp1", 10, &Follower::UALPathCallback, this);
-    sub_new_vectorT = nh.subscribe("path_interp1", 10, &Follower::newVectorTCallback, this);
+    sub_path = nh.subscribe("output_path", 10, &Follower::UALPathCallback, this);
+    sub_new_vectorT = nh.subscribe("output_path", 10, &Follower::newVectorTCallback, this);
 
     // Publishers
     pub_to_target = nh.advertise<nav_msgs::Path>("distToTarget", 1000);
