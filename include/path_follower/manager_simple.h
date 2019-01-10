@@ -18,7 +18,7 @@ class ManagerSimple {
 
    private:
     // Callbacks
-    void UALPathCallback(const nav_msgs::Path &msg);
+    void InitPathCallback(const nav_msgs::Path &msg);
     // Methods
     std::vector<double> interpWaypoints(std::vector<double> list_pose_axis, int amount_of_points);
     template <typename Real>
