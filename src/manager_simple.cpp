@@ -11,6 +11,52 @@ ManagerSimple::ManagerSimple() {
 ManagerSimple::~ManagerSimple() {
 }
 
+template <typename Real>
+int ManagerSimple::nearestNeighbourIndex(std::vector<Real> &x, Real &value) {
+    Real dist = std::numeric_limits<Real>::max();
+    Real newDist = dist;
+    size_t idx = 0;
+
+    for (size_t i = 0; i < x.size(); ++i) {
+        newDist = std::abs(value - x[i]);
+        if (newDist <= dist) {
+            dist = newDist;
+            idx = i;
+        }
+    }
+
+    return idx;
+}
+
+template <typename Real>
+std::vector<Real> ManagerSimple::interp1(std::vector<Real> &x, std::vector<Real> &y, std::vector<Real> &x_new) {
+    std::vector<Real> y_new;
+    Real dx, dy, m, b;
+    size_t x_max_idx = x.size() - 1;
+    size_t x_new_size = x_new.size();
+
+    y_new.reserve(x_new_size);
+
+    for (size_t i = 0; i < x_new_size; ++i) {
+        size_t idx = nearestNeighbourIndex(x, x_new[i]);
+
+        if (x[idx] > x_new[i]) {
+            dx = idx > 0 ? (x[idx] - x[idx - 1]) : (x[idx + 1] - x[idx]);
+            dy = idx > 0 ? (y[idx] - y[idx - 1]) : (y[idx + 1] - y[idx]);
+        } else {
+            dx = idx < x_max_idx ? (x[idx + 1] - x[idx]) : (x[idx] - x[idx - 1]);
+            dy = idx < x_max_idx ? (y[idx + 1] - y[idx]) : (y[idx] - y[idx - 1]);
+        }
+
+        m = dy / dx;
+        b = y[idx] - x[idx] * m;
+
+        y_new.push_back(x_new[i] * m + b);
+    }
+
+    return y_new;
+}
+
 void ManagerSimple::UALPathCallback(const nav_msgs::Path &msg) {
     if (flag_sub_path == true && msg.poses.size() > 1) {
         for (int i = 0; i < msg.poses.size(); i++) {
@@ -61,51 +107,6 @@ std::vector<double> ManagerSimple::interpWaypoints(std::vector<double> list_pose
     return res;
 }
 
-template <typename Real>
-int ManagerSimple::nearestNeighbourIndex(std::vector<Real> &x, Real &value) {
-    Real dist = std::numeric_limits<Real>::max();
-    Real newDist = dist;
-    size_t idx = 0;
-
-    for (size_t i = 0; i < x.size(); ++i) {
-        newDist = std::abs(value - x[i]);
-        if (newDist <= dist) {
-            dist = newDist;
-            idx = i;
-        }
-    }
-
-    return idx;
-}
-
-template <typename Real>
-std::vector<Real> ManagerSimple::interp1(std::vector<Real> &x, std::vector<Real> &y, std::vector<Real> &x_new) {
-    std::vector<Real> y_new;
-    Real dx, dy, m, b;
-    size_t x_max_idx = x.size() - 1;
-    size_t x_new_size = x_new.size();
-
-    y_new.reserve(x_new_size);
-
-    for (size_t i = 0; i < x_new_size; ++i) {
-        size_t idx = nearestNeighbourIndex(x, x_new[i]);
-
-        if (x[idx] > x_new[i]) {
-            dx = idx > 0 ? (x[idx] - x[idx - 1]) : (x[idx + 1] - x[idx]);
-            dy = idx > 0 ? (y[idx] - y[idx - 1]) : (y[idx + 1] - y[idx]);
-        } else {
-            dx = idx < x_max_idx ? (x[idx + 1] - x[idx]) : (x[idx] - x[idx - 1]);
-            dy = idx < x_max_idx ? (y[idx + 1] - y[idx]) : (y[idx] - y[idx - 1]);
-        }
-
-        m = dy / dx;
-        b = y[idx] - x[idx] * m;
-
-        y_new.push_back(x_new[i] * m + b);
-    }
-
-    return y_new;
-}
 
 nav_msgs::Path ManagerSimple::smoothingInterp1(std::vector<double> list_x, std::vector<double> list_y, std::vector<double> list_z, int path_size, int new_path_size) {
     nav_msgs::Path res;
