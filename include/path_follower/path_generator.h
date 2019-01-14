@@ -4,6 +4,8 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "nav_msgs/Path.h"
 #include "std_msgs/Int8.h"
+#include "ecl/geometry.hpp"
+#include <Eigen/Eigen>
 // linealInterp1
 #include <cmath>
 #include <iostream>
@@ -16,6 +18,7 @@ class PathGenerator {
     ~PathGenerator();
 
     nav_msgs::Path createPathInterp1(std::vector<double> list_x, std::vector<double> list_y, std::vector<double> list_z, int path_size, int new_path_size);
+    nav_msgs::Path createPathCubicSpline(std::vector<double> list_x, std::vector<double> list_y, std::vector<double> list_z, int path_size);
 
    private:
     // Callbacks
@@ -27,6 +30,7 @@ class PathGenerator {
     std::vector<double> linealInterp1(std::vector<double> &x, std::vector<double> &y, std::vector<double> &x_new);
     std::vector<double> interpWaypointList(std::vector<double> list_pose_axis, int amount_of_points);
     nav_msgs::Path constructPath(std::vector<double> wps_x, std::vector<double> wps_y, std::vector<double> wps_z);
+    nav_msgs::Path constructPathV2(double *x, double *y, double *z, int length);
     // Node handlers
     ros::NodeHandle n;
     // Subscribers

@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   uav_abstraction_layer
   ecl_geometry
 )
+find_package(Eigen3 REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -108,7 +109,7 @@ catkin_package(
   # INCLUDE_DIRS include
   # LIBRARIES pathFollower
   CATKIN_DEPENDS geometry_msgs nav_msgs roscpp uav_abstraction_layer std_msgs ecl_geometry
-#  DEPENDS system_lib
+  DEPENDS EIGEN3
 )
 
 
@@ -122,6 +123,7 @@ catkin_package(
 include_directories(
  include
  ${catkin_INCLUDE_DIRS}
+ ${EIGEN3_INCLUDE_DIR}
 )
 
 ## Declare a C++ library

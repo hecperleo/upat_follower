@@ -120,6 +120,19 @@ nav_msgs::Path PathGenerator::constructPath(std::vector<double> wps_x, std::vect
     return path_msg;
 }
 
+nav_msgs::Path PathGenerator::constructPathV2(double *x, double *y, double *z, int length) {
+    nav_msgs::Path msg;
+    std::vector<geometry_msgs::PoseStamped> poses(length);
+    msg.header.frame_id = "uav_1_home";
+    for (int i = 0; i < length; i++) {
+        poses.at(i).pose.position.x = x[i];
+        poses.at(i).pose.position.y = y[i];
+        poses.at(i).pose.position.z = z[i];
+    }
+    msg.poses = poses;
+    return msg;
+}
+
 nav_msgs::Path PathGenerator::createPathInterp1(std::vector<double> list_x, std::vector<double> list_y, std::vector<double> list_z, int path_size, int interp1_final_size) {
     nav_msgs::Path interp1_path;
     std::vector<double> new_list_x, new_list_y, new_list_z;
@@ -132,6 +145,70 @@ nav_msgs::Path PathGenerator::createPathInterp1(std::vector<double> list_x, std:
     return interp1_path;
 }
 
+nav_msgs::Path PathGenerator::createPathCubicSpline(std::vector<double> list_x, std::vector<double> list_y, std::vector<double> list_z, int path_size) {
+    nav_msgs::Path cubic_spline_path, spline_msg;
+    if (path_size > 1) {
+        int total_distance = 0;
+        for (int i = 0; i < path_size - 1; i++) {
+            Eigen::Vector3f point_1, point_2;
+            point_1 = Eigen::Vector3f(list_x[i], list_y[i], list_z[i]);
+            point_2 = Eigen::Vector3f(list_x[i + 1], list_y[i + 1], list_z[i + 1]);
+            total_distance = total_distance + (point_2 - point_1).norm();
+        }
+        std::vector<double> new_list_x, new_list_y, new_list_z;
+        new_list_x = interpWaypointList(list_x, total_distance);
+        new_list_y = interpWaypointList(list_y, total_distance);
+        new_list_z = interpWaypointList(list_z, total_distance);
+
+        int wp_total = new_list_x.size();
+        double *wp_x = (double *)malloc(sizeof(double) * wp_total);
+        double *wp_y = (double *)malloc(sizeof(double) * wp_total);
+        double *wp_z = (double *)malloc(sizeof(double) * wp_total);
+        for (int i = 0; i < wp_total; i++) {
+            wp_x[i] = new_list_x[i];
+            wp_y[i] = new_list_y[i];
+            wp_z[i] = new_list_z[i];
+        }
+        //spline fitting
+        double *x_ptr;
+        double *y_ptr;
+        double *z_ptr;
+        x_ptr = wp_x;
+        y_ptr = wp_y;
+        z_ptr = wp_z;
+
+        ecl::CubicSpline spline_x, spline_y, spline_z;
+        //find a spline to fit the linear path
+        ecl::Array<double> t_set(wp_total), x_set(wp_total), y_set(wp_total), z_set(wp_total);
+        for (int i = 0; i < wp_total; i++) {
+            x_set[i] = x_ptr[i];
+            y_set[i] = y_ptr[i];
+            z_set[i] = z_ptr[i];
+        }
+        for (int i = 0; i < wp_total; i++) {
+            t_set[i] = (double)i;
+        }
+        //spline fit with ECL geometry
+        spline_x = ecl::CubicSpline::Natural(t_set, x_set);
+        spline_y = ecl::CubicSpline::Natural(t_set, y_set);
+        spline_z = ecl::CubicSpline::Natural(t_set, z_set);
+        int spline_pts;
+        spline_pts = (wp_total - 1) * 100;
+        double sx[spline_pts];
+        double sy[spline_pts];
+        double sz[spline_pts];
+
+        for (int i = 0; i < spline_pts; i++) {
+            sy[i] = spline_y(i / 100.0);
+            sx[i] = spline_x(i / 100.0);
+            sz[i] = spline_z(i / 100.0);
+        }
+        spline_msg = constructPathV2(sx, sy, sz, sizeof(sx) / sizeof(double));
+
+        return spline_msg;
+    }
+}
+
 void PathGenerator::pathManagement(std::vector<double> list_pose_x, std::vector<double> list_pose_y, std::vector<double> list_pose_z) {
     int interp1_final_size = 10000;
     switch (mode) {
@@ -139,7 +216,7 @@ void PathGenerator::pathManagement(std::vector<double> list_pose_x, std::vector<
             output_path_ = createPathInterp1(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), interp1_final_size);
             break;
         case mode_cubic_spline:
-            // output_path_ = createPathCubicSpline();
+            output_path_ = createPathCubicSpline(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size());
             break;
         default:
             // output_path_ =
