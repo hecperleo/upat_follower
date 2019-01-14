@@ -163,12 +163,13 @@ nav_msgs::Path PathGenerator::createPathCubicSpline(std::vector<double> list_x, 
         ecl::CubicSpline spline_y = ecl::CubicSpline::Natural(t_set, y_set);
         ecl::CubicSpline spline_z = ecl::CubicSpline::Natural(t_set, z_set);
         // Change format: ecl::CubicSpline -> std::vector
-        int amount_of_points = (interp1_list_x.size() - 1) * 100;
+        double sp_pts = 100.0;
+        int amount_of_points = (interp1_list_x.size() - 1) * sp_pts;
         std::vector<double> spline_list_x(amount_of_points), spline_list_y(amount_of_points), spline_list_z(amount_of_points);
         for (int i = 0; i < amount_of_points; i++) {
-            spline_list_x[i] = spline_x(i / 100.0);
-            spline_list_y[i] = spline_y(i / 100.0);
-            spline_list_z[i] = spline_z(i / 100.0);
+            spline_list_x[i] = spline_x(i / sp_pts);
+            spline_list_y[i] = spline_y(i / sp_pts);
+            spline_list_z[i] = spline_z(i / sp_pts);
         }
         // Construct path
         cubic_spline_path = constructPath(spline_list_x, spline_list_y, spline_list_z);
