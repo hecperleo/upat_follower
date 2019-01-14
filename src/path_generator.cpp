@@ -120,34 +120,24 @@ nav_msgs::Path PathGenerator::constructPath(std::vector<double> wps_x, std::vect
     return path_msg;
 }
 
-nav_msgs::Path PathGenerator::constructPathV2(double *x, double *y, double *z, int length) {
-    nav_msgs::Path msg;
-    std::vector<geometry_msgs::PoseStamped> poses(length);
-    msg.header.frame_id = "uav_1_home";
-    for (int i = 0; i < length; i++) {
-        poses.at(i).pose.position.x = x[i];
-        poses.at(i).pose.position.y = y[i];
-        poses.at(i).pose.position.z = z[i];
-    }
-    msg.poses = poses;
-    return msg;
-}
-
 nav_msgs::Path PathGenerator::createPathInterp1(std::vector<double> list_x, std::vector<double> list_y, std::vector<double> list_z, int path_size, int interp1_final_size) {
     nav_msgs::Path interp1_path;
-    std::vector<double> new_list_x, new_list_y, new_list_z;
+    std::vector<double> interp1_list_x, interp1_list_y, interp1_list_z;
     if (path_size > 1) {
-        new_list_x = interpWaypointList(list_x, interp1_final_size);
-        new_list_y = interpWaypointList(list_y, interp1_final_size);
-        new_list_z = interpWaypointList(list_z, interp1_final_size);
-        interp1_path = constructPath(new_list_x, new_list_y, new_list_z);
+        // Lineal interpolation
+        interp1_list_x = interpWaypointList(list_x, interp1_final_size);
+        interp1_list_y = interpWaypointList(list_y, interp1_final_size);
+        interp1_list_z = interpWaypointList(list_z, interp1_final_size);
+        // Construct path
+        interp1_path = constructPath(interp1_list_x, interp1_list_y, interp1_list_z);
     }
     return interp1_path;
 }
 
 nav_msgs::Path PathGenerator::createPathCubicSpline(std::vector<double> list_x, std::vector<double> list_y, std::vector<double> list_z, int path_size) {
-    nav_msgs::Path cubic_spline_path, spline_msg;
+    nav_msgs::Path cubic_spline_path;
     if (path_size > 1) {
+        // Calculate total distance
         int total_distance = 0;
         for (int i = 0; i < path_size - 1; i++) {
             Eigen::Vector3f point_1, point_2;
@@ -155,58 +145,35 @@ nav_msgs::Path PathGenerator::createPathCubicSpline(std::vector<double> list_x, 
             point_2 = Eigen::Vector3f(list_x[i + 1], list_y[i + 1], list_z[i + 1]);
             total_distance = total_distance + (point_2 - point_1).norm();
         }
-        std::vector<double> new_list_x, new_list_y, new_list_z;
-        new_list_x = interpWaypointList(list_x, total_distance);
-        new_list_y = interpWaypointList(list_y, total_distance);
-        new_list_z = interpWaypointList(list_z, total_distance);
-
-        int wp_total = new_list_x.size();
-        double *wp_x = (double *)malloc(sizeof(double) * wp_total);
-        double *wp_y = (double *)malloc(sizeof(double) * wp_total);
-        double *wp_z = (double *)malloc(sizeof(double) * wp_total);
-        for (int i = 0; i < wp_total; i++) {
-            wp_x[i] = new_list_x[i];
-            wp_y[i] = new_list_y[i];
-            wp_z[i] = new_list_z[i];
-        }
-        //spline fitting
-        double *x_ptr;
-        double *y_ptr;
-        double *z_ptr;
-        x_ptr = wp_x;
-        y_ptr = wp_y;
-        z_ptr = wp_z;
-
-        ecl::CubicSpline spline_x, spline_y, spline_z;
-        //find a spline to fit the linear path
-        ecl::Array<double> t_set(wp_total), x_set(wp_total), y_set(wp_total), z_set(wp_total);
-        for (int i = 0; i < wp_total; i++) {
-            x_set[i] = x_ptr[i];
-            y_set[i] = y_ptr[i];
-            z_set[i] = z_ptr[i];
-        }
-        for (int i = 0; i < wp_total; i++) {
+        // Lineal interpolation
+        std::vector<double> interp1_list_x, interp1_list_y, interp1_list_z;
+        interp1_list_x = interpWaypointList(list_x, total_distance);
+        interp1_list_y = interpWaypointList(list_y, total_distance);
+        interp1_list_z = interpWaypointList(list_z, total_distance);
+        // Prepare sets for each cubic spline
+        ecl::Array<double> t_set(interp1_list_x.size()), x_set(interp1_list_x.size()), y_set(interp1_list_x.size()), z_set(interp1_list_x.size());
+        for (int i = 0; i < interp1_list_x.size(); i++) {
+            x_set[i] = interp1_list_x[i];
+            y_set[i] = interp1_list_y[i];
+            z_set[i] = interp1_list_z[i];
             t_set[i] = (double)i;
         }
-        //spline fit with ECL geometry
-        spline_x = ecl::CubicSpline::Natural(t_set, x_set);
-        spline_y = ecl::CubicSpline::Natural(t_set, y_set);
-        spline_z = ecl::CubicSpline::Natural(t_set, z_set);
-        int spline_pts;
-        spline_pts = (wp_total - 1) * 100;
-        double sx[spline_pts];
-        double sy[spline_pts];
-        double sz[spline_pts];
-
-        for (int i = 0; i < spline_pts; i++) {
-            sy[i] = spline_y(i / 100.0);
-            sx[i] = spline_x(i / 100.0);
-            sz[i] = spline_z(i / 100.0);
+        // Create a cubic spline per axis
+        ecl::CubicSpline spline_x = ecl::CubicSpline::Natural(t_set, x_set);
+        ecl::CubicSpline spline_y = ecl::CubicSpline::Natural(t_set, y_set);
+        ecl::CubicSpline spline_z = ecl::CubicSpline::Natural(t_set, z_set);
+        // Change format: ecl::CubicSpline -> std::vector
+        int amount_of_points = (interp1_list_x.size() - 1) * 100;
+        std::vector<double> spline_list_x(amount_of_points), spline_list_y(amount_of_points), spline_list_z(amount_of_points);
+        for (int i = 0; i < amount_of_points; i++) {
+            spline_list_x[i] = spline_x(i / 100.0);
+            spline_list_y[i] = spline_y(i / 100.0);
+            spline_list_z[i] = spline_z(i / 100.0);
         }
-        spline_msg = constructPathV2(sx, sy, sz, sizeof(sx) / sizeof(double));
-
-        return spline_msg;
+        // Construct path
+        cubic_spline_path = constructPath(spline_list_x, spline_list_y, spline_list_z);
     }
+    return cubic_spline_path;
 }
 
 void PathGenerator::pathManagement(std::vector<double> list_pose_x, std::vector<double> list_pose_y, std::vector<double> list_pose_z) {
