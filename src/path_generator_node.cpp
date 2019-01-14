@@ -1,9 +1,9 @@
-#include <path_follower/manager_simple.h>
+#include <path_follower/path_generator.h>
 
 int main(int _argc, char **_argv) {
-    ros::init(_argc, _argv, "manager_simple_node");
+    ros::init(_argc, _argv, "path_generator_node");
 
-    ManagerSimple manager;
+    PathGenerator generator;
 
     ros::Rate rate(5);
     while (ros::ok()) {

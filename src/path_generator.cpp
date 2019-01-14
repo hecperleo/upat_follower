@@ -1,18 +1,18 @@
-#include <path_follower/manager_simple.h>
+#include <path_follower/path_generator.h>
 
-ManagerSimple::ManagerSimple() {
+PathGenerator::PathGenerator() {
     n = ros::NodeHandle();
     // Subscriptions
-    sub_path = n.subscribe("init_path", 0, &ManagerSimple::initPathCallback, this);
-    sub_mode = n.subscribe("manager_mode", 0, &ManagerSimple::modeCallback, this);
+    sub_path = n.subscribe("init_path", 0, &PathGenerator::initPathCallback, this);
+    sub_mode = n.subscribe("manager_mode", 0, &PathGenerator::modeCallback, this);
     // Publishers
     pub_output_path = n.advertise<nav_msgs::Path>("output_path", 1000);
 }
 
-ManagerSimple::~ManagerSimple() {
+PathGenerator::~PathGenerator() {
 }
 
-int ManagerSimple::nearestNeighbourIndex(std::vector<double> &x, double &value) {
+int PathGenerator::nearestNeighbourIndex(std::vector<double> &x, double &value) {
     double dist = std::numeric_limits<double>::max();
     double newDist = dist;
     size_t idx = 0;
@@ -28,7 +28,7 @@ int ManagerSimple::nearestNeighbourIndex(std::vector<double> &x, double &value) 
     return idx;
 }
 
-std::vector<double> ManagerSimple::linealInterp1(std::vector<double> &x, std::vector<double> &y, std::vector<double> &x_new) {
+std::vector<double> PathGenerator::linealInterp1(std::vector<double> &x, std::vector<double> &y, std::vector<double> &x_new) {
     std::vector<double> y_new;
     double dx, dy, m, b;
     size_t x_max_idx = x.size() - 1;
@@ -56,7 +56,7 @@ std::vector<double> ManagerSimple::linealInterp1(std::vector<double> &x, std::ve
     return y_new;
 }
 
-void ManagerSimple::modeCallback(std_msgs::Int8 _mode) {
+void PathGenerator::modeCallback(std_msgs::Int8 _mode) {
     switch (_mode.data) {
         case 1:
             mode = mode_interp1;
@@ -70,7 +70,7 @@ void ManagerSimple::modeCallback(std_msgs::Int8 _mode) {
     return;
 }
 
-void ManagerSimple::initPathCallback(const nav_msgs::Path &_init_path) {
+void PathGenerator::initPathCallback(const nav_msgs::Path &_init_path) {
     if (_init_path.poses.size() > 1 && mode != mode_idle) {
         std::vector<double> list_pose_x, list_pose_y, list_pose_z;
         if (flag_sub_path == true) {
@@ -86,7 +86,7 @@ void ManagerSimple::initPathCallback(const nav_msgs::Path &_init_path) {
     return;
 }
 
-std::vector<double> ManagerSimple::interpWaypointList(std::vector<double> list_pose_axis, int amount_of_points) {
+std::vector<double> PathGenerator::interpWaypointList(std::vector<double> list_pose_axis, int amount_of_points) {
     std::vector<double> aux_axis;
     std::vector<double> new_aux_axis;
     for (int i = 0; i < list_pose_axis.size(); i++) {
@@ -103,7 +103,7 @@ std::vector<double> ManagerSimple::interpWaypointList(std::vector<double> list_p
     return interp1_path;
 }
 
-nav_msgs::Path ManagerSimple::constructPath(std::vector<double> wps_x, std::vector<double> wps_y, std::vector<double> wps_z) {
+nav_msgs::Path PathGenerator::constructPath(std::vector<double> wps_x, std::vector<double> wps_y, std::vector<double> wps_z) {
     nav_msgs::Path path_msg;
     std::vector<geometry_msgs::PoseStamped> poses(wps_x.size());
     path_msg.header.frame_id = "uav_1_home";
@@ -120,7 +120,7 @@ nav_msgs::Path ManagerSimple::constructPath(std::vector<double> wps_x, std::vect
     return path_msg;
 }
 
-nav_msgs::Path ManagerSimple::createPathInterp1(std::vector<double> list_x, std::vector<double> list_y, std::vector<double> list_z, int path_size, int interp1_final_size) {
+nav_msgs::Path PathGenerator::createPathInterp1(std::vector<double> list_x, std::vector<double> list_y, std::vector<double> list_z, int path_size, int interp1_final_size) {
     nav_msgs::Path interp1_path;
     std::vector<double> new_list_x, new_list_y, new_list_z;
     if (path_size > 1) {
@@ -132,7 +132,7 @@ nav_msgs::Path ManagerSimple::createPathInterp1(std::vector<double> list_x, std:
     return interp1_path;
 }
 
-void ManagerSimple::pathManagement(std::vector<double> list_pose_x, std::vector<double> list_pose_y, std::vector<double> list_pose_z) {
+void PathGenerator::pathManagement(std::vector<double> list_pose_x, std::vector<double> list_pose_y, std::vector<double> list_pose_z) {
     int interp1_final_size = 10000;
     switch (mode) {
         case mode_interp1:

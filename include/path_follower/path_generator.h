@@ -10,10 +10,10 @@
 #include <limits>
 #include <vector>
 
-class ManagerSimple {
+class PathGenerator {
    public:
-    ManagerSimple();
-    ~ManagerSimple();
+    PathGenerator();
+    ~PathGenerator();
 
     nav_msgs::Path createPathInterp1(std::vector<double> list_x, std::vector<double> list_y, std::vector<double> list_z, int path_size, int new_path_size);
 

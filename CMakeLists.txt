@@ -162,12 +162,12 @@ add_executable(manager_node src/manager_node.cpp)
 target_link_libraries(manager_node manager ${catkin_LIBRARIES})
 add_dependencies(manager_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-add_library(manager_simple src/manager_simple.cpp)
-add_dependencies(manager_simple ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_library(path_generator src/path_generator.cpp)
+add_dependencies(path_generator ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-add_executable(manager_simple_node src/manager_simple_node.cpp)
-target_link_libraries(manager_simple_node manager_simple ${catkin_LIBRARIES})
-add_dependencies(manager_simple_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_executable(path_generator_node src/path_generator_node.cpp)
+target_link_libraries(path_generator_node path_generator ${catkin_LIBRARIES})
+add_dependencies(path_generator_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 add_library(initiator src/initiator.cpp)
 add_dependencies(initiator ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
@@ -233,5 +233,5 @@ add_dependencies(follower_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPO
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-catkin_add_gtest(manager_simple-test tests/tests_manager_simple.cpp)
-target_link_libraries(manager_simple-test manager_simple ${catkin_LIBRARIES})
+catkin_add_gtest(path_generator-test tests/tests_path_generator.cpp)
+target_link_libraries(path_generator-test path_generator ${catkin_LIBRARIES})
