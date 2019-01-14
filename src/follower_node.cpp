@@ -6,7 +6,7 @@ int main(int _argc, char **_argv) {
     Follower follower;
 
     while (ros::ok()) {
-        sleep(1);
+        sleep(0.1);
     }
 
     return 0;

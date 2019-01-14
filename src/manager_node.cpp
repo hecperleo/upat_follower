@@ -6,7 +6,7 @@ int main(int _argc, char **_argv) {
     Manager manager;
 
     while (ros::ok()) {
-        sleep(1);
+        sleep(0.5);
     }
 
     return 0;
