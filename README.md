@@ -1,6 +1,6 @@
-# Path Follower
+# Path Generator and Follower
 
-This repository contains all the code for running the Path Follower project.
+This repository contains all the code for running the path_generator_follower project.
 
 ## Dependencies
  
