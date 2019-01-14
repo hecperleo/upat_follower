@@ -1,4 +1,4 @@
-#include <path_follower/follower.h>
+#include <path_generator_follower/follower.h>
 
 int main(int _argc, char **_argv) {
     ros::init(_argc, _argv, "follower_node");

@@ -1,4 +1,4 @@
-#include <path_follower/manager.h>
+#include <path_generator_follower/manager.h>
 
 int main(int _argc, char **_argv) {
     ros::init(_argc, _argv, "manager_node");

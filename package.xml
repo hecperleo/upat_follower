@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>path_follower</name>
+  <name>path_generator_follower</name>
   <version>0.0.0</version>
-  <description>The path_follower package</description>
+  <description>The path_generator_follower package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->

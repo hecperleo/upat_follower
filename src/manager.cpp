@@ -1,4 +1,4 @@
-#include <path_follower/manager.h>
+#include <path_generator_follower/manager.h>
 
 Manager::Manager() {
     n = ros::NodeHandle();

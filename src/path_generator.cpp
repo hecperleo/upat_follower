@@ -1,4 +1,4 @@
-#include <path_follower/path_generator.h>
+#include <path_generator_follower/path_generator.h>
 
 PathGenerator::PathGenerator() {
     n = ros::NodeHandle();

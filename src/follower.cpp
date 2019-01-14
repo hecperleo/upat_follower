@@ -1,4 +1,4 @@
-#include <path_follower/follower.h>
+#include <path_generator_follower/follower.h>
 
 Follower::Follower() {
     nh = ros::NodeHandle();

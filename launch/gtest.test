@@ -1,3 +1,0 @@
-<launch>
-    <test test-name="Unit-Tests" pkg="path_follower" type="tests_mision" name="JustAName"/>    
-</launch>>

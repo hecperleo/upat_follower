@@ -1,4 +1,4 @@
-#include <path_follower/initiator.h>
+#include <path_generator_follower/initiator.h>
 
 Initiator::Initiator() {
     n = ros::NodeHandle();
