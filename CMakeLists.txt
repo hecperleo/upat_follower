@@ -185,6 +185,13 @@ add_executable(follower_node src/follower_node.cpp)
 target_link_libraries(follower_node follower ${catkin_LIBRARIES})
 add_dependencies(follower_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+add_library(path_follower src/path_follower.cpp)
+add_dependencies(path_follower ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(path_follower_node src/path_follower_node.cpp)
+target_link_libraries(path_follower_node path_follower ${catkin_LIBRARIES})
+add_dependencies(path_follower_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
 
 
 #############
