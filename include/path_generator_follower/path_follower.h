@@ -1,24 +1,37 @@
 #include <uav_abstraction_layer/ual.h>
-
 #include <ros/ros.h>
 #include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/TwistStamped.h"
 #include "nav_msgs/Path.h"
+#include <Eigen/Eigen>
 
 class PathFollower {
    public:
     PathFollower();
     ~PathFollower();
 
+    void pubMsgs();
+
    private:
     // Callbacks
-
+    void pathCallback(const nav_msgs::Path &_path);
+    void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
     // Methods
+    void followPath();
+    int calculatePosOnPath(Eigen::Vector3f current_p);
+    int calculatePosLookAhead(int pos_on_path);
+    Eigen::Vector3f calculatePointDirectionLookAhead(geometry_msgs::PoseStamped path_pose);
+    geometry_msgs::TwistStamped calculateVelocity(Eigen::Vector3f current_p, int pos_la);
 
     // Node handlers
     ros::NodeHandle nh;
-
     // Subscribers
-
+    ros::Subscriber sub_path, sub_pose;
     // Publishers
+    ros::Publisher pub_output_vel;
+    // Variables
+    double look_ahead = 1.0;
+    nav_msgs::Path path;
+    geometry_msgs::PoseStamped ual_pose;
+    geometry_msgs::TwistStamped out_velocity;
 };

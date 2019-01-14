@@ -66,6 +66,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <node pkg="path_generator_follower" type="path_generator_node" name="path_generator_node" output="screen"/>
     <!-- <node pkg="path_generator_follower" type="manager_node" name="manager_node" output="screen"/> -->
     <node pkg="path_generator_follower" type="follower_node" name="follower_node" output="screen" required="true"/>
+    <node pkg="path_generator_follower" type="path_follower_node" name="path_follower_node" output="screen" required="true"/>    
     <node pkg="rviz" type="rviz" name="rviz_node" args="-d /home/hector/tfm_ws/src/path_generator_follower/rviz/tfm.rviz" required="true"/>
 
 </launch>
