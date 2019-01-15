@@ -7,8 +7,9 @@ int main(int _argc, char **_argv) {
 
     ros::Rate rate(10);
     while (ros::ok()) {
-        ros::spinOnce();
+        path_follower.followPath();
         path_follower.pubMsgs();
+        ros::spinOnce();
         rate.sleep();
     }
 

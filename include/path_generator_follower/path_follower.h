@@ -11,13 +11,13 @@ class PathFollower {
     ~PathFollower();
 
     void pubMsgs();
+    void followPath();
 
    private:
     // Callbacks
     void pathCallback(const nav_msgs::Path &_path);
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
     // Methods
-    void followPath();
     int calculatePosOnPath(Eigen::Vector3f current_p);
     int calculatePosLookAhead(int pos_on_path);
     Eigen::Vector3f calculatePointDirectionLookAhead(geometry_msgs::PoseStamped path_pose);
@@ -30,6 +30,7 @@ class PathFollower {
     // Publishers
     ros::Publisher pub_output_vel;
     // Variables
+    bool flag_run = false;
     double look_ahead = 1.0;
     nav_msgs::Path path;
     geometry_msgs::PoseStamped ual_pose;

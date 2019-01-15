@@ -222,9 +222,19 @@ Visualization Manager:
       Marker Topic: /visualization_marker
       Name: UAVcil
       Namespaces:
-        {}
+        my_namespace: true
       Queue Size: 100
       Value: true
+    - Class: jsk_rviz_plugin/TwistStamped
+      Enabled: true
+      Name: TwistStamped
+      Topic: /output_vel
+      Unreliable: false
+      Value: true
+      angular color: 255; 0; 0
+      angular scale: 1
+      linear color: 0; 255; 0
+      linear scale: 1
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48

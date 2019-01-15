@@ -100,9 +100,17 @@ void PathFollower::pubMsgs() {
 }
 
 void PathFollower::followPath() {
-    Eigen::Vector3f current_point;
-    current_point = Eigen::Vector3f(ual_pose.pose.position.x, ual_pose.pose.position.y, ual_pose.pose.position.z);
-    int normal_pos_on_path = calculatePosOnPath(current_point);
-    int pos_look_ahead = calculatePosLookAhead(normal_pos_on_path);
-    out_velocity = calculateVelocity(current_point, pos_look_ahead);
+    if (path.poses.size() > 1) {
+        Eigen::Vector3f current_point, path0_point;
+        current_point = Eigen::Vector3f(ual_pose.pose.position.x, ual_pose.pose.position.y, ual_pose.pose.position.z);
+        path0_point = Eigen::Vector3f(path.poses.at(0).pose.position.x, path.poses.at(0).pose.position.y, path.poses.at(0).pose.position.z);
+        if ((current_point - path0_point).norm() < 1) {
+            flag_run = true;
+        }
+        if (flag_run) {
+            int normal_pos_on_path = calculatePosOnPath(current_point);
+            int pos_look_ahead = calculatePosLookAhead(normal_pos_on_path);
+            out_velocity = calculateVelocity(current_point, pos_look_ahead);
+        }
+    }
 }
