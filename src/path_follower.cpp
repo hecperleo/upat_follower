@@ -41,12 +41,12 @@ int PathFollower::calculatePosLookAhead(int pos_on_path) {
     std::vector<double> vec_distances;
     Eigen::Vector3f path_p;
     path_p = Eigen::Vector3f(path.poses.at(pos_on_path).pose.position.x, path.poses.at(pos_on_path).pose.position.y, path.poses.at(pos_on_path).pose.position.z);
-    for (int i = pos_on_path; i < path.poses.size(); i++) {
+    for (int i = pos_on_path; i < path.poses.size() - 1; i++) {
         Eigen::Vector3f la_p;
         la_p = Eigen::Vector3f(path.poses.at(i).pose.position.x, path.poses.at(i).pose.position.y, path.poses.at(i).pose.position.z);
-        vec_distances.push_back((path_p - la_p).norm());
+        vec_distances.push_back((la_p - path_p).norm());
     }
-    std::vector<double>::iterator up = std::upper_bound(vec_distances.begin(), vec_distances.end(), look_ahead);
+    std::vector<double>::iterator up = std::lower_bound(vec_distances.begin(), vec_distances.end(), look_ahead);
     pos_la = up - vec_distances.begin();
 
     return pos_la;
@@ -58,7 +58,7 @@ geometry_msgs::TwistStamped PathFollower::calculateVelocity(Eigen::Vector3f curr
     Eigen::Vector3f target_p;
     target_p = Eigen::Vector3f(path.poses.at(pos_la).pose.position.x, path.poses.at(pos_la).pose.position.y, path.poses.at(pos_la).pose.position.z);
     double distance = (target_p - current_p).norm();
-    Eigen::Vector3f unit_vec = (current_p - target_p) / distance;
+    Eigen::Vector3f unit_vec = (target_p - current_p) / distance;
     unit_vec = unit_vec / unit_vec.norm();
     out_vel.twist.linear.x = unit_vec(0) * cruising_speed;
     out_vel.twist.linear.y = unit_vec(1) * cruising_speed;
@@ -83,7 +83,7 @@ void PathFollower::followPath() {
         if (flag_run) {
             int normal_pos_on_path = calculatePosOnPath(current_point);
             int pos_look_ahead = calculatePosLookAhead(normal_pos_on_path);
-            out_velocity = calculateVelocity(current_point, pos_look_ahead);
+            out_velocity = calculateVelocity(current_point, normal_pos_on_path + pos_look_ahead);
         }
     }
 }
