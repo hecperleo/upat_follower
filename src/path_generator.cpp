@@ -4,7 +4,7 @@ PathGenerator::PathGenerator() {
     n = ros::NodeHandle();
     // Subscriptions
     sub_path = n.subscribe("init_path", 0, &PathGenerator::initPathCallback, this);
-    sub_mode = n.subscribe("manager_mode", 0, &PathGenerator::modeCallback, this);
+    sub_mode = n.subscribe("generator_mode", 0, &PathGenerator::modeCallback, this);
     // Publishers
     pub_output_path = n.advertise<nav_msgs::Path>("output_path", 1000);
 }

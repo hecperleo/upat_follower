@@ -7,6 +7,7 @@ int main(int _argc, char **_argv) {
 
     ros::Rate rate(10);
     while (ros::ok()) {
+        manager.runMission();
         ros::spinOnce();
         rate.sleep();
     }
