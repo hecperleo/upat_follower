@@ -23,34 +23,6 @@ void PathFollower::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_
     ual_pose = *_ual_pose;
 }
 
-Eigen::Vector3f PathFollower::calculatePointDirectionLookAhead(geometry_msgs::PoseStamped path_pose) {
-    Eigen::Vector3f out_p;
-    double _x, _y, _z, x_, y_, z_;
-    _x = path_pose.pose.position.x;
-    _y = path_pose.pose.position.y;
-    _z = path_pose.pose.position.z;
-    if (_x < 0) {
-        x_ = _x - look_ahead;
-    }
-    if (_x > 0) {
-        x_ = _x + look_ahead;
-    }
-    if (_y < 0) {
-        y_ = _y - look_ahead;
-    }
-    if (_y > 0) {
-        y_ = _y + look_ahead;
-    }
-    if (_z < 0) {
-        z_ = _z - look_ahead;
-    }
-    if (_z > 0) {
-        z_ = _z + look_ahead;
-    }
-    out_p = Eigen::Vector3f(x_, y_, z_);
-    return out_p;
-}
-
 int PathFollower::calculatePosOnPath(Eigen::Vector3f current_p) {
     std::vector<double> vec_distances;
     for (int i = 0; i < path.poses.size() - 1; i++) {
@@ -67,10 +39,11 @@ int PathFollower::calculatePosOnPath(Eigen::Vector3f current_p) {
 int PathFollower::calculatePosLookAhead(int pos_on_path) {
     int pos_la;
     std::vector<double> vec_distances;
+    Eigen::Vector3f path_p;
+    path_p = Eigen::Vector3f(path.poses.at(pos_on_path).pose.position.x, path.poses.at(pos_on_path).pose.position.y, path.poses.at(pos_on_path).pose.position.z);
     for (int i = pos_on_path; i < path.poses.size(); i++) {
-        Eigen::Vector3f path_p, la_p;
-        path_p = Eigen::Vector3f(path.poses.at(i).pose.position.x, path.poses.at(i).pose.position.y, path.poses.at(i).pose.position.z);
-        la_p = calculatePointDirectionLookAhead(path.poses.at(i));
+        Eigen::Vector3f la_p;
+        la_p = Eigen::Vector3f(path.poses.at(i).pose.position.x, path.poses.at(i).pose.position.y, path.poses.at(i).pose.position.z);
         vec_distances.push_back((path_p - la_p).norm());
     }
     std::vector<double>::iterator up = std::upper_bound(vec_distances.begin(), vec_distances.end(), look_ahead);

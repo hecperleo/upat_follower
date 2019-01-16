@@ -20,7 +20,6 @@ class PathFollower {
     // Methods
     int calculatePosOnPath(Eigen::Vector3f current_p);
     int calculatePosLookAhead(int pos_on_path);
-    Eigen::Vector3f calculatePointDirectionLookAhead(geometry_msgs::PoseStamped path_pose);
     geometry_msgs::TwistStamped calculateVelocity(Eigen::Vector3f current_p, int pos_la);
 
     // Node handlers
