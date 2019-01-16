@@ -5,9 +5,12 @@ int main(int _argc, char **_argv) {
 
     Manager manager;
 
+    ros::Rate rate(10);
     while (ros::ok()) {
-        sleep(0.5);
+        ros::spinOnce();
+        rate.sleep();
     }
+
 
     return 0;
 }
