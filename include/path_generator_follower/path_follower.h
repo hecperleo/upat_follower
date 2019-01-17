@@ -4,6 +4,7 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/TwistStamped.h"
 #include "nav_msgs/Path.h"
+#include <path_generator_follower/GetGeneratedPath.h>
 
 class PathFollower {
    public:
@@ -28,6 +29,9 @@ class PathFollower {
     ros::Subscriber sub_path, sub_pose;
     // Publishers
     ros::Publisher pub_output_vel;
+    // Services
+    ros::ServiceClient srv_get_generated_path;
+    // ros::ServiceServer srv_get_generated_path;
     // Variables
     bool flag_run = false;
     double look_ahead = 1.0;

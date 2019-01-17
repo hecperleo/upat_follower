@@ -1,4 +1,5 @@
 #include <path_generator_follower/GeneratePath.h>
+#include <path_generator_follower/GetGeneratedPath.h>
 #include <ros/ros.h>
 #include <uav_abstraction_layer/Land.h>
 #include <uav_abstraction_layer/State.h>
@@ -20,7 +21,7 @@ class Manager {
 
    private:
     // Callbacks
-    bool pathCallback(path_generator_follower::GeneratePath::Request &req_path, path_generator_follower::GeneratePath::Response &res_path);
+    bool pathCallback(path_generator_follower::GetGeneratedPath::Request &req_path, path_generator_follower::GetGeneratedPath::Response &res_path);
     // void pathCallback(const nav_msgs::Path &_path);
     void ualStateCallback(const uav_abstraction_layer::State &_ual_state);
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
@@ -37,6 +38,7 @@ class Manager {
     ros::Publisher pub_path, pub_init_path, pub_generator_mode, pub_set_velocity, pub_set_pose;
     // Services
     ros::ServiceClient srv_take_off, srv_land, srv_generated_path;
+    ros::ServiceServer srv_give_generated_path;
 
     // Variables
     bool on_path, end_path;

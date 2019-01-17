@@ -4,7 +4,7 @@ PathGenerator::PathGenerator() {
     nh = ros::NodeHandle();
     // Subscriptions
     // Publishers
-    pub_output_path = nh.advertise<nav_msgs::Path>("/generator/output_path", 1000);
+    // pub_output_path = nh.advertise<nav_msgs::Path>("/generator/output_path", 1000);
     // Services
     srv_generate_path = nh.advertiseService("/generator/generate_path", &PathGenerator::pathCallback, this);
 }

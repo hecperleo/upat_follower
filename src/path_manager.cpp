@@ -17,6 +17,7 @@ Manager::Manager() {
     srv_take_off = nh.serviceClient<uav_abstraction_layer::TakeOff>("/uav_1/ual/take_off");
     srv_land = nh.serviceClient<uav_abstraction_layer::Land>("/uav_1/ual/land");
     srv_generated_path = nh.serviceClient<path_generator_follower::GeneratePath>("/generator/generate_path");
+    srv_give_generated_path = nh.advertiseService("/manager/generated_path", &Manager::pathCallback, this);
 
     on_path = false;
     end_path = false;
@@ -44,8 +45,9 @@ nav_msgs::Path Manager::constructPath(std::vector<double> wps_x, std::vector<dou
     return path_msg;
 }
 
-bool Manager::pathCallback(path_generator_follower::GeneratePath::Request &req_path,
-                           path_generator_follower::GeneratePath::Response &res_path) {
+bool Manager::pathCallback(path_generator_follower::GetGeneratedPath::Request &req_path,
+                           path_generator_follower::GetGeneratedPath::Response &res_path) {
+    res_path.generated_path = path;
     return true;
 }
 
@@ -75,8 +77,10 @@ void Manager::runMission() {
     generator_mode.data = 2;
     generate_path.request.generator_mode = generator_mode;
     generate_path.request.init_path = init_path;
-    srv_generated_path.call(generate_path);
-    path = generate_path.response.generated_path;
+    if (path.poses.size() < 1) {
+        srv_generated_path.call(generate_path);
+        path = generate_path.response.generated_path;
+    }
     Eigen::Vector3f current_p, path0_p, path_end_p;
     current_p = Eigen::Vector3f(ual_pose.pose.position.x, ual_pose.pose.position.y, ual_pose.pose.position.z);
     path0_p = Eigen::Vector3f(path.poses.front().pose.position.x, path.poses.front().pose.position.y, path.poses.front().pose.position.z);

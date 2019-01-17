@@ -5,18 +5,20 @@ PathFollower::PathFollower() {
 
     // Subscriptions
     sub_pose = nh.subscribe("/uav_1/ual/pose", 0, &PathFollower::ualPoseCallback, this);
-    sub_path = nh.subscribe("/manager/visualization/path", 0, &PathFollower::pathCallback, this);
+    // sub_path = nh.subscribe("/manager/visualization/path", 0, &PathFollower::pathCallback, this);
     // Publishers
     pub_output_vel = nh.advertise<geometry_msgs::TwistStamped>("/follower/output_vel", 1000);
+    // Services
+    srv_get_generated_path = nh.serviceClient<path_generator_follower::GetGeneratedPath>("/manager/generated_path");
 }
 
 PathFollower::~PathFollower() {
 }
 
 void PathFollower::pathCallback(const nav_msgs::Path &_path) {
-    if (_path.poses.size() > 1) {
-        path = _path;
-    }
+    // if (_path.poses.size() > 1) {
+    //     path = _path;
+    // }
 }
 
 void PathFollower::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose) {
@@ -73,6 +75,7 @@ void PathFollower::pubMsgs() {
 }
 
 void PathFollower::followPath() {
+    path_generator_follower::GetGeneratedPath get_generated_path;
     if (path.poses.size() > 1) {
         Eigen::Vector3f current_point, path0_point;
         current_point = Eigen::Vector3f(ual_pose.pose.position.x, ual_pose.pose.position.y, ual_pose.pose.position.z);
@@ -85,5 +88,8 @@ void PathFollower::followPath() {
             int pos_look_ahead = calculatePosLookAhead(normal_pos_on_path);
             out_velocity = calculateVelocity(current_point, normal_pos_on_path + pos_look_ahead);
         }
+    } else {
+        srv_get_generated_path.call(get_generated_path);
+        path = get_generated_path.response.generated_path;
     }
 }

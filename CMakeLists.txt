@@ -61,6 +61,7 @@ find_package(Eigen3 REQUIRED)
 add_service_files(
   FILES
   GeneratePath.srv
+  GetGeneratedPath.srv
 )
 
 ## Generate actions in the 'action' folder
