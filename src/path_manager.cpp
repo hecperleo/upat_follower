@@ -6,18 +6,17 @@ PathManager::PathManager() {
     sub_pose = nh.subscribe("/uav_1/ual/pose", 0, &PathManager::ualPoseCallback, this);
     sub_state = nh.subscribe("/uav_1/ual/state", 0, &PathManager::ualStateCallback, this);
     // sub_path = nh.subscribe("/generator/output_path", 0, &PathManager::pathCallback, this);
-    sub_velocity = nh.subscribe("/follower/output_vel", 0, &PathManager::velocityCallback, this);
+    sub_velocity = nh.subscribe("/uav_path_manager/follower/output_vel", 0, &PathManager::velocityCallback, this);
     // Publishers
-    pub_init_path = nh.advertise<nav_msgs::Path>("/visualization/manager/init_path", 1000);
-    pub_path = nh.advertise<nav_msgs::Path>("/visualization/manager/path", 1000);
-    // pub_generator_mode = nh.advertise<std_msgs::Int8>("/PathManager/generator_mode", 1000);
+    pub_init_path = nh.advertise<nav_msgs::Path>("/uav_path_manager/visualization/manager/init_path", 1000);
+    pub_generated_path = nh.advertise<nav_msgs::Path>("/uav_path_manager/visualization/manager/generated_path", 1000);
     pub_set_pose = nh.advertise<geometry_msgs::PoseStamped>("/uav_1/ual/set_pose", 1000);
     pub_set_velocity = nh.advertise<geometry_msgs::TwistStamped>("/uav_1/ual/set_velocity", 1000);
     // Services
     srv_take_off = nh.serviceClient<uav_abstraction_layer::TakeOff>("/uav_1/ual/take_off");
     srv_land = nh.serviceClient<uav_abstraction_layer::Land>("/uav_1/ual/land");
-    srv_generated_path = nh.serviceClient<uav_path_manager::GeneratePath>("/generator/generate_path");
-    srv_give_generated_path = nh.advertiseService("/manager/generated_path", &PathManager::pathCallback, this);
+    srv_generated_path = nh.serviceClient<uav_path_manager::GeneratePath>("/uav_path_manager/generator/generate_path");
+    srv_give_generated_path = nh.advertiseService("/uav_path_manager/manager/generated_path", &PathManager::pathCallback, this);
 
     on_path = false;
     end_path = false;
@@ -65,8 +64,7 @@ void PathManager::velocityCallback(const geometry_msgs::TwistStamped &_velocity)
 
 void PathManager::pubMsgs() {
     pub_init_path.publish(init_path);
-    pub_path.publish(path);
-    // pub_generator_mode.publish(generator_mode);
+    pub_generated_path.publish(path);
 }
 
 void PathManager::runMission() {

@@ -4,9 +4,8 @@ PathGenerator::PathGenerator() {
     nh = ros::NodeHandle();
     // Subscriptions
     // Publishers
-    // pub_output_path = nh.advertise<nav_msgs::Path>("/generator/output_path", 1000);
     // Services
-    srv_generate_path = nh.advertiseService("/generator/generate_path", &PathGenerator::pathCallback, this);
+    srv_generate_path = nh.advertiseService("/uav_path_manager/generator/generate_path", &PathGenerator::pathCallback, this);
 }
 
 PathGenerator::~PathGenerator() {
@@ -75,7 +74,6 @@ bool PathGenerator::pathCallback(uav_path_manager::GeneratePath::Request &req_pa
             break;
     }
     res_path.generated_path = pathManagement(list_pose_x, list_pose_y, list_pose_z);
-    // pub_output_path.publish(res_path.generated_path);
     return true;
 }
 
@@ -183,7 +181,6 @@ nav_msgs::Path PathGenerator::pathManagement(std::vector<double> list_pose_x, st
             // output_path_ =
             break;
     }
-    // pub_output_path.publish(output_path_);
     flag_sub_path = true;
     return output_path_;
 }

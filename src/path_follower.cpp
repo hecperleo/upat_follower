@@ -2,23 +2,15 @@
 
 PathFollower::PathFollower() {
     nh = ros::NodeHandle();
-
     // Subscriptions
     sub_pose = nh.subscribe("/uav_1/ual/pose", 0, &PathFollower::ualPoseCallback, this);
-    // sub_path = nh.subscribe("/manager/visualization/path", 0, &PathFollower::pathCallback, this);
     // Publishers
-    pub_output_vel = nh.advertise<geometry_msgs::TwistStamped>("/follower/output_vel", 1000);
+    pub_output_vel = nh.advertise<geometry_msgs::TwistStamped>("/uav_path_manager/follower/output_vel", 1000);
     // Services
-    srv_get_generated_path = nh.serviceClient<uav_path_manager::GetGeneratedPath>("/manager/generated_path");
+    srv_get_generated_path = nh.serviceClient<uav_path_manager::GetGeneratedPath>("/uav_path_manager/manager/generated_path");
 }
 
 PathFollower::~PathFollower() {
-}
-
-void PathFollower::pathCallback(const nav_msgs::Path &_path) {
-    // if (_path.poses.size() > 1) {
-    //     path = _path;
-    // }
 }
 
 void PathFollower::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose) {

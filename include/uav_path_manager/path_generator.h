@@ -1,7 +1,7 @@
 #include <ros/ros.h>
 
-#include <uav_path_manager/GeneratePath.h>
 #include <uav_abstraction_layer/ual.h>
+#include <uav_path_manager/GeneratePath.h>
 #include <Eigen/Eigen>
 #include "ecl/geometry.hpp"
 #include "geometry_msgs/PoseStamped.h"
@@ -25,24 +25,20 @@ class PathGenerator {
     // Callbacks
     bool pathCallback(uav_path_manager::GeneratePath::Request &req_path, uav_path_manager::GeneratePath::Response &res_path);
     // Methods
-    nav_msgs::Path pathManagement(std::vector<double> list_pose_x, std::vector<double> list_pose_y, std::vector<double> list_pose_z);
     int nearestNeighbourIndex(std::vector<double> &x, double &value);
     std::vector<double> linealInterp1(std::vector<double> &x, std::vector<double> &y, std::vector<double> &x_new);
     std::vector<double> interpWaypointList(std::vector<double> list_pose_axis, int amount_of_points);
     nav_msgs::Path constructPath(std::vector<double> wps_x, std::vector<double> wps_y, std::vector<double> wps_z);
-    nav_msgs::Path constructPathV2(double *x, double *y, double *z, int length);
+    nav_msgs::Path pathManagement(std::vector<double> list_pose_x, std::vector<double> list_pose_y, std::vector<double> list_pose_z);
     // Node handlers
     ros::NodeHandle nh;
     // Subscribers
-    ros::Subscriber sub_path, sub_mode;
     // Publishers
-    ros::Publisher pub_output_path;
     // Services
     ros::ServiceServer srv_generate_path;
     // Variables
     nav_msgs::Path output_path_;
     bool flag_sub_path = true;
-    // std::vector<double> list_pose_x, list_pose_y, list_pose_z;
     enum mode_t { mode_interp1,
                   mode_cubic_spline,
                   mode_idle };

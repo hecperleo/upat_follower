@@ -1,4 +1,4 @@
-# Path Generator and Follower
+# UAV Path Manager
 
 This repository contains all the code for running the uav_path_manager project.
 
