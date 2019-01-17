@@ -1,12 +1,12 @@
 #include <path_generator_follower/path_generator.h>
 
 PathGenerator::PathGenerator() {
-    n = ros::NodeHandle();
+    nh = ros::NodeHandle();
     // Subscriptions
-    sub_path = n.subscribe("init_path", 0, &PathGenerator::initPathCallback, this);
-    sub_mode = n.subscribe("generator_mode", 0, &PathGenerator::modeCallback, this);
+    sub_path = nh.subscribe("/manager/init_path", 0, &PathGenerator::initPathCallback, this);
+    sub_mode = nh.subscribe("/manager/generator_mode", 0, &PathGenerator::modeCallback, this);
     // Publishers
-    pub_output_path = n.advertise<nav_msgs::Path>("output_path", 1000);
+    pub_output_path = nh.advertise<nav_msgs::Path>("/generator/output_path", 1000);
 }
 
 PathGenerator::~PathGenerator() {

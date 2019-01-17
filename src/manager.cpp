@@ -5,9 +5,11 @@ Manager::Manager() {
     // Subscriptions
     sub_pose = nh.subscribe("/uav_1/ual/pose", 0, &Manager::ualPoseCallback, this);
     sub_state = nh.subscribe("/uav_1/ual/state", 0, &Manager::ualStateCallback, this);
-    sub_path = nh.subscribe("output_path", 0, &Manager::pathCallback, this);
-    sub_velocity = nh.subscribe("output_vel", 0, &Manager::velocityCallback, this);
+    sub_path = nh.subscribe("/generator/output_path", 0, &Manager::pathCallback, this);
+    sub_velocity = nh.subscribe("/follower/output_vel", 0, &Manager::velocityCallback, this);
     // Publishers
+    pub_init_path = nh.advertise<nav_msgs::Path>("/manager/init_path", 1000);
+    pub_generator_mode = nh.advertise<std_msgs::Int8>("/manager/generator_mode", 1000);
     pub_set_pose = nh.advertise<geometry_msgs::PoseStamped>("/uav_1/ual/set_pose", 1000);
     pub_set_velocity = nh.advertise<geometry_msgs::TwistStamped>("/uav_1/ual/set_velocity", 1000);
     // Services
@@ -16,9 +18,29 @@ Manager::Manager() {
 
     on_path = false;
     end_path = false;
+
+    init_path = constructPath(list_init_x, list_init_y, list_init_z);
+    generator_mode.data = 2;
 }
 
 Manager::~Manager() {
+}
+
+nav_msgs::Path Manager::constructPath(std::vector<double> wps_x, std::vector<double> wps_y, std::vector<double> wps_z) {
+    nav_msgs::Path path_msg;
+    std::vector<geometry_msgs::PoseStamped> poses(wps_x.size());
+    path_msg.header.frame_id = "uav_1_home";
+    for (int i = 0; i < wps_x.size(); i++) {
+        poses.at(i).pose.position.x = wps_x[i];
+        poses.at(i).pose.position.y = wps_y[i];
+        poses.at(i).pose.position.z = wps_z[i];
+        poses.at(i).pose.orientation.x = 0;
+        poses.at(i).pose.orientation.y = 0;
+        poses.at(i).pose.orientation.z = 0;
+        poses.at(i).pose.orientation.w = 1;
+    }
+    path_msg.poses = poses;
+    return path_msg;
 }
 
 void Manager::pathCallback(const nav_msgs::Path &_path) {
@@ -37,6 +59,11 @@ void Manager::ualStateCallback(const uav_abstraction_layer::State &_ual_state) {
 
 void Manager::velocityCallback(const geometry_msgs::TwistStamped &_velocity) {
     velocity_ = _velocity;
+}
+
+void Manager::pubMsgs(){
+    pub_init_path.publish(init_path);    
+    pub_generator_mode.publish(generator_mode);
 }
 
 void Manager::runMission() {

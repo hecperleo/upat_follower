@@ -32,7 +32,7 @@ class PathGenerator {
     nav_msgs::Path constructPath(std::vector<double> wps_x, std::vector<double> wps_y, std::vector<double> wps_z);
     nav_msgs::Path constructPathV2(double *x, double *y, double *z, int length);
     // Node handlers
-    ros::NodeHandle n;
+    ros::NodeHandle nh;
     // Subscribers
     ros::Subscriber sub_path, sub_mode;
     // Publishers

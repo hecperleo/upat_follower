@@ -7,6 +7,7 @@
 #include "ecl/geometry.hpp"
 #include "geometry_msgs/PoseStamped.h"
 #include "nav_msgs/Path.h"
+#include "std_msgs/Int8.h"
 
 class Manager {
    public:
@@ -14,6 +15,7 @@ class Manager {
     ~Manager();
 
     void runMission();
+    void pubMsgs();
 
    private:
     // Callbacks
@@ -22,6 +24,7 @@ class Manager {
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
     void velocityCallback(const geometry_msgs::TwistStamped &_velocity);
     // Methods
+    nav_msgs::Path constructPath(std::vector<double> wps_x, std::vector<double> wps_y, std::vector<double> wps_z);
 
     // Node handlers
     ros::NodeHandle nh;
@@ -29,16 +32,20 @@ class Manager {
     // Subscribers
     ros::Subscriber sub_pose, sub_path, sub_state, sub_velocity;
     // Publishers
-    ros::Publisher pub_set_velocity, pub_set_pose;
+    ros::Publisher pub_init_path, pub_generator_mode, pub_set_velocity, pub_set_pose;
     // Services
     ros::ServiceClient srvTakeOff, srvLand;
 
     // Variables
     bool on_path, end_path;
-    nav_msgs::Path path;
+    nav_msgs::Path path, init_path;
     geometry_msgs::PoseStamped ual_pose;
     geometry_msgs::TwistStamped velocity_;
     uav_abstraction_layer::State ual_state;
+    std_msgs::Int8 generator_mode;
+    std::vector<double> list_init_x = {5.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0, 15.0, 15.0, 15.0, 20.0, 20.0, 20.0};
+    std::vector<double> list_init_y = {5.0, 10.0, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0, 5.0, 5.0, 5.0, 10.0};
+    std::vector<double> list_init_z = {10.0, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0};
 
     // Params
 };
