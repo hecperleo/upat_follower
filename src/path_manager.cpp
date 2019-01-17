@@ -1,4 +1,4 @@
-#include <path_generator_follower/path_manager.h>
+#include <uav_path_manager/path_manager.h>
 
 PathManager::PathManager() {
     nh = ros::NodeHandle();
@@ -16,7 +16,7 @@ PathManager::PathManager() {
     // Services
     srv_take_off = nh.serviceClient<uav_abstraction_layer::TakeOff>("/uav_1/ual/take_off");
     srv_land = nh.serviceClient<uav_abstraction_layer::Land>("/uav_1/ual/land");
-    srv_generated_path = nh.serviceClient<path_generator_follower::GeneratePath>("/generator/generate_path");
+    srv_generated_path = nh.serviceClient<uav_path_manager::GeneratePath>("/generator/generate_path");
     srv_give_generated_path = nh.advertiseService("/manager/generated_path", &PathManager::pathCallback, this);
 
     on_path = false;
@@ -45,8 +45,8 @@ nav_msgs::Path PathManager::constructPath(std::vector<double> wps_x, std::vector
     return path_msg;
 }
 
-bool PathManager::pathCallback(path_generator_follower::GetGeneratedPath::Request &req_path,
-                           path_generator_follower::GetGeneratedPath::Response &res_path) {
+bool PathManager::pathCallback(uav_path_manager::GetGeneratedPath::Request &req_path,
+                           uav_path_manager::GetGeneratedPath::Response &res_path) {
     res_path.generated_path = path;
     return true;
 }
@@ -72,7 +72,7 @@ void PathManager::pubMsgs() {
 void PathManager::runMission() {
     uav_abstraction_layer::TakeOff take_off;
     uav_abstraction_layer::Land land;
-    path_generator_follower::GeneratePath generate_path;
+    uav_path_manager::GeneratePath generate_path;
     std_msgs::Int8 generator_mode;
     generator_mode.data = 2;
     generate_path.request.generator_mode = generator_mode;

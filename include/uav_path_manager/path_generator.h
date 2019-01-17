@@ -1,6 +1,6 @@
 #include <ros/ros.h>
 
-#include <path_generator_follower/GeneratePath.h>
+#include <uav_path_manager/GeneratePath.h>
 #include <uav_abstraction_layer/ual.h>
 #include <Eigen/Eigen>
 #include "ecl/geometry.hpp"
@@ -23,7 +23,7 @@ class PathGenerator {
 
    private:
     // Callbacks
-    bool pathCallback(path_generator_follower::GeneratePath::Request &req_path, path_generator_follower::GeneratePath::Response &res_path);
+    bool pathCallback(uav_path_manager::GeneratePath::Request &req_path, uav_path_manager::GeneratePath::Response &res_path);
     // Methods
     nav_msgs::Path pathManagement(std::vector<double> list_pose_x, std::vector<double> list_pose_y, std::vector<double> list_pose_z);
     int nearestNeighbourIndex(std::vector<double> &x, double &value);

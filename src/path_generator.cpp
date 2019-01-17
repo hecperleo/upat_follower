@@ -1,4 +1,4 @@
-#include <path_generator_follower/path_generator.h>
+#include <uav_path_manager/path_generator.h>
 
 PathGenerator::PathGenerator() {
     nh = ros::NodeHandle();
@@ -56,8 +56,8 @@ std::vector<double> PathGenerator::linealInterp1(std::vector<double> &x, std::ve
     return y_new;
 }
 
-bool PathGenerator::pathCallback(path_generator_follower::GeneratePath::Request &req_path,
-                                 path_generator_follower::GeneratePath::Response &res_path) {
+bool PathGenerator::pathCallback(uav_path_manager::GeneratePath::Request &req_path,
+                                 uav_path_manager::GeneratePath::Response &res_path) {
     std::vector<double> list_pose_x, list_pose_y, list_pose_z;
     for (int i = 0; i < req_path.init_path.poses.size(); i++) {
         list_pose_x.push_back(req_path.init_path.poses.at(i).pose.position.x);

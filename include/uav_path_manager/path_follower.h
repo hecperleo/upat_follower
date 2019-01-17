@@ -4,7 +4,7 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/TwistStamped.h"
 #include "nav_msgs/Path.h"
-#include <path_generator_follower/GetGeneratedPath.h>
+#include <uav_path_manager/GetGeneratedPath.h>
 
 class PathFollower {
    public:

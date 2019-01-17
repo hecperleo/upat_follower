@@ -1,6 +1,6 @@
 # Path Generator and Follower
 
-This repository contains all the code for running the path_generator_follower project.
+This repository contains all the code for running the uav_path_manager project.
 
 ## Dependencies
  

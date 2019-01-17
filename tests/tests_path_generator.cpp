@@ -1,4 +1,4 @@
-#include "path_generator_follower/path_generator.h"
+#include "uav_path_manager/path_generator.h"
 #include <ros/ros.h>
 
 #include <gtest/gtest.h>

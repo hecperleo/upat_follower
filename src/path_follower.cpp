@@ -1,4 +1,4 @@
-#include <path_generator_follower/path_follower.h>
+#include <uav_path_manager/path_follower.h>
 
 PathFollower::PathFollower() {
     nh = ros::NodeHandle();
@@ -9,7 +9,7 @@ PathFollower::PathFollower() {
     // Publishers
     pub_output_vel = nh.advertise<geometry_msgs::TwistStamped>("/follower/output_vel", 1000);
     // Services
-    srv_get_generated_path = nh.serviceClient<path_generator_follower::GetGeneratedPath>("/manager/generated_path");
+    srv_get_generated_path = nh.serviceClient<uav_path_manager::GetGeneratedPath>("/manager/generated_path");
 }
 
 PathFollower::~PathFollower() {
@@ -75,7 +75,7 @@ void PathFollower::pubMsgs() {
 }
 
 void PathFollower::followPath() {
-    path_generator_follower::GetGeneratedPath get_generated_path;
+    uav_path_manager::GetGeneratedPath get_generated_path;
     if (path.poses.size() > 1) {
         Eigen::Vector3f current_point, path0_point;
         current_point = Eigen::Vector3f(ual_pose.pose.position.x, ual_pose.pose.position.y, ual_pose.pose.position.z);

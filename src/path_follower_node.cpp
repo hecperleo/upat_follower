@@ -1,4 +1,4 @@
-#include <path_generator_follower/path_follower.h>
+#include <uav_path_manager/path_follower.h>
 
 int main(int _argc, char **_argv) {
     ros::init(_argc, _argv, "path_follower_node");

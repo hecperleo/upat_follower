@@ -1,5 +1,5 @@
-#include <path_generator_follower/GeneratePath.h>
-#include <path_generator_follower/GetGeneratedPath.h>
+#include <uav_path_manager/GeneratePath.h>
+#include <uav_path_manager/GetGeneratedPath.h>
 #include <ros/ros.h>
 #include <uav_abstraction_layer/Land.h>
 #include <uav_abstraction_layer/State.h>
@@ -21,7 +21,7 @@ class PathManager {
 
    private:
     // Callbacks
-    bool pathCallback(path_generator_follower::GetGeneratedPath::Request &req_path, path_generator_follower::GetGeneratedPath::Response &res_path);
+    bool pathCallback(uav_path_manager::GetGeneratedPath::Request &req_path, uav_path_manager::GetGeneratedPath::Response &res_path);
     // void pathCallback(const nav_msgs::Path &_path);
     void ualStateCallback(const uav_abstraction_layer::State &_ual_state);
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
