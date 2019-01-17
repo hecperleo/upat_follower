@@ -13,6 +13,9 @@ Manager::Manager() {
     // Services
     srvTakeOff = nh.serviceClient<uav_abstraction_layer::TakeOff>("/uav_1/ual/take_off");
     srvLand = nh.serviceClient<uav_abstraction_layer::Land>("/uav_1/ual/land");
+
+    on_path = false;
+    end_path = false;
 }
 
 Manager::~Manager() {
@@ -53,27 +56,34 @@ void Manager::runMission() {
             case 3:  // Taking of
                 break;
             case 4:  // Flying auto
-                if ((current_p - path0_p).norm() > 0.5 && !on_path) {
-                    pub_set_pose.publish(path.poses.at(0));
-                } else if ((current_p - path0_p).norm() < 0.2 && !on_path) {
-                    pub_set_pose.publish(path.poses.front());
-                    on_path = true;
-                } else if (on_path) {
-                    pub_set_velocity.publish(velocity_);
-                } else if ((current_p - path_end_p).norm() < 1.0 && on_path) {
-                    pub_set_pose.publish(path.poses.back());
-                    on_path = false;
-                } else if ((current_p - path_end_p).norm() < 0.2 && !on_path) {
-                    land.request.blocking = true;
-                    srvLand.call(land);
+                if (!end_path) {
+                    if (!on_path) {
+                        if ((current_p - path0_p).norm() > 0.5) {
+                            pub_set_pose.publish(path.poses.at(0));
+                        } else if (0.2 > (current_p - path0_p).norm()) {
+                            pub_set_pose.publish(path.poses.front());
+                            on_path = true;
+                        }
+                    } else {
+                        if (1.0 > (current_p - path_end_p).norm()) {
+                            pub_set_pose.publish(path.poses.back());
+                            on_path = false;
+                            end_path = true;
+                        } else {
+                            pub_set_velocity.publish(velocity_);
+                        }
+                    }
                 } else {
+                    if (1.0 > (current_p - path_end_p).norm() && (current_p - path_end_p).norm() > 0.2) {
+                        std::cout << "dist to end: " << (current_p - path_end_p).norm() << " end: " << end_path << " on: " << on_path << std::endl;
+                        pub_set_pose.publish(path.poses.back());
+                    } else {
+                        land.request.blocking = true;
+                        srvLand.call(land);
+                    }
                 }
-                // If uav is not on start point, go to it
-                // If uav on path, follow it
-                // If uav on path end, call land srv
                 break;
             case 5:  // Landing
-                // cout landing?
                 break;
             default:
                 break;

@@ -34,7 +34,7 @@ class Manager {
     ros::ServiceClient srvTakeOff, srvLand;
 
     // Variables
-    bool on_path = false;
+    bool on_path, end_path;
     nav_msgs::Path path;
     geometry_msgs::PoseStamped ual_pose;
     geometry_msgs::TwistStamped velocity_;
