@@ -157,12 +157,13 @@ include_directories(
 #  ${catkin_LIBRARIES}
 # )
 
-add_library(manager src/manager.cpp)
-add_dependencies(manager ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_library(path_manager src/path_manager.cpp)
+add_dependencies(path_manager ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-add_executable(manager_node src/manager_node.cpp)
-target_link_libraries(manager_node manager ${catkin_LIBRARIES})
-add_dependencies(manager_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_executable(path_manager_node src/path_manager_node.cpp)
+target_link_libraries(path_manager_node path_manager ${catkin_LIBRARIES})
+add_dependencies(path_manager_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
 
 add_library(path_generator src/path_generator.cpp)
 add_dependencies(path_generator ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
@@ -171,19 +172,6 @@ add_executable(path_generator_node src/path_generator_node.cpp)
 target_link_libraries(path_generator_node path_generator ${catkin_LIBRARIES})
 add_dependencies(path_generator_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-add_library(initiator src/initiator.cpp)
-add_dependencies(initiator ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
-add_executable(initiator_node src/initiator_node.cpp)
-target_link_libraries(initiator_node initiator ${catkin_LIBRARIES})
-add_dependencies(initiator_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
-add_library(follower src/follower.cpp)
-add_dependencies(follower ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
-add_executable(follower_node src/follower_node.cpp)
-target_link_libraries(follower_node follower ${catkin_LIBRARIES})
-add_dependencies(follower_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 add_library(path_follower src/path_follower.cpp)
 add_dependencies(path_follower ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

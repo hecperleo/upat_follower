@@ -1,7 +1,7 @@
-#include <path_generator_follower/manager.h>
+#include <path_generator_follower/path_manager.h>
 
 int main(int _argc, char **_argv) {
-    ros::init(_argc, _argv, "manager_node");
+    ros::init(_argc, _argv, "path_manager_node");
 
     Manager manager;
 

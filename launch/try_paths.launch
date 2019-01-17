@@ -1,9 +1,0 @@
-<launch>
-    <!-- Other nodes -->
-    <node pkg="rostopic" type="rostopic" name="pub_mode" args="pub /manager_mode std_msgs/Int8 2"/>
-    <node pkg="path_generator_follower" type="initiator_node" name="initiator_node" required="true"/>
-    <!-- <node pkg="path_generator_follower" type="manager_node" name="manager_node" output="screen" respawn="true"/> -->
-    <node pkg="path_generator_follower" type="path_generator_node" name="path_generator_node" output="screen"/>
-    <!-- <node pkg="path_generator_follower" type="path_follower_node" name="path_follower_node" output="screen" required="true"/> -->
-    <node pkg="rviz" type="rviz" name="rviz_node" args="-d /home/hector/tfm_ws/src/path_generator_follower/rviz/try_paths.rviz" required="true"/>
-</launch>
