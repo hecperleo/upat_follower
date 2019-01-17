@@ -11,10 +11,10 @@
 #include "nav_msgs/Path.h"
 #include "std_msgs/Int8.h"
 
-class Manager {
+class PathManager {
    public:
-    Manager();
-    ~Manager();
+    PathManager();
+    ~PathManager();
 
     void runMission();
     void pubMsgs();

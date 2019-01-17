@@ -1,23 +1,23 @@
 #include <path_generator_follower/path_manager.h>
 
-Manager::Manager() {
+PathManager::PathManager() {
     nh = ros::NodeHandle();
     // Subscriptions
-    sub_pose = nh.subscribe("/uav_1/ual/pose", 0, &Manager::ualPoseCallback, this);
-    sub_state = nh.subscribe("/uav_1/ual/state", 0, &Manager::ualStateCallback, this);
-    // sub_path = nh.subscribe("/generator/output_path", 0, &Manager::pathCallback, this);
-    sub_velocity = nh.subscribe("/follower/output_vel", 0, &Manager::velocityCallback, this);
+    sub_pose = nh.subscribe("/uav_1/ual/pose", 0, &PathManager::ualPoseCallback, this);
+    sub_state = nh.subscribe("/uav_1/ual/state", 0, &PathManager::ualStateCallback, this);
+    // sub_path = nh.subscribe("/generator/output_path", 0, &PathManager::pathCallback, this);
+    sub_velocity = nh.subscribe("/follower/output_vel", 0, &PathManager::velocityCallback, this);
     // Publishers
-    pub_init_path = nh.advertise<nav_msgs::Path>("/manager/visualization/init_path", 1000);
-    pub_path = nh.advertise<nav_msgs::Path>("/manager/visualization/path", 1000);
-    // pub_generator_mode = nh.advertise<std_msgs::Int8>("/manager/generator_mode", 1000);
+    pub_init_path = nh.advertise<nav_msgs::Path>("/visualization/manager/init_path", 1000);
+    pub_path = nh.advertise<nav_msgs::Path>("/visualization/manager/path", 1000);
+    // pub_generator_mode = nh.advertise<std_msgs::Int8>("/PathManager/generator_mode", 1000);
     pub_set_pose = nh.advertise<geometry_msgs::PoseStamped>("/uav_1/ual/set_pose", 1000);
     pub_set_velocity = nh.advertise<geometry_msgs::TwistStamped>("/uav_1/ual/set_velocity", 1000);
     // Services
     srv_take_off = nh.serviceClient<uav_abstraction_layer::TakeOff>("/uav_1/ual/take_off");
     srv_land = nh.serviceClient<uav_abstraction_layer::Land>("/uav_1/ual/land");
     srv_generated_path = nh.serviceClient<path_generator_follower::GeneratePath>("/generator/generate_path");
-    srv_give_generated_path = nh.advertiseService("/manager/generated_path", &Manager::pathCallback, this);
+    srv_give_generated_path = nh.advertiseService("/manager/generated_path", &PathManager::pathCallback, this);
 
     on_path = false;
     end_path = false;
@@ -25,10 +25,10 @@ Manager::Manager() {
     init_path = constructPath(list_init_x, list_init_y, list_init_z);
 }
 
-Manager::~Manager() {
+PathManager::~PathManager() {
 }
 
-nav_msgs::Path Manager::constructPath(std::vector<double> wps_x, std::vector<double> wps_y, std::vector<double> wps_z) {
+nav_msgs::Path PathManager::constructPath(std::vector<double> wps_x, std::vector<double> wps_y, std::vector<double> wps_z) {
     nav_msgs::Path path_msg;
     std::vector<geometry_msgs::PoseStamped> poses(wps_x.size());
     path_msg.header.frame_id = "uav_1_home";
@@ -45,31 +45,31 @@ nav_msgs::Path Manager::constructPath(std::vector<double> wps_x, std::vector<dou
     return path_msg;
 }
 
-bool Manager::pathCallback(path_generator_follower::GetGeneratedPath::Request &req_path,
+bool PathManager::pathCallback(path_generator_follower::GetGeneratedPath::Request &req_path,
                            path_generator_follower::GetGeneratedPath::Response &res_path) {
     res_path.generated_path = path;
     return true;
 }
 
-void Manager::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose) {
+void PathManager::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose) {
     ual_pose = *_ual_pose;
 }
 
-void Manager::ualStateCallback(const uav_abstraction_layer::State &_ual_state) {
+void PathManager::ualStateCallback(const uav_abstraction_layer::State &_ual_state) {
     ual_state.state = _ual_state.state;
 }
 
-void Manager::velocityCallback(const geometry_msgs::TwistStamped &_velocity) {
+void PathManager::velocityCallback(const geometry_msgs::TwistStamped &_velocity) {
     velocity_ = _velocity;
 }
 
-void Manager::pubMsgs() {
+void PathManager::pubMsgs() {
     pub_init_path.publish(init_path);
     pub_path.publish(path);
     // pub_generator_mode.publish(generator_mode);
 }
 
-void Manager::runMission() {
+void PathManager::runMission() {
     uav_abstraction_layer::TakeOff take_off;
     uav_abstraction_layer::Land land;
     path_generator_follower::GeneratePath generate_path;
