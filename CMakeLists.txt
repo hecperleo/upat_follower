@@ -8,10 +8,11 @@ add_compile_options(-std=c++11)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  roscpp 
   geometry_msgs 
   nav_msgs
   std_msgs
-  roscpp 
+  message_generation
   uav_abstraction_layer
   ecl_geometry
 )
@@ -57,11 +58,10 @@ find_package(Eigen3 REQUIRED)
 # )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+  FILES
+  GeneratePath.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -71,10 +71,10 @@ find_package(Eigen3 REQUIRED)
 # )
 
 ## Generate added messages and services with any dependencies listed here
-#  generate_messages(
-#   DEPENDENCIES
-#   geometry_msgs std_msgs  # Or other packages containing msgs
-#  )
+ generate_messages(
+  DEPENDENCIES
+  geometry_msgs std_msgs nav_msgs  # Or other packages containing msgs
+ )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -106,9 +106,9 @@ find_package(Eigen3 REQUIRED)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  # INCLUDE_DIRS include
-  # LIBRARIES pathFollower
-  CATKIN_DEPENDS geometry_msgs nav_msgs roscpp uav_abstraction_layer std_msgs ecl_geometry
+  INCLUDE_DIRS include
+  LIBRARIES path_generator_follower
+  CATKIN_DEPENDS geometry_msgs nav_msgs roscpp uav_abstraction_layer std_msgs ecl_geometry message_runtime
   DEPENDS EIGEN3
 )
 

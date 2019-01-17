@@ -1,0 +1,4 @@
+nav_msgs/Path init_path
+std_msgs/Int8 generator_mode
+---
+nav_msgs/Path generated_path

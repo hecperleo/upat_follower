@@ -6,6 +6,7 @@
 #include "std_msgs/Int8.h"
 #include "ecl/geometry.hpp"
 #include <Eigen/Eigen>
+#include <path_generator_follower/GeneratePath.h>
 // linealInterp1
 #include <cmath>
 #include <iostream>
@@ -22,10 +23,9 @@ class PathGenerator {
 
    private:
     // Callbacks
-    void initPathCallback(const nav_msgs::Path &_init_path);
-    void modeCallback(std_msgs::Int8 _mode);
+    bool pathCallback(path_generator_follower::GeneratePath::Request &req_path, path_generator_follower::GeneratePath::Response &res_path);
     // Methods
-    void pathManagement(std::vector<double> list_pose_x, std::vector<double> list_pose_y, std::vector<double> list_pose_z);
+    nav_msgs::Path pathManagement(std::vector<double> list_pose_x, std::vector<double> list_pose_y, std::vector<double> list_pose_z);
     int nearestNeighbourIndex(std::vector<double> &x, double &value);
     std::vector<double> linealInterp1(std::vector<double> &x, std::vector<double> &y, std::vector<double> &x_new);
     std::vector<double> interpWaypointList(std::vector<double> list_pose_axis, int amount_of_points);
@@ -37,6 +37,8 @@ class PathGenerator {
     ros::Subscriber sub_path, sub_mode;
     // Publishers
     ros::Publisher pub_output_path;
+    // Services
+    ros::ServiceServer srv_generate_path;
     // Variables
     nav_msgs::Path output_path_;
     bool flag_sub_path = true;

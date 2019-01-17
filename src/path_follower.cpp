@@ -5,7 +5,7 @@ PathFollower::PathFollower() {
 
     // Subscriptions
     sub_pose = nh.subscribe("/uav_1/ual/pose", 0, &PathFollower::ualPoseCallback, this);
-    sub_path = nh.subscribe("/generator/output_path", 0, &PathFollower::pathCallback, this);
+    sub_path = nh.subscribe("/manager/visualization/path", 0, &PathFollower::pathCallback, this);
     // Publishers
     pub_output_vel = nh.advertise<geometry_msgs::TwistStamped>("/follower/output_vel", 1000);
 }

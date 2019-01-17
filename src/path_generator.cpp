@@ -3,10 +3,10 @@
 PathGenerator::PathGenerator() {
     nh = ros::NodeHandle();
     // Subscriptions
-    sub_path = nh.subscribe("/manager/init_path", 0, &PathGenerator::initPathCallback, this);
-    sub_mode = nh.subscribe("/manager/generator_mode", 0, &PathGenerator::modeCallback, this);
     // Publishers
     pub_output_path = nh.advertise<nav_msgs::Path>("/generator/output_path", 1000);
+    // Services
+    srv_generate_path = nh.advertiseService("/generator/generate_path", &PathGenerator::pathCallback, this);
 }
 
 PathGenerator::~PathGenerator() {
@@ -56,8 +56,15 @@ std::vector<double> PathGenerator::linealInterp1(std::vector<double> &x, std::ve
     return y_new;
 }
 
-void PathGenerator::modeCallback(std_msgs::Int8 _mode) {
-    switch (_mode.data) {
+bool PathGenerator::pathCallback(path_generator_follower::GeneratePath::Request &req_path,
+                                 path_generator_follower::GeneratePath::Response &res_path) {
+    std::vector<double> list_pose_x, list_pose_y, list_pose_z;
+    for (int i = 0; i < req_path.init_path.poses.size(); i++) {
+        list_pose_x.push_back(req_path.init_path.poses.at(i).pose.position.x);
+        list_pose_y.push_back(req_path.init_path.poses.at(i).pose.position.y);
+        list_pose_z.push_back(req_path.init_path.poses.at(i).pose.position.z);
+    }
+    switch (req_path.generator_mode.data) {
         case 1:
             mode = mode_interp1;
             break;
@@ -67,23 +74,9 @@ void PathGenerator::modeCallback(std_msgs::Int8 _mode) {
         default:
             break;
     }
-    return;
-}
-
-void PathGenerator::initPathCallback(const nav_msgs::Path &_init_path) {
-    if (_init_path.poses.size() > 1 && mode != mode_idle) {
-        std::vector<double> list_pose_x, list_pose_y, list_pose_z;
-        if (flag_sub_path == true) {
-            for (int i = 0; i < _init_path.poses.size(); i++) {
-                list_pose_x.push_back(_init_path.poses.at(i).pose.position.x);
-                list_pose_y.push_back(_init_path.poses.at(i).pose.position.y);
-                list_pose_z.push_back(_init_path.poses.at(i).pose.position.z);
-            }
-            flag_sub_path = false;
-        }
-        pathManagement(list_pose_x, list_pose_y, list_pose_z);
-    }
-    return;
+    res_path.generated_path = pathManagement(list_pose_x, list_pose_y, list_pose_z);
+    // pub_output_path.publish(res_path.generated_path);
+    return true;
 }
 
 std::vector<double> PathGenerator::interpWaypointList(std::vector<double> list_pose_axis, int amount_of_points) {
@@ -177,7 +170,7 @@ nav_msgs::Path PathGenerator::createPathCubicSpline(std::vector<double> list_x, 
     return cubic_spline_path;
 }
 
-void PathGenerator::pathManagement(std::vector<double> list_pose_x, std::vector<double> list_pose_y, std::vector<double> list_pose_z) {
+nav_msgs::Path PathGenerator::pathManagement(std::vector<double> list_pose_x, std::vector<double> list_pose_y, std::vector<double> list_pose_z) {
     int interp1_final_size = 10000;
     switch (mode) {
         case mode_interp1:
@@ -190,7 +183,7 @@ void PathGenerator::pathManagement(std::vector<double> list_pose_x, std::vector<
             // output_path_ =
             break;
     }
-    pub_output_path.publish(output_path_);
+    // pub_output_path.publish(output_path_);
     flag_sub_path = true;
-    return;
+    return output_path_;
 }

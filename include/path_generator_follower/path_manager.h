@@ -8,6 +8,7 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "nav_msgs/Path.h"
 #include "std_msgs/Int8.h"
+#include <path_generator_follower/GeneratePath.h>
 
 class Manager {
    public:
@@ -19,7 +20,8 @@ class Manager {
 
    private:
     // Callbacks
-    void pathCallback(const nav_msgs::Path &_path);
+    bool pathCallback(path_generator_follower::GeneratePath::Request &req_path, path_generator_follower::GeneratePath::Response &res_path);
+    // void pathCallback(const nav_msgs::Path &_path);
     void ualStateCallback(const uav_abstraction_layer::State &_ual_state);
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
     void velocityCallback(const geometry_msgs::TwistStamped &_velocity);
@@ -32,9 +34,9 @@ class Manager {
     // Subscribers
     ros::Subscriber sub_pose, sub_path, sub_state, sub_velocity;
     // Publishers
-    ros::Publisher pub_init_path, pub_generator_mode, pub_set_velocity, pub_set_pose;
+    ros::Publisher pub_path, pub_init_path, pub_generator_mode, pub_set_velocity, pub_set_pose;
     // Services
-    ros::ServiceClient srvTakeOff, srvLand;
+    ros::ServiceClient srv_take_off, srv_land, srv_generated_path;
 
     // Variables
     bool on_path, end_path;
@@ -42,7 +44,6 @@ class Manager {
     geometry_msgs::PoseStamped ual_pose;
     geometry_msgs::TwistStamped velocity_;
     uav_abstraction_layer::State ual_state;
-    std_msgs::Int8 generator_mode;
     std::vector<double> list_init_x = {5.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0, 15.0, 15.0, 15.0, 20.0, 20.0, 20.0};
     std::vector<double> list_init_y = {5.0, 10.0, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0, 5.0, 5.0, 5.0, 10.0};
     std::vector<double> list_init_z = {10.0, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0};

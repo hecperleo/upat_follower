@@ -5,22 +5,23 @@ Manager::Manager() {
     // Subscriptions
     sub_pose = nh.subscribe("/uav_1/ual/pose", 0, &Manager::ualPoseCallback, this);
     sub_state = nh.subscribe("/uav_1/ual/state", 0, &Manager::ualStateCallback, this);
-    sub_path = nh.subscribe("/generator/output_path", 0, &Manager::pathCallback, this);
+    // sub_path = nh.subscribe("/generator/output_path", 0, &Manager::pathCallback, this);
     sub_velocity = nh.subscribe("/follower/output_vel", 0, &Manager::velocityCallback, this);
     // Publishers
-    pub_init_path = nh.advertise<nav_msgs::Path>("/manager/init_path", 1000);
-    pub_generator_mode = nh.advertise<std_msgs::Int8>("/manager/generator_mode", 1000);
+    pub_init_path = nh.advertise<nav_msgs::Path>("/manager/visualization/init_path", 1000);
+    pub_path = nh.advertise<nav_msgs::Path>("/manager/visualization/path", 1000);
+    // pub_generator_mode = nh.advertise<std_msgs::Int8>("/manager/generator_mode", 1000);
     pub_set_pose = nh.advertise<geometry_msgs::PoseStamped>("/uav_1/ual/set_pose", 1000);
     pub_set_velocity = nh.advertise<geometry_msgs::TwistStamped>("/uav_1/ual/set_velocity", 1000);
     // Services
-    srvTakeOff = nh.serviceClient<uav_abstraction_layer::TakeOff>("/uav_1/ual/take_off");
-    srvLand = nh.serviceClient<uav_abstraction_layer::Land>("/uav_1/ual/land");
+    srv_take_off = nh.serviceClient<uav_abstraction_layer::TakeOff>("/uav_1/ual/take_off");
+    srv_land = nh.serviceClient<uav_abstraction_layer::Land>("/uav_1/ual/land");
+    srv_generated_path = nh.serviceClient<path_generator_follower::GeneratePath>("/generator/generate_path");
 
     on_path = false;
     end_path = false;
 
     init_path = constructPath(list_init_x, list_init_y, list_init_z);
-    generator_mode.data = 2;
 }
 
 Manager::~Manager() {
@@ -43,10 +44,9 @@ nav_msgs::Path Manager::constructPath(std::vector<double> wps_x, std::vector<dou
     return path_msg;
 }
 
-void Manager::pathCallback(const nav_msgs::Path &_path) {
-    if (_path.poses.size() > 1) {
-        path = _path;
-    }
+bool Manager::pathCallback(path_generator_follower::GeneratePath::Request &req_path,
+                           path_generator_follower::GeneratePath::Response &res_path) {
+    return true;
 }
 
 void Manager::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose) {
@@ -61,59 +61,66 @@ void Manager::velocityCallback(const geometry_msgs::TwistStamped &_velocity) {
     velocity_ = _velocity;
 }
 
-void Manager::pubMsgs(){
-    pub_init_path.publish(init_path);    
-    pub_generator_mode.publish(generator_mode);
+void Manager::pubMsgs() {
+    pub_init_path.publish(init_path);
+    pub_path.publish(path);
+    // pub_generator_mode.publish(generator_mode);
 }
 
 void Manager::runMission() {
-    if (path.poses.size() > 1) {
-        uav_abstraction_layer::TakeOff take_off;
-        uav_abstraction_layer::Land land;
-        Eigen::Vector3f current_p, path0_p, path_end_p;
-        current_p = Eigen::Vector3f(ual_pose.pose.position.x, ual_pose.pose.position.y, ual_pose.pose.position.z);
-        path0_p = Eigen::Vector3f(path.poses.front().pose.position.x, path.poses.front().pose.position.y, path.poses.front().pose.position.z);
-        path_end_p = Eigen::Vector3f(path.poses.back().pose.position.x, path.poses.back().pose.position.y, path.poses.back().pose.position.z);
-        switch (ual_state.state) {
-            case 2:  // Landed armed
+    uav_abstraction_layer::TakeOff take_off;
+    uav_abstraction_layer::Land land;
+    path_generator_follower::GeneratePath generate_path;
+    std_msgs::Int8 generator_mode;
+    generator_mode.data = 2;
+    generate_path.request.generator_mode = generator_mode;
+    generate_path.request.init_path = init_path;
+    srv_generated_path.call(generate_path);
+    path = generate_path.response.generated_path;
+    Eigen::Vector3f current_p, path0_p, path_end_p;
+    current_p = Eigen::Vector3f(ual_pose.pose.position.x, ual_pose.pose.position.y, ual_pose.pose.position.z);
+    path0_p = Eigen::Vector3f(path.poses.front().pose.position.x, path.poses.front().pose.position.y, path.poses.front().pose.position.z);
+    path_end_p = Eigen::Vector3f(path.poses.back().pose.position.x, path.poses.back().pose.position.y, path.poses.back().pose.position.z);
+    switch (ual_state.state) {
+        case 2:  // Landed armed
+            if (!end_path) {
                 take_off.request.height = 5.0;
                 take_off.request.blocking = true;
-                srvTakeOff.call(take_off);
-                break;
-            case 3:  // Taking of
-                break;
-            case 4:  // Flying auto
-                if (!end_path) {
-                    if (!on_path) {
-                        if ((current_p - path0_p).norm() > 0.5) {
-                            pub_set_pose.publish(path.poses.at(0));
-                        } else if (0.2 > (current_p - path0_p).norm()) {
-                            pub_set_pose.publish(path.poses.front());
-                            on_path = true;
-                        }
-                    } else {
-                        if (1.0 > (current_p - path_end_p).norm()) {
-                            pub_set_pose.publish(path.poses.back());
-                            on_path = false;
-                            end_path = true;
-                        } else {
-                            pub_set_velocity.publish(velocity_);
-                        }
+                srv_take_off.call(take_off);
+            }
+            break;
+        case 3:  // Taking of
+            break;
+        case 4:  // Flying auto
+            if (!end_path) {
+                if (!on_path) {
+                    if ((current_p - path0_p).norm() > 0.5) {
+                        pub_set_pose.publish(path.poses.at(0));
+                    } else if (0.2 > (current_p - path0_p).norm()) {
+                        pub_set_pose.publish(path.poses.front());
+                        on_path = true;
                     }
                 } else {
-                    if (1.0 > (current_p - path_end_p).norm() && (current_p - path_end_p).norm() > 0.2) {
-                        std::cout << "dist to end: " << (current_p - path_end_p).norm() << " end: " << end_path << " on: " << on_path << std::endl;
+                    if (1.0 > (current_p - path_end_p).norm()) {
                         pub_set_pose.publish(path.poses.back());
+                        on_path = false;
+                        end_path = true;
                     } else {
-                        land.request.blocking = true;
-                        srvLand.call(land);
+                        pub_set_velocity.publish(velocity_);
                     }
                 }
-                break;
-            case 5:  // Landing
-                break;
-            default:
-                break;
-        }
+            } else {
+                if (1.0 > (current_p - path_end_p).norm() && (current_p - path_end_p).norm() > 0.2) {
+                    pub_set_pose.publish(path.poses.back());
+                } else {
+                    land.request.blocking = true;
+                    srv_land.call(land);
+                }
+            }
+            break;
+        case 5:  // Landing
+            break;
+        default:
+            break;
     }
 }

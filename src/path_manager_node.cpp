@@ -7,8 +7,8 @@ int main(int _argc, char **_argv) {
 
     ros::Rate rate(10);
     while (ros::ok()) {
-        manager.pubMsgs();
         manager.runMission();
+        manager.pubMsgs();
         ros::spinOnce();
         rate.sleep();
     }
