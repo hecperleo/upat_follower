@@ -1,3 +1,4 @@
+#include <path_generator_follower/GeneratePath.h>
 #include <ros/ros.h>
 #include <uav_abstraction_layer/Land.h>
 #include <uav_abstraction_layer/State.h>
@@ -8,7 +9,6 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "nav_msgs/Path.h"
 #include "std_msgs/Int8.h"
-#include <path_generator_follower/GeneratePath.h>
 
 class Manager {
    public:

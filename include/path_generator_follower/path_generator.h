@@ -1,12 +1,12 @@
 #include <ros/ros.h>
 
+#include <path_generator_follower/GeneratePath.h>
 #include <uav_abstraction_layer/ual.h>
+#include <Eigen/Eigen>
+#include "ecl/geometry.hpp"
 #include "geometry_msgs/PoseStamped.h"
 #include "nav_msgs/Path.h"
 #include "std_msgs/Int8.h"
-#include "ecl/geometry.hpp"
-#include <Eigen/Eigen>
-#include <path_generator_follower/GeneratePath.h>
 // linealInterp1
 #include <cmath>
 #include <iostream>
@@ -43,6 +43,8 @@ class PathGenerator {
     nav_msgs::Path output_path_;
     bool flag_sub_path = true;
     // std::vector<double> list_pose_x, list_pose_y, list_pose_z;
-    enum mode_t { mode_interp1, mode_cubic_spline, mode_idle};
+    enum mode_t { mode_interp1,
+                  mode_cubic_spline,
+                  mode_idle };
     mode_t mode = mode_idle;
 };
