@@ -1,9 +1,8 @@
 #include <uav_path_manager/path_generator.h>
 
 PathGenerator::PathGenerator() {
+    // Node Handle
     nh = ros::NodeHandle();
-    // Subscriptions
-    // Publishers
     // Services
     srv_generate_path = nh.advertiseService("/uav_path_manager/generator/generate_path", &PathGenerator::pathCallback, this);
 }
@@ -74,6 +73,7 @@ bool PathGenerator::pathCallback(uav_path_manager::GeneratePath::Request &req_pa
             break;
     }
     res_path.generated_path = pathManagement(list_pose_x, list_pose_y, list_pose_z);
+    res_path.generated_path.header.frame_id = req_path.init_path.header.frame_id;
     return true;
 }
 
@@ -97,7 +97,6 @@ std::vector<double> PathGenerator::interpWaypointList(std::vector<double> list_p
 nav_msgs::Path PathGenerator::constructPath(std::vector<double> wps_x, std::vector<double> wps_y, std::vector<double> wps_z) {
     nav_msgs::Path path_msg;
     std::vector<geometry_msgs::PoseStamped> poses(wps_x.size());
-    path_msg.header.frame_id = "uav_1_home";
     for (int i = 0; i < wps_x.size(); i++) {
         poses.at(i).pose.position.x = wps_x[i];
         poses.at(i).pose.position.y = wps_y[i];
@@ -178,9 +177,7 @@ nav_msgs::Path PathGenerator::pathManagement(std::vector<double> list_pose_x, st
             output_path_ = createPathCubicSpline(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size());
             break;
         default:
-            // output_path_ =
             break;
     }
-    flag_sub_path = true;
     return output_path_;
 }

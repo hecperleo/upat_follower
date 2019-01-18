@@ -1,9 +1,13 @@
 #include <uav_path_manager/path_follower.h>
 
 PathFollower::PathFollower() {
+    // Node Handle
     nh = ros::NodeHandle();
+    pnh = ros::NodeHandle("~");
+    // Parameters
+    pnh.getParam("uav_id", uav_id);
     // Subscriptions
-    sub_pose = nh.subscribe("/uav_1/ual/pose", 0, &PathFollower::ualPoseCallback, this);
+    sub_pose = nh.subscribe("/uav_" + std::to_string(uav_id) + "/ual/pose", 0, &PathFollower::ualPoseCallback, this);
     // Publishers
     pub_output_vel = nh.advertise<geometry_msgs::TwistStamped>("/uav_path_manager/follower/output_vel", 1000);
     // Services
@@ -14,7 +18,7 @@ PathFollower::~PathFollower() {
 }
 
 bool PathFollower::pathCallback(uav_path_manager::GetGeneratedPath::Request &req_path,
-                           uav_path_manager::GetGeneratedPath::Response &res_path) {
+                                uav_path_manager::GetGeneratedPath::Response &res_path) {
     path = req_path.generated_path;
     flag_run = false;
     return true;
@@ -64,7 +68,7 @@ geometry_msgs::TwistStamped PathFollower::calculateVelocity(Eigen::Vector3f curr
     out_vel.twist.linear.x = unit_vec(0) * cruising_speed;
     out_vel.twist.linear.y = unit_vec(1) * cruising_speed;
     out_vel.twist.linear.z = unit_vec(2) * cruising_speed;
-    out_vel.header.frame_id = "uav_1_home";
+    out_vel.header.frame_id = path.header.frame_id;
 
     return out_vel;
 }

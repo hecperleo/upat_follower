@@ -1,7 +1,11 @@
 #include <uav_path_manager/path_manager.h>
 
 PathManager::PathManager() {
+    // Node Handle
     nh = ros::NodeHandle();
+    pnh = ros::NodeHandle("~");
+    // Parameters
+    pnh.getParam("uav_id", uav_id);
     // Subscriptions
     sub_pose = nh.subscribe("/uav_1/ual/pose", 0, &PathManager::ualPoseCallback, this);
     sub_state = nh.subscribe("/uav_1/ual/state", 0, &PathManager::ualStateCallback, this);
@@ -17,20 +21,20 @@ PathManager::PathManager() {
     srv_land = nh.serviceClient<uav_abstraction_layer::Land>("/uav_1/ual/land");
     srv_generated_path = nh.serviceClient<uav_path_manager::GeneratePath>("/uav_path_manager/generator/generate_path");
     srv_give_generated_path = nh.serviceClient<uav_path_manager::GetGeneratedPath>("/uav_path_manager/manager/generated_path");
-
+    // Flags
     on_path = false;
     end_path = false;
-
-    init_path = constructPath(list_init_x, list_init_y, list_init_z);
+    // Initialize path
+    init_path = constructPath(list_init_x, list_init_y, list_init_z, "uav_" + std::to_string(uav_id) + "_home");
 }
 
 PathManager::~PathManager() {
 }
 
-nav_msgs::Path PathManager::constructPath(std::vector<double> wps_x, std::vector<double> wps_y, std::vector<double> wps_z) {
+nav_msgs::Path PathManager::constructPath(std::vector<double> wps_x, std::vector<double> wps_y, std::vector<double> wps_z, std::string frame_id) {
     nav_msgs::Path path_msg;
     std::vector<geometry_msgs::PoseStamped> poses(wps_x.size());
-    path_msg.header.frame_id = "uav_1_home";
+    path_msg.header.frame_id = frame_id;
     for (int i = 0; i < wps_x.size(); i++) {
         poses.at(i).pose.position.x = wps_x[i];
         poses.at(i).pose.position.y = wps_y[i];

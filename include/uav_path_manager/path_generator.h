@@ -32,13 +32,10 @@ class PathGenerator {
     nav_msgs::Path pathManagement(std::vector<double> list_pose_x, std::vector<double> list_pose_y, std::vector<double> list_pose_z);
     // Node handlers
     ros::NodeHandle nh;
-    // Subscribers
-    // Publishers
     // Services
     ros::ServiceServer srv_generate_path;
     // Variables
     nav_msgs::Path output_path_;
-    bool flag_sub_path = true;
     enum mode_t { mode_interp1,
                   mode_cubic_spline,
                   mode_idle };

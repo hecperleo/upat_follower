@@ -23,7 +23,7 @@ class PathFollower {
     int calculatePosLookAhead(int pos_on_path);
     geometry_msgs::TwistStamped calculateVelocity(Eigen::Vector3f current_p, int pos_la);
     // Node handlers
-    ros::NodeHandle nh;
+    ros::NodeHandle nh, pnh;
     // Subscribers
     ros::Subscriber sub_pose;
     // Publishers
@@ -31,6 +31,7 @@ class PathFollower {
     // Services
     ros::ServiceServer srv_get_generated_path;
     // Variables
+    int uav_id;
     bool flag_run;
     double look_ahead = 1.0;
     nav_msgs::Path path;

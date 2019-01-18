@@ -25,9 +25,9 @@ class PathManager {
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
     void velocityCallback(const geometry_msgs::TwistStamped &_velocity);
     // Methods
-    nav_msgs::Path constructPath(std::vector<double> wps_x, std::vector<double> wps_y, std::vector<double> wps_z);
+    nav_msgs::Path constructPath(std::vector<double> wps_x, std::vector<double> wps_y, std::vector<double> wps_z, std::string frame_id);
     // Node handlers
-    ros::NodeHandle nh;
+    ros::NodeHandle nh, pnh;
     // Subscribers
     ros::Subscriber sub_pose, sub_state, sub_velocity;
     // Publishers
@@ -35,6 +35,7 @@ class PathManager {
     // Services
     ros::ServiceClient srv_take_off, srv_land, srv_generated_path, srv_give_generated_path;
     // Variables
+    int uav_id;
     bool on_path, end_path;
     nav_msgs::Path path, init_path, current_path;
     geometry_msgs::PoseStamped ual_pose;
