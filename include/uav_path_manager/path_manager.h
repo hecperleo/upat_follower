@@ -21,7 +21,6 @@ class PathManager {
 
    private:
     // Callbacks
-    bool pathCallback(uav_path_manager::GetGeneratedPath::Request &req_path, uav_path_manager::GetGeneratedPath::Response &res_path);
     void ualStateCallback(const uav_abstraction_layer::State &_ual_state);
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
     void velocityCallback(const geometry_msgs::TwistStamped &_velocity);
@@ -34,8 +33,7 @@ class PathManager {
     // Publishers
     ros::Publisher pub_generated_path, pub_init_path, pub_set_velocity, pub_set_pose;
     // Services
-    ros::ServiceServer srv_give_generated_path;
-    ros::ServiceClient srv_take_off, srv_land, srv_generated_path;
+    ros::ServiceClient srv_take_off, srv_land, srv_generated_path, srv_give_generated_path;
     // Variables
     bool on_path, end_path;
     nav_msgs::Path path, init_path;

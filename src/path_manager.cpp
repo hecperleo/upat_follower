@@ -16,7 +16,7 @@ PathManager::PathManager() {
     srv_take_off = nh.serviceClient<uav_abstraction_layer::TakeOff>("/uav_1/ual/take_off");
     srv_land = nh.serviceClient<uav_abstraction_layer::Land>("/uav_1/ual/land");
     srv_generated_path = nh.serviceClient<uav_path_manager::GeneratePath>("/uav_path_manager/generator/generate_path");
-    srv_give_generated_path = nh.advertiseService("/uav_path_manager/manager/generated_path", &PathManager::pathCallback, this);
+    srv_give_generated_path = nh.serviceClient<uav_path_manager::GetGeneratedPath>("/uav_path_manager/manager/generated_path");
 
     on_path = false;
     end_path = false;
@@ -44,11 +44,11 @@ nav_msgs::Path PathManager::constructPath(std::vector<double> wps_x, std::vector
     return path_msg;
 }
 
-bool PathManager::pathCallback(uav_path_manager::GetGeneratedPath::Request &req_path,
-                           uav_path_manager::GetGeneratedPath::Response &res_path) {
-    res_path.generated_path = path;
-    return true;
-}
+// bool PathManager::pathCallback(uav_path_manager::GetGeneratedPath::Request &req_path,
+//                            uav_path_manager::GetGeneratedPath::Response &res_path) {
+//     res_path.generated_path = path;
+//     return true;
+// }
 
 void PathManager::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose) {
     ual_pose = *_ual_pose;
@@ -71,6 +71,7 @@ void PathManager::runMission() {
     uav_abstraction_layer::TakeOff take_off;
     uav_abstraction_layer::Land land;
     uav_path_manager::GeneratePath generate_path;
+    uav_path_manager::GetGeneratedPath give_generated_path;
     std_msgs::Int8 generator_mode;
     generator_mode.data = 2;
     generate_path.request.generator_mode = generator_mode;
@@ -78,6 +79,8 @@ void PathManager::runMission() {
     if (path.poses.size() < 1) {
         srv_generated_path.call(generate_path);
         path = generate_path.response.generated_path;
+        give_generated_path.request.generated_path = path;
+        srv_give_generated_path.call(give_generated_path);
     }
     Eigen::Vector3f current_p, path0_p, path_end_p;
     current_p = Eigen::Vector3f(ual_pose.pose.position.x, ual_pose.pose.position.y, ual_pose.pose.position.z);

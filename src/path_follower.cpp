@@ -7,10 +7,17 @@ PathFollower::PathFollower() {
     // Publishers
     pub_output_vel = nh.advertise<geometry_msgs::TwistStamped>("/uav_path_manager/follower/output_vel", 1000);
     // Services
-    srv_get_generated_path = nh.serviceClient<uav_path_manager::GetGeneratedPath>("/uav_path_manager/manager/generated_path");
+    srv_get_generated_path = nh.advertiseService("/uav_path_manager/manager/generated_path", &PathFollower::pathCallback, this);
 }
 
 PathFollower::~PathFollower() {
+}
+
+bool PathFollower::pathCallback(uav_path_manager::GetGeneratedPath::Request &req_path,
+                           uav_path_manager::GetGeneratedPath::Response &res_path) {
+    path = req_path.generated_path;
+    flag_run = false;
+    return true;
 }
 
 void PathFollower::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose) {
@@ -67,7 +74,6 @@ void PathFollower::pubMsgs() {
 }
 
 void PathFollower::followPath() {
-    uav_path_manager::GetGeneratedPath get_generated_path;
     if (path.poses.size() > 1) {
         Eigen::Vector3f current_point, path0_point;
         current_point = Eigen::Vector3f(ual_pose.pose.position.x, ual_pose.pose.position.y, ual_pose.pose.position.z);
@@ -81,7 +87,5 @@ void PathFollower::followPath() {
             out_velocity = calculateVelocity(current_point, normal_pos_on_path + pos_look_ahead);
         }
     } else {
-        srv_get_generated_path.call(get_generated_path);
-        path = get_generated_path.response.generated_path;
     }
 }
