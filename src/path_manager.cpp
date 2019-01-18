@@ -5,11 +5,11 @@ PathManager::PathManager() {
     // Subscriptions
     sub_pose = nh.subscribe("/uav_1/ual/pose", 0, &PathManager::ualPoseCallback, this);
     sub_state = nh.subscribe("/uav_1/ual/state", 0, &PathManager::ualStateCallback, this);
-    // sub_path = nh.subscribe("/generator/output_path", 0, &PathManager::pathCallback, this);
     sub_velocity = nh.subscribe("/uav_path_manager/follower/output_vel", 0, &PathManager::velocityCallback, this);
     // Publishers
     pub_init_path = nh.advertise<nav_msgs::Path>("/uav_path_manager/visualization/manager/init_path", 1000);
     pub_generated_path = nh.advertise<nav_msgs::Path>("/uav_path_manager/visualization/manager/generated_path", 1000);
+    pub_current_path = nh.advertise<nav_msgs::Path>("/uav_path_manager/visualization/manager/current_path", 1000);
     pub_set_pose = nh.advertise<geometry_msgs::PoseStamped>("/uav_1/ual/set_pose", 1000);
     pub_set_velocity = nh.advertise<geometry_msgs::TwistStamped>("/uav_1/ual/set_velocity", 1000);
     // Services
@@ -44,12 +44,6 @@ nav_msgs::Path PathManager::constructPath(std::vector<double> wps_x, std::vector
     return path_msg;
 }
 
-// bool PathManager::pathCallback(uav_path_manager::GetGeneratedPath::Request &req_path,
-//                            uav_path_manager::GetGeneratedPath::Response &res_path) {
-//     res_path.generated_path = path;
-//     return true;
-// }
-
 void PathManager::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose) {
     ual_pose = *_ual_pose;
 }
@@ -65,6 +59,7 @@ void PathManager::velocityCallback(const geometry_msgs::TwistStamped &_velocity)
 void PathManager::pubMsgs() {
     pub_init_path.publish(init_path);
     pub_generated_path.publish(path);
+    pub_current_path.publish(current_path);
 }
 
 void PathManager::runMission() {
@@ -99,23 +94,25 @@ void PathManager::runMission() {
         case 4:  // Flying auto
             if (!end_path) {
                 if (!on_path) {
-                    if ((current_p - path0_p).norm() > 0.5) {
+                    if ((current_p - path0_p).norm() > 0.2) {
                         pub_set_pose.publish(path.poses.at(0));
-                    } else if (0.2 > (current_p - path0_p).norm()) {
+                    } else if (0.1 > (current_p - path0_p).norm()) {
                         pub_set_pose.publish(path.poses.front());
                         on_path = true;
                     }
                 } else {
-                    if (1.0 > (current_p - path_end_p).norm()) {
+                    if (0.2 > (current_p - path_end_p).norm()) {
                         pub_set_pose.publish(path.poses.back());
                         on_path = false;
                         end_path = true;
                     } else {
                         pub_set_velocity.publish(velocity_);
+                        current_path.header.frame_id = ual_pose.header.frame_id;
+                        current_path.poses.push_back(ual_pose);
                     }
                 }
             } else {
-                if (1.0 > (current_p - path_end_p).norm() && (current_p - path_end_p).norm() > 0.2) {
+                if (0.2 > (current_p - path_end_p).norm() && (current_p - path_end_p).norm() > 0.1) {
                     pub_set_pose.publish(path.poses.back());
                 } else {
                     land.request.blocking = true;

@@ -31,12 +31,12 @@ class PathManager {
     // Subscribers
     ros::Subscriber sub_pose, sub_state, sub_velocity;
     // Publishers
-    ros::Publisher pub_generated_path, pub_init_path, pub_set_velocity, pub_set_pose;
+    ros::Publisher pub_generated_path, pub_init_path, pub_current_path, pub_set_velocity, pub_set_pose;
     // Services
     ros::ServiceClient srv_take_off, srv_land, srv_generated_path, srv_give_generated_path;
     // Variables
     bool on_path, end_path;
-    nav_msgs::Path path, init_path;
+    nav_msgs::Path path, init_path, current_path;
     geometry_msgs::PoseStamped ual_pose;
     geometry_msgs::TwistStamped velocity_;
     uav_abstraction_layer::State ual_state;
