@@ -15,7 +15,7 @@ class MyTestSuite : public ::testing::Test {
     PathGenerator generator;
     std::vector<double> list_pose_x = {5.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0, 15.0, 15.0, 15.0, 20.0, 20.0, 20.0};
     std::vector<double> list_pose_y = {5.0, 10.0, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0, 5.0, 5.0, 5.0, 10.0};
-    std::vector<double> list_pose_z = {10.01, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0};
+    std::vector<double> list_pose_z = {10.0, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0};
 };
 
 TEST_F(MyTestSuite, interp1) {
@@ -25,7 +25,7 @@ TEST_F(MyTestSuite, interp1) {
 }
 
 TEST_F(MyTestSuite, cubicSpline){
-    int cubic_spline_final_size = 5900;
+    int cubic_spline_final_size = 1200;
     nav_msgs::Path path_cubic_spline = generator.createPathCubicSpline(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size());
     EXPECT_EQ(path_cubic_spline.poses.size(), cubic_spline_final_size);
 }
