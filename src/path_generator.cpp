@@ -127,12 +127,13 @@ nav_msgs::Path PathGenerator::createPathCubicSpline(std::vector<double> list_x, 
     if (path_size > 1) {
         // Calculate total distance
         int total_distance = 0;
-        for (int i = 0; i < path_size - 1; i++) {
-            Eigen::Vector3f point_1, point_2;
-            point_1 = Eigen::Vector3f(list_x[i], list_y[i], list_z[i]);
-            point_2 = Eigen::Vector3f(list_x[i + 1], list_y[i + 1], list_z[i + 1]);
-            total_distance = total_distance + (point_2 - point_1).norm();
-        }
+        // for (int i = 0; i < path_size - 1; i++) {
+        //     Eigen::Vector3f point_1, point_2;
+        //     point_1 = Eigen::Vector3f(list_x[i], list_y[i], list_z[i]);
+        //     point_2 = Eigen::Vector3f(list_x[i + 1], list_y[i + 1], list_z[i + 1]);
+        //     total_distance = total_distance + (point_2 - point_1).norm();
+        // }
+        total_distance = path_size;
         // Lineal interpolation
         std::vector<double> interp1_list_x, interp1_list_y, interp1_list_z;
         interp1_list_x = interpWaypointList(list_x, total_distance);
