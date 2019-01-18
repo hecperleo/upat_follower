@@ -1,9 +1,6 @@
 #include <uav_path_manager/path_manager.h>
 
-PathManager::PathManager() {
-    // Node Handle
-    nh = ros::NodeHandle();
-    pnh = ros::NodeHandle("~");
+PathManager::PathManager(): nh(), pnh("~") {
     // Parameters
     pnh.getParam("uav_id", uav_id);
     // Subscriptions

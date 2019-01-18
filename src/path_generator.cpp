@@ -1,8 +1,6 @@
 #include <uav_path_manager/path_generator.h>
 
-PathGenerator::PathGenerator() {
-    // Node Handle
-    nh = ros::NodeHandle();
+PathGenerator::PathGenerator(): nh() {
     // Services
     srv_generate_path = nh.advertiseService("/uav_path_manager/generator/generate_path", &PathGenerator::pathCallback, this);
 }
