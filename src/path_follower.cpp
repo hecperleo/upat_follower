@@ -6,7 +6,7 @@ PathFollower::PathFollower(): nh(), pnh("~") {
     // Subscriptions
     sub_pose = nh.subscribe("/uav_" + std::to_string(uav_id) + "/ual/pose", 0, &PathFollower::ualPoseCallback, this);
     // Publishers
-    pub_output_vel = nh.advertise<geometry_msgs::TwistStamped>("/uav_path_manager/follower/output_vel", 1000);
+    pub_output_vel = nh.advertise<geometry_msgs::TwistStamped>("/uav_path_manager/follower/uav_" + std::to_string(uav_id) + "/output_vel", 1000);
     // Services
     srv_get_generated_path = nh.advertiseService("/uav_path_manager/manager/generated_path", &PathFollower::pathCallback, this);
 }

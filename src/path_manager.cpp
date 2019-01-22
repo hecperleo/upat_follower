@@ -5,18 +5,18 @@ PathManager::PathManager() : nh(), pnh("~") {
     pnh.getParam("uav_id", uav_id);
     pnh.getParam("save_csv", save_csv);
     // Subscriptions
-    sub_pose = nh.subscribe("/uav_1/ual/pose", 0, &PathManager::ualPoseCallback, this);
-    sub_state = nh.subscribe("/uav_1/ual/state", 0, &PathManager::ualStateCallback, this);
-    sub_velocity = nh.subscribe("/uav_path_manager/follower/output_vel", 0, &PathManager::velocityCallback, this);
+    sub_pose = nh.subscribe("/uav_" + std::to_string(uav_id) + "/ual/pose", 0, &PathManager::ualPoseCallback, this);
+    sub_state = nh.subscribe("/uav_" + std::to_string(uav_id) + "/ual/state", 0, &PathManager::ualStateCallback, this);
+    sub_velocity = nh.subscribe("/uav_path_manager/follower/uav_" + std::to_string(uav_id) + "/output_vel", 0, &PathManager::velocityCallback, this);
     // Publishers
     pub_init_path = nh.advertise<nav_msgs::Path>("/uav_path_manager/visualization/manager/init_path", 1000);
     pub_generated_path = nh.advertise<nav_msgs::Path>("/uav_path_manager/visualization/manager/generated_path", 1000);
     pub_current_path = nh.advertise<nav_msgs::Path>("/uav_path_manager/visualization/manager/current_path", 1000);
-    pub_set_pose = nh.advertise<geometry_msgs::PoseStamped>("/uav_1/ual/set_pose", 1000);
-    pub_set_velocity = nh.advertise<geometry_msgs::TwistStamped>("/uav_1/ual/set_velocity", 1000);
+    pub_set_pose = nh.advertise<geometry_msgs::PoseStamped>("/uav_" + std::to_string(uav_id) + "/ual/set_pose", 1000);
+    pub_set_velocity = nh.advertise<geometry_msgs::TwistStamped>("/uav_" + std::to_string(uav_id) + "/ual/set_velocity", 1000);
     // Services
-    srv_take_off = nh.serviceClient<uav_abstraction_layer::TakeOff>("/uav_1/ual/take_off");
-    srv_land = nh.serviceClient<uav_abstraction_layer::Land>("/uav_1/ual/land");
+    srv_take_off = nh.serviceClient<uav_abstraction_layer::TakeOff>("/uav_" + std::to_string(uav_id) + "/ual/take_off");
+    srv_land = nh.serviceClient<uav_abstraction_layer::Land>("/uav_" + std::to_string(uav_id) + "/ual/land");
     srv_generated_path = nh.serviceClient<uav_path_manager::GeneratePath>("/uav_path_manager/generator/generate_path");
     srv_give_generated_path = nh.serviceClient<uav_path_manager::GetGeneratedPath>("/uav_path_manager/manager/generated_path");
     // Flags
@@ -87,7 +87,7 @@ void PathManager::runMission() {
         if (save_csv) {
             std::ofstream csv_file;
             csv_file.open(folder_name + "/generated_path.csv");
-            for (int i = 0; i < path.poses.size(); i++){
+            for (int i = 0; i < path.poses.size(); i++) {
                 csv_file << path.poses.at(i).pose.position.x << ", " << path.poses.at(i).pose.position.y << ", " << path.poses.at(i).pose.position.z << std::endl;
             }
             csv_file.close();
