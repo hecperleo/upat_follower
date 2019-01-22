@@ -1,8 +1,9 @@
 #include <uav_path_manager/path_manager.h>
 
-PathManager::PathManager(): nh(), pnh("~") {
+PathManager::PathManager() : nh(), pnh("~") {
     // Parameters
     pnh.getParam("uav_id", uav_id);
+    pnh.getParam("save_csv", save_csv);
     // Subscriptions
     sub_pose = nh.subscribe("/uav_1/ual/pose", 0, &PathManager::ualPoseCallback, this);
     sub_state = nh.subscribe("/uav_1/ual/state", 0, &PathManager::ualStateCallback, this);
@@ -23,6 +24,12 @@ PathManager::PathManager(): nh(), pnh("~") {
     end_path = false;
     // Initialize path
     init_path = constructPath(list_init_x, list_init_y, list_init_z, "uav_" + std::to_string(uav_id) + "_home");
+    // Save data
+    if (save_csv) {
+        std::stringstream aux_envvar_home(std::getenv("HOME"));
+        std::string workspace_name = "/tfm_ws";
+        folder_name = aux_envvar_home.str() + workspace_name + "/src/uav_path_manager/data";
+    }
 }
 
 PathManager::~PathManager() {
@@ -77,6 +84,14 @@ void PathManager::runMission() {
         path = generate_path.response.generated_path;
         give_generated_path.request.generated_path = path;
         srv_give_generated_path.call(give_generated_path);
+        if (save_csv) {
+            std::ofstream csv_file;
+            csv_file.open(folder_name + "/generated_path.csv");
+            for (int i = 0; i < path.poses.size(); i++){
+                csv_file << path.poses.at(i).pose.position.x << ", " << path.poses.at(i).pose.position.y << ", " << path.poses.at(i).pose.position.z << std::endl;
+            }
+            csv_file.close();
+        }
     }
     Eigen::Vector3f current_p, path0_p, path_end_p;
     current_p = Eigen::Vector3f(ual_pose.pose.position.x, ual_pose.pose.position.y, ual_pose.pose.position.z);

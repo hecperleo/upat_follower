@@ -6,6 +6,7 @@
 #include <uav_path_manager/GeneratePath.h>
 #include <uav_path_manager/GetGeneratedPath.h>
 #include <Eigen/Eigen>
+#include <fstream>
 #include "ecl/geometry.hpp"
 #include "geometry_msgs/PoseStamped.h"
 #include "nav_msgs/Path.h"
@@ -35,14 +36,16 @@ class PathManager {
     // Services
     ros::ServiceClient srv_take_off, srv_land, srv_generated_path, srv_give_generated_path;
     // Variables
-    int uav_id;
+    std::string folder_name;
     bool on_path, end_path;
     nav_msgs::Path path, init_path, current_path;
     geometry_msgs::PoseStamped ual_pose;
     geometry_msgs::TwistStamped velocity_;
     uav_abstraction_layer::State ual_state;
-    std::vector<double> list_init_x = {5.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0, 15.0, 15.0, 15.0, 20.0, 20.0, 20.0, 20.0}; // Last waypoint
-    std::vector<double> list_init_y = {5.0, 10.0, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0};    // should be
-    std::vector<double> list_init_z = {10.0, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0};   // duplicated
+    std::vector<double> list_init_x = {5.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0, 15.0, 15.0, 15.0, 20.0, 20.0, 20.0, 20.0};  // Last waypoint
+    std::vector<double> list_init_y = {5.0, 10.0, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0};     // should be
+    std::vector<double> list_init_z = {10.0, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0};    // duplicated
     // Params
+    int uav_id;
+    bool save_csv;
 };
