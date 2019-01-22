@@ -60,17 +60,15 @@ bool PathGenerator::pathCallback(uav_path_manager::GeneratePath::Request &req_pa
         list_pose_y.push_back(req_path.init_path.poses.at(i).pose.position.y);
         list_pose_z.push_back(req_path.init_path.poses.at(i).pose.position.z);
     }
-    std::cout << "XXXXXXXX mode: " << req_path.generator_mode.data << std::endl;
     switch (req_path.generator_mode.data) {
         case 1:
             mode = mode_interp1;
             break;
         case 2:
             mode = mode_cubic_spline_loyal;
+            break;
         case 3:
             mode = mode_cubic_spline;
-            break;
-        default:
             break;
     }
     res_path.generated_path = pathManagement(list_pose_x, list_pose_y, list_pose_z);
@@ -133,11 +131,9 @@ nav_msgs::Path PathGenerator::createPathCubicSpline(std::vector<double> list_x, 
         switch (mode) {
             case mode_cubic_spline_loyal:
                 num_joints = path_size * 2;
-                std::cout << "loyal" << std::endl;
                 break;
             case mode_cubic_spline:
                 num_joints = path_size;
-                std::cout << "no loyal" << std::endl;
                 break;
             default:
                 for (int i = 0; i < path_size - 1; i++) {
@@ -146,7 +142,6 @@ nav_msgs::Path PathGenerator::createPathCubicSpline(std::vector<double> list_x, 
                     point_2 = Eigen::Vector3f(list_x[i + 1], list_y[i + 1], list_z[i + 1]);
                     num_joints = num_joints + (point_2 - point_1).norm();
                 }
-                std::cout << "default" << std::endl;
                 break;
         }
         // Lineal interpolation
