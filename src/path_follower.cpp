@@ -8,7 +8,7 @@ PathFollower::PathFollower(): nh(), pnh("~") {
     // Publishers
     pub_output_vel = nh.advertise<geometry_msgs::TwistStamped>("/uav_path_manager/follower/uav_" + std::to_string(uav_id) + "/output_vel", 1000);
     // Services
-    srv_get_generated_path = nh.advertiseService("/uav_path_manager/manager/generated_path", &PathFollower::pathCallback, this);
+    srv_get_generated_path = nh.advertiseService("/uav_path_manager/follower/uav_" + std::to_string(uav_id) + "/generated_path", &PathFollower::pathCallback, this);
 }
 
 PathFollower::~PathFollower() {
@@ -17,6 +17,7 @@ PathFollower::~PathFollower() {
 bool PathFollower::pathCallback(uav_path_manager::GetGeneratedPath::Request &req_path,
                                 uav_path_manager::GetGeneratedPath::Response &res_path) {
     path = req_path.generated_path;
+    res_path.ok.data = true;
     flag_run = false;
     return true;
 }
