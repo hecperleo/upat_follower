@@ -18,7 +18,7 @@ PathManager::PathManager() : nh(), pnh("~") {
     srv_take_off = nh.serviceClient<uav_abstraction_layer::TakeOff>("/uav_" + std::to_string(uav_id) + "/ual/take_off");
     srv_land = nh.serviceClient<uav_abstraction_layer::Land>("/uav_" + std::to_string(uav_id) + "/ual/land");
     srv_generated_path = nh.serviceClient<uav_path_manager::GeneratePath>("/uav_path_manager/generator/generate_path");
-    srv_give_generated_path = nh.serviceClient<uav_path_manager::GetGeneratedPath>("/uav_path_manager/manager/generated_path");
+    srv_give_generated_path = nh.serviceClient<uav_path_manager::GetGeneratedPath>("/uav_path_manager/follower/uav_" + std::to_string(uav_id) + "/generated_path");
     // Flags
     on_path = false;
     end_path = false;
