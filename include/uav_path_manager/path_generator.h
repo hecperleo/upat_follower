@@ -37,6 +37,7 @@ class PathGenerator {
     // Variables
     nav_msgs::Path output_path_;
     enum mode_t { mode_interp1,
+                  mode_cubic_spline_loyal,
                   mode_cubic_spline,
                   mode_idle };
     mode_t mode = mode_idle;

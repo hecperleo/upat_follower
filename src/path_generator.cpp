@@ -1,6 +1,6 @@
 #include <uav_path_manager/path_generator.h>
 
-PathGenerator::PathGenerator(): nh() {
+PathGenerator::PathGenerator() : nh() {
     // Services
     srv_generate_path = nh.advertiseService("/uav_path_manager/generator/generate_path", &PathGenerator::pathCallback, this);
 }
@@ -60,11 +60,14 @@ bool PathGenerator::pathCallback(uav_path_manager::GeneratePath::Request &req_pa
         list_pose_y.push_back(req_path.init_path.poses.at(i).pose.position.y);
         list_pose_z.push_back(req_path.init_path.poses.at(i).pose.position.z);
     }
+    std::cout << "XXXXXXXX mode: " << req_path.generator_mode.data << std::endl;
     switch (req_path.generator_mode.data) {
         case 1:
             mode = mode_interp1;
             break;
         case 2:
+            mode = mode_cubic_spline_loyal;
+        case 3:
             mode = mode_cubic_spline;
             break;
         default:
@@ -125,20 +128,32 @@ nav_msgs::Path PathGenerator::createPathInterp1(std::vector<double> list_x, std:
 nav_msgs::Path PathGenerator::createPathCubicSpline(std::vector<double> list_x, std::vector<double> list_y, std::vector<double> list_z, int path_size) {
     nav_msgs::Path cubic_spline_path;
     if (path_size > 1) {
-        // Calculate total distance
-        int total_distance = 0;
-        // for (int i = 0; i < path_size - 1; i++) {
-        //     Eigen::Vector3f point_1, point_2;
-        //     point_1 = Eigen::Vector3f(list_x[i], list_y[i], list_z[i]);
-        //     point_2 = Eigen::Vector3f(list_x[i + 1], list_y[i + 1], list_z[i + 1]);
-        //     total_distance = total_distance + (point_2 - point_1).norm();
-        // }
-        total_distance = path_size;
+        // Calculate number of joints
+        int num_joints = 0;
+        switch (mode) {
+            case mode_cubic_spline_loyal:
+                num_joints = path_size * 2;
+                std::cout << "loyal" << std::endl;
+                break;
+            case mode_cubic_spline:
+                num_joints = path_size;
+                std::cout << "no loyal" << std::endl;
+                break;
+            default:
+                for (int i = 0; i < path_size - 1; i++) {
+                    Eigen::Vector3f point_1, point_2;
+                    point_1 = Eigen::Vector3f(list_x[i], list_y[i], list_z[i]);
+                    point_2 = Eigen::Vector3f(list_x[i + 1], list_y[i + 1], list_z[i + 1]);
+                    num_joints = num_joints + (point_2 - point_1).norm();
+                }
+                std::cout << "default" << std::endl;
+                break;
+        }
         // Lineal interpolation
         std::vector<double> interp1_list_x, interp1_list_y, interp1_list_z;
-        interp1_list_x = interpWaypointList(list_x, total_distance);
-        interp1_list_y = interpWaypointList(list_y, total_distance);
-        interp1_list_z = interpWaypointList(list_z, total_distance);
+        interp1_list_x = interpWaypointList(list_x, num_joints);
+        interp1_list_y = interpWaypointList(list_y, num_joints);
+        interp1_list_z = interpWaypointList(list_z, num_joints);
         // Prepare sets for each cubic spline
         ecl::Array<double> t_set(interp1_list_x.size()), x_set(interp1_list_x.size()), y_set(interp1_list_x.size()), z_set(interp1_list_x.size());
         for (int i = 0; i < interp1_list_x.size(); i++) {
@@ -171,6 +186,9 @@ nav_msgs::Path PathGenerator::pathManagement(std::vector<double> list_pose_x, st
     switch (mode) {
         case mode_interp1:
             output_path_ = createPathInterp1(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), interp1_final_size);
+            break;
+        case mode_cubic_spline_loyal:
+            output_path_ = createPathCubicSpline(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size());
             break;
         case mode_cubic_spline:
             output_path_ = createPathCubicSpline(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size());
