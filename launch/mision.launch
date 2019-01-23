@@ -60,7 +60,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     </node>
 
     <!-- Visualization -->
-    <node pkg="rviz" type="rviz" name="rviz_node" args="-d /home/hector/tfm_ws/src/uav_path_manager/rviz/tfm.rviz" required="true"/>
+    <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find uav_path_manager)/rviz/tfm.rviz" required="true"/>
     <!-- UAV Path Manager nodes -->
     <node pkg="uav_path_manager" type="path_manager_node" name="path_manager_node" output="screen">
         <param name="uav_id" value="1"/>
