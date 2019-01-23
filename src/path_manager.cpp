@@ -1,4 +1,5 @@
 #include <uav_path_manager/path_manager.h>
+#include <ros/package.h>
 
 PathManager::PathManager() : nh(), pnh("~") {
     // Parameters
@@ -26,9 +27,8 @@ PathManager::PathManager() : nh(), pnh("~") {
     init_path = constructPath(list_init_x, list_init_y, list_init_z, "uav_" + std::to_string(uav_id) + "_home");
     // Save data
     if (save_csv) {
-        std::stringstream aux_envvar_home(std::getenv("HOME"));
-        std::string workspace_name = "/tfm_ws";
-        folder_name = aux_envvar_home.str() + workspace_name + "/src/uav_path_manager/data";
+        std::string pkg_name_path = ros::package::getPath("uav_path_manager");
+        folder_name = pkg_name_path + "/data";
     }
 }
 
