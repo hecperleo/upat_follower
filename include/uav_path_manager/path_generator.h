@@ -20,6 +20,11 @@ class PathGenerator {
 
     nav_msgs::Path createPathInterp1(std::vector<double> list_x, std::vector<double> list_y, std::vector<double> list_z, int path_size, int new_path_size);
     nav_msgs::Path createPathCubicSpline(std::vector<double> list_x, std::vector<double> list_y, std::vector<double> list_z, int path_size);
+    enum mode_t { mode_interp1,
+                  mode_cubic_spline_loyal,
+                  mode_cubic_spline,
+                  mode_idle };
+    mode_t mode = mode_idle;
 
    private:
     // Callbacks
@@ -36,9 +41,4 @@ class PathGenerator {
     ros::ServiceServer srv_generate_path;
     // Variables
     nav_msgs::Path output_path_;
-    enum mode_t { mode_interp1,
-                  mode_cubic_spline_loyal,
-                  mode_cubic_spline,
-                  mode_idle };
-    mode_t mode = mode_idle;
 };
