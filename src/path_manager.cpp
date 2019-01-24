@@ -87,6 +87,7 @@ void PathManager::runMission() {
         if (save_csv) {
             std::ofstream csv_file;
             csv_file.open(folder_name + "/cubic_spline_loyal.csv");
+            csv_file << std::fixed << std::setprecision(20);
             for (int i = 0; i < path.poses.size(); i++) {
                 csv_file << path.poses.at(i).pose.position.x << ", " << path.poses.at(i).pose.position.y << ", " << path.poses.at(i).pose.position.z << std::endl;
             }
