@@ -66,41 +66,6 @@ nav_msgs::Path csvToPath(std::string file_name) {
     return constructPath(list_x, list_y, list_z);
 }
 
-std::vector<std::vector<double>> csvToVector(std::string file_name) {
-    std::vector<std::vector<double>> out_vec;
-    std::stringstream aux_envvar_home(std::getenv("HOME"));
-    std::string workspace_name = "/tfm_ws";
-    std::string folder_name = aux_envvar_home.str() + workspace_name + "/src/uav_path_manager/data" + file_name;
-    std::fstream read_csv;
-    read_csv.open(folder_name);
-    std::vector<double> list_x, list_y, list_z;
-    if (read_csv.is_open()) {
-        while (read_csv.good()) {
-            std::string x, y, z;
-            double dx, dy, dz;
-            getline(read_csv, x, ',');
-            getline(read_csv, y, ',');
-            getline(read_csv, z, '\n');
-            std::stringstream sx(x);
-            std::stringstream sy(y);
-            std::stringstream sz(z);
-            sx >> dx;
-            sy >> dy;
-            sz >> dz;
-            list_x.push_back(dx);
-            list_y.push_back(dy);
-            list_z.push_back(dz);
-        }
-        list_x.pop_back();
-        list_y.pop_back();
-        list_z.pop_back();
-    }
-    out_vec.push_back(list_x);
-    out_vec.push_back(list_y);
-    out_vec.push_back(list_z);
-    return out_vec;
-}
-
 std::vector<double> pathToVector(nav_msgs::Path path, std::string axis) {
     std::vector<double> out_vec(path.poses.size());
     for (int i = 0; i < path.poses.size(); i++) {
@@ -118,27 +83,19 @@ std::vector<double> pathToVector(nav_msgs::Path path, std::string axis) {
 }
 
 TEST_F(MyTestSuite, interp1) {
-    int interp1_final_size = 1000;
+    int interp1_final_size = 10000;
     nav_msgs::Path init_path = csvToPath("/init.csv");
     nav_msgs::Path ref_path = csvToPath("/interp1.csv");
     std::vector<double> list_pose_x = pathToVector(init_path, "x");
     std::vector<double> list_pose_y = pathToVector(init_path, "y");
     std::vector<double> list_pose_z = pathToVector(init_path, "z");
     nav_msgs::Path act_path = generator.createPathInterp1(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), interp1_final_size);
-    std::vector<double> ref_list_x = pathToVector(ref_path, "x");
-    std::vector<double> ref_list_y = pathToVector(ref_path, "y");
-    std::vector<double> ref_list_z = pathToVector(ref_path, "z");
-    std::vector<double> act_list_x = pathToVector(act_path, "x");
-    std::vector<double> act_list_y = pathToVector(act_path, "y");
-    std::vector<double> act_list_z = pathToVector(act_path, "z");
-    ASSERT_EQ(ref_list_x.size(), act_list_x.size());
-    ASSERT_EQ(ref_list_y.size(), act_list_y.size());
-    ASSERT_EQ(ref_list_z.size(), act_list_z.size());
-    float dec = 10.0f;
-    for (int i = 0; i < ref_list_x.size(); i++) {
-        EXPECT_EQ(roundf(ref_list_x[i] * dec) / dec, roundf(act_list_x[i] * dec) / dec);
-        EXPECT_EQ(roundf(ref_list_y[i] * dec) / dec, roundf(act_list_y[i] * dec) / dec);
-        EXPECT_EQ(roundf(ref_list_z[i] * dec) / dec, roundf(act_list_z[i] * dec) / dec);
+    float dec = 1000.0f;
+    ASSERT_EQ(ref_path.poses.size(), act_path.poses.size());
+    for (int i = 0; i < ref_path.poses.size(); i++) {
+        EXPECT_EQ(roundf(ref_path.poses.at(i).pose.position.x * dec) / dec, roundf(act_path.poses.at(i).pose.position.x * dec) / dec);
+        EXPECT_EQ(roundf(ref_path.poses.at(i).pose.position.y * dec) / dec, roundf(act_path.poses.at(i).pose.position.y * dec) / dec);
+        EXPECT_EQ(roundf(ref_path.poses.at(i).pose.position.z * dec) / dec, roundf(act_path.poses.at(i).pose.position.z * dec) / dec);
     }
 }
 
@@ -150,20 +107,12 @@ TEST_F(MyTestSuite, cubicSpline) {
     std::vector<double> list_pose_y = pathToVector(init_path, "y");
     std::vector<double> list_pose_z = pathToVector(init_path, "z");
     nav_msgs::Path act_path = generator.createPathCubicSpline(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size());
-    std::vector<double> ref_list_x = pathToVector(ref_path, "x");
-    std::vector<double> ref_list_y = pathToVector(ref_path, "y");
-    std::vector<double> ref_list_z = pathToVector(ref_path, "z");
-    std::vector<double> act_list_x = pathToVector(act_path, "x");
-    std::vector<double> act_list_y = pathToVector(act_path, "y");
-    std::vector<double> act_list_z = pathToVector(act_path, "z");
-    ASSERT_EQ(ref_list_x.size(), act_list_x.size());
-    ASSERT_EQ(ref_list_y.size(), act_list_y.size());
-    ASSERT_EQ(ref_list_z.size(), act_list_z.size());
-    float dec = 100.0f;
-    for (int i = 0; i < ref_list_x.size(); i++) {
-        EXPECT_EQ(roundf(ref_list_x[i] * dec) / dec, roundf(act_list_x[i] * dec) / dec);
-        EXPECT_EQ(roundf(ref_list_y[i] * dec) / dec, roundf(act_list_y[i] * dec) / dec);
-        EXPECT_EQ(roundf(ref_list_z[i] * dec) / dec, roundf(act_list_z[i] * dec) / dec);
+    float dec = 10.0f;
+    ASSERT_EQ(ref_path.poses.size(), act_path.poses.size());
+    for (int i = 0; i < ref_path.poses.size(); i++) {
+        EXPECT_EQ(roundf(ref_path.poses.at(i).pose.position.x * dec) / dec, roundf(act_path.poses.at(i).pose.position.x * dec) / dec);
+        EXPECT_EQ(roundf(ref_path.poses.at(i).pose.position.y * dec) / dec, roundf(act_path.poses.at(i).pose.position.y * dec) / dec);
+        EXPECT_EQ(roundf(ref_path.poses.at(i).pose.position.z * dec) / dec, roundf(act_path.poses.at(i).pose.position.z * dec) / dec);
     }
 }
 
@@ -175,20 +124,12 @@ TEST_F(MyTestSuite, cubicSplineLoyal) {
     std::vector<double> list_pose_y = pathToVector(init_path, "y");
     std::vector<double> list_pose_z = pathToVector(init_path, "z");
     nav_msgs::Path act_path = generator.createPathCubicSpline(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size());
-    std::vector<double> ref_list_x = pathToVector(ref_path, "x");
-    std::vector<double> ref_list_y = pathToVector(ref_path, "y");
-    std::vector<double> ref_list_z = pathToVector(ref_path, "z");
-    std::vector<double> act_list_x = pathToVector(act_path, "x");
-    std::vector<double> act_list_y = pathToVector(act_path, "y");
-    std::vector<double> act_list_z = pathToVector(act_path, "z");
-    ASSERT_EQ(ref_list_x.size(), act_list_x.size());
-    ASSERT_EQ(ref_list_y.size(), act_list_y.size());
-    ASSERT_EQ(ref_list_z.size(), act_list_z.size());
-    float dec = 100.0f;
-    for (int i = 0; i < ref_list_x.size(); i++) {
-        EXPECT_EQ(roundf(ref_list_x[i] * dec) / dec, roundf(act_list_x[i] * dec) / dec);
-        EXPECT_EQ(roundf(ref_list_y[i] * dec) / dec, roundf(act_list_y[i] * dec) / dec);
-        EXPECT_EQ(roundf(ref_list_z[i] * dec) / dec, roundf(act_list_z[i] * dec) / dec);
+    float dec = 10.0f;
+    ASSERT_EQ(ref_path.poses.size(), act_path.poses.size());
+    for (int i = 0; i < ref_path.poses.size(); i++) {
+        EXPECT_EQ(roundf(ref_path.poses.at(i).pose.position.x * dec) / dec, roundf(act_path.poses.at(i).pose.position.x * dec) / dec);
+        EXPECT_EQ(roundf(ref_path.poses.at(i).pose.position.y * dec) / dec, roundf(act_path.poses.at(i).pose.position.y * dec) / dec);
+        EXPECT_EQ(roundf(ref_path.poses.at(i).pose.position.z * dec) / dec, roundf(act_path.poses.at(i).pose.position.z * dec) / dec);
     }
 }
 
