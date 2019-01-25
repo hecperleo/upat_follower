@@ -91,7 +91,6 @@ TEST_F(MyTestSuite, interp1) {
     std::vector<double> list_pose_y = pathToVector(init_path, "y");
     std::vector<double> list_pose_z = pathToVector(init_path, "z");
     nav_msgs::Path act_path = generator.createPathInterp1(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), interp1_final_size);
-    // float dec = 1000.0f;
     ASSERT_EQ(ref_path.poses.size(), act_path.poses.size());
     for (int i = 0; i < ref_path.poses.size(); i++) {
         EXPECT_EQ(roundf(ref_path.poses.at(i).pose.position.x * dec) / dec, roundf(act_path.poses.at(i).pose.position.x * dec) / dec);
@@ -108,8 +107,6 @@ TEST_F(MyTestSuite, cubicSpline) {
     std::vector<double> list_pose_y = pathToVector(init_path, "y");
     std::vector<double> list_pose_z = pathToVector(init_path, "z");
     nav_msgs::Path act_path = generator.createPathCubicSpline(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size());
-    // float dec = 1000.0f;
-    // float tolerance = 10 / dec;
     ASSERT_EQ(ref_path.poses.size(), act_path.poses.size());
     for (int i = 0; i < ref_path.poses.size(); i++) {
         EXPECT_NEAR(roundf(ref_path.poses.at(i).pose.position.x * dec) / dec, roundf(act_path.poses.at(i).pose.position.x * dec) / dec, tolerance);
@@ -126,8 +123,6 @@ TEST_F(MyTestSuite, cubicSplineLoyal) {
     std::vector<double> list_pose_y = pathToVector(init_path, "y");
     std::vector<double> list_pose_z = pathToVector(init_path, "z");
     nav_msgs::Path act_path = generator.createPathCubicSpline(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size());
-    // float dec = 1000.0f;
-    // float tolerance = 10 / dec;
     ASSERT_EQ(ref_path.poses.size(), act_path.poses.size());
     for (int i = 0; i < ref_path.poses.size(); i++) {
         EXPECT_NEAR(roundf(ref_path.poses.at(i).pose.position.x * dec) / dec, roundf(act_path.poses.at(i).pose.position.x * dec) / dec, tolerance);
@@ -137,7 +132,7 @@ TEST_F(MyTestSuite, cubicSplineLoyal) {
 }
 
 int main(int argc, char** argv) {
-    ros::init(argc, argv, "TestNode");
+    ros::init(argc, argv, "tests_node");
     ros::NodeHandle nh;
 
     testing::InitGoogleTest(&argc, argv);

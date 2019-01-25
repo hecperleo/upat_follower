@@ -44,13 +44,14 @@ int PathFollower::calculatePosLookAhead(int pos_on_path) {
     std::vector<double> vec_distances;
     Eigen::Vector3f path_p;
     path_p = Eigen::Vector3f(path.poses.at(pos_on_path).pose.position.x, path.poses.at(pos_on_path).pose.position.y, path.poses.at(pos_on_path).pose.position.z);
-    for (int i = pos_on_path; i < path.poses.size(); i++) {
-        Eigen::Vector3f la_p;
-        la_p = Eigen::Vector3f(path.poses.at(i).pose.position.x, path.poses.at(i).pose.position.y, path.poses.at(i).pose.position.z);
-        vec_distances.push_back((la_p - path_p).norm());
+    for (pos_on_path; pos_on_path < path.poses.size(); pos_on_path++) {
+        Eigen::Vector3f la_p = Eigen::Vector3f(path.poses.at(pos_on_path).pose.position.x, path.poses.at(pos_on_path).pose.position.y, path.poses.at(pos_on_path).pose.position.z);
+        if((la_p - path_p).norm() < look_ahead){
+            pos_la = pos_on_path;
+        }else{
+            pos_on_path = path.poses.size();
+        }
     }
-    std::vector<double>::iterator up = std::lower_bound(vec_distances.begin(), vec_distances.end(), look_ahead);
-    pos_la = up - vec_distances.begin();
 
     return pos_la;
 }
@@ -86,7 +87,7 @@ void PathFollower::followPath() {
         if (flag_run) {
             int normal_pos_on_path = calculatePosOnPath(current_point);
             int pos_look_ahead = calculatePosLookAhead(normal_pos_on_path);
-            out_velocity = calculateVelocity(current_point, normal_pos_on_path + pos_look_ahead);
+            out_velocity = calculateVelocity(current_point, pos_look_ahead);
         }
     } else {
     }
