@@ -5,6 +5,7 @@
 #include <string>
 #include <thread>
 #include "uav_path_manager/path_generator.h"
+#include <ros/package.h>
 
 // terminal: catkin build --verbose --catkin-make-args run_tests | sed -n '/\[==========\]/,/\[==========\]/p'
 
@@ -13,8 +14,9 @@ class MyTestSuite : public ::testing::Test {
     MyTestSuite() {
     }
     ~MyTestSuite() {}
-    // TODO: Check if this is correct
     PathGenerator generator;
+    float dec = 1000.0f;
+    float tolerance = 10 / dec;
 };
 
 nav_msgs::Path constructPath(std::vector<double> wps_x, std::vector<double> wps_y, std::vector<double> wps_z) {
@@ -35,9 +37,8 @@ nav_msgs::Path constructPath(std::vector<double> wps_x, std::vector<double> wps_
 
 nav_msgs::Path csvToPath(std::string file_name) {
     nav_msgs::Path out_path;
-    std::stringstream aux_envvar_home(std::getenv("HOME"));
-    std::string workspace_name = "/tfm_ws";
-    std::string folder_name = aux_envvar_home.str() + workspace_name + "/src/uav_path_manager/data" + file_name;
+    std::string pkg_name_path = ros::package::getPath("uav_path_manager");
+    std::string folder_name =  pkg_name_path + "/data" + file_name;
     std::fstream read_csv;
     read_csv.open(folder_name);
     std::vector<double> list_x, list_y, list_z;
@@ -45,7 +46,6 @@ nav_msgs::Path csvToPath(std::string file_name) {
         while (read_csv.good()) {
             std::string x, y, z;
             double dx, dy, dz;
-            // char
             getline(read_csv, x, ',');
             getline(read_csv, y, ',');
             getline(read_csv, z, '\n');
@@ -55,10 +55,6 @@ nav_msgs::Path csvToPath(std::string file_name) {
             sx >> dx;
             sy >> dy;
             sz >> dz;
-            // read_csv >> dx;
-            // read_csv.read(',')
-            // read_csv >> dx 
-            // read_csv >> dx 
             list_x.push_back(dx);
             list_y.push_back(dy);
             list_z.push_back(dz);
@@ -95,7 +91,7 @@ TEST_F(MyTestSuite, interp1) {
     std::vector<double> list_pose_y = pathToVector(init_path, "y");
     std::vector<double> list_pose_z = pathToVector(init_path, "z");
     nav_msgs::Path act_path = generator.createPathInterp1(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), interp1_final_size);
-    float dec = 1000.0f;
+    // float dec = 1000.0f;
     ASSERT_EQ(ref_path.poses.size(), act_path.poses.size());
     for (int i = 0; i < ref_path.poses.size(); i++) {
         EXPECT_EQ(roundf(ref_path.poses.at(i).pose.position.x * dec) / dec, roundf(act_path.poses.at(i).pose.position.x * dec) / dec);
@@ -112,8 +108,8 @@ TEST_F(MyTestSuite, cubicSpline) {
     std::vector<double> list_pose_y = pathToVector(init_path, "y");
     std::vector<double> list_pose_z = pathToVector(init_path, "z");
     nav_msgs::Path act_path = generator.createPathCubicSpline(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size());
-    float dec = 1000.0f;
-    float tolerance = 0.01;
+    // float dec = 1000.0f;
+    // float tolerance = 10 / dec;
     ASSERT_EQ(ref_path.poses.size(), act_path.poses.size());
     for (int i = 0; i < ref_path.poses.size(); i++) {
         EXPECT_NEAR(roundf(ref_path.poses.at(i).pose.position.x * dec) / dec, roundf(act_path.poses.at(i).pose.position.x * dec) / dec, tolerance);
@@ -130,8 +126,8 @@ TEST_F(MyTestSuite, cubicSplineLoyal) {
     std::vector<double> list_pose_y = pathToVector(init_path, "y");
     std::vector<double> list_pose_z = pathToVector(init_path, "z");
     nav_msgs::Path act_path = generator.createPathCubicSpline(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size());
-    float dec = 1000.0f;
-    float tolerance = 0.01;
+    // float dec = 1000.0f;
+    // float tolerance = 10 / dec;
     ASSERT_EQ(ref_path.poses.size(), act_path.poses.size());
     for (int i = 0; i < ref_path.poses.size(); i++) {
         EXPECT_NEAR(roundf(ref_path.poses.at(i).pose.position.x * dec) / dec, roundf(act_path.poses.at(i).pose.position.x * dec) / dec, tolerance);
