@@ -1,5 +1,4 @@
 #include <uav_path_manager/path_manager.h>
-#include <ros/package.h>
 
 PathManager::PathManager() : nh(), pnh("~") {
     // Parameters
@@ -10,9 +9,9 @@ PathManager::PathManager() : nh(), pnh("~") {
     sub_state = nh.subscribe("/uav_" + std::to_string(uav_id) + "/ual/state", 0, &PathManager::ualStateCallback, this);
     sub_velocity = nh.subscribe("/uav_path_manager/follower/uav_" + std::to_string(uav_id) + "/output_vel", 0, &PathManager::velocityCallback, this);
     // Publishers
-    pub_init_path = nh.advertise<nav_msgs::Path>("/uav_path_manager/visualization/manager/init_path", 1000);
-    pub_generated_path = nh.advertise<nav_msgs::Path>("/uav_path_manager/visualization/manager/generated_path", 1000);
-    pub_current_path = nh.advertise<nav_msgs::Path>("/uav_path_manager/visualization/manager/current_path", 1000);
+    pub_init_path = nh.advertise<nav_msgs::Path>("/uav_path_manager/visualization/manager/uav_" + std::to_string(uav_id) + "/init_path", 1000);
+    pub_generated_path = nh.advertise<nav_msgs::Path>("/uav_path_manager/visualization/manager/uav_" + std::to_string(uav_id) + "/generated_path", 1000);
+    pub_current_path = nh.advertise<nav_msgs::Path>("/uav_path_manager/visualization/manager/uav_" + std::to_string(uav_id) + "/current_path", 1000);
     pub_set_pose = nh.advertise<geometry_msgs::PoseStamped>("/uav_" + std::to_string(uav_id) + "/ual/set_pose", 1000);
     pub_set_velocity = nh.advertise<geometry_msgs::TwistStamped>("/uav_" + std::to_string(uav_id) + "/ual/set_velocity", 1000);
     // Services

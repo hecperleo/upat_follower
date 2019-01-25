@@ -11,6 +11,7 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "nav_msgs/Path.h"
 #include "std_msgs/Int8.h"
+#include <ros/package.h>
 
 class PathManager {
    public:
@@ -43,7 +44,7 @@ class PathManager {
     geometry_msgs::TwistStamped velocity_;
     uav_abstraction_layer::State ual_state;
     std::vector<double> list_init_x = {5.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0, 15.0, 15.0, 15.0, 20.0, 20.0, 20.0, 20.0};  // Last waypoint
-    std::vector<double> list_init_y = {5.0, 10.0, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0};     // should be
+    std::vector<double> list_init_y = {-2.5, 2.5, 2.5, -2.5, -2.5, -2.5, 2.5, 2.5, 2.5, -2.5, -2.5, -2.5, 2.5, 2.5};     // should be
     std::vector<double> list_init_z = {10.0, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0};    // duplicated
     // Params
     int uav_id;

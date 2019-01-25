@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 -->
 <launch>
 
-    <arg name="multi" default="false"/>
+    <arg name="multi" default="true"/>
     <arg name="ns_prefix" default="uav_"/>
     <arg name="mode" default="sitl"/>
     <arg name="pose_frame_id" default=""/>
@@ -38,11 +38,23 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         <arg name="material" value="Orange"/>
         <arg name="mode" value="$(arg mode)"/>
         <arg name="x" value="0"/>
-        <arg name="y" value="0"/>
+        <arg name="y" value="5"/>
         <arg name="z" value="0"/>
         <arg name="yaw" value="0"/>
     </include>
 
+    <group if="$(arg multi)">
+        <!-- Launch robot id=2 -->
+        <include file="$(find px4_bringup)/launch/spawn_robot.launch" ns="$(arg ns_prefix)2">
+            <arg name="id" value="2"/>
+            <arg name="material" value="Indigo"/>
+            <arg name="mode" value="$(arg mode)"/>
+            <arg name="x" value="0"/>
+            <arg name="y" value="-5"/>
+            <arg name="z" value="0"/>
+            <arg name="yaw" value="0"/>
+        </include>
+    </group>
 
     <!-- Launch UAL server for uav id=1 -->
     <node pkg="uav_abstraction_layer" type="server" name="ual" ns="$(arg ns_prefix)1" output="screen">
@@ -54,10 +66,27 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         <param name="home_pose_parent_frame" value="map"/>
         <!-- default= map -->
         <!-- Define home pose relative to global map frame -->
-        <rosparam param="home_pose">[0, 0, 0]</rosparam>        <!-- [x,y,z] -->
+        <rosparam param="home_pose">[0, 5, 0]</rosparam>        <!-- [x,y,z] -->
         <!-- Define the global map frame geo position and let the UAL estimate the relative home pose -->
         <!-- <rosparam param="map_origin_geo">[37.558542, -5.931074, 7.89]</rosparam> -->        <!-- [lat,lon,alt] -->
     </node>
+
+    <group if="$(arg multi)">
+        <!-- Launch UAL server for uav id=2 -->
+        <node pkg="uav_abstraction_layer" type="server" name="ual" ns="$(arg ns_prefix)2" output="screen">
+            <param name="uav_id" value="2"/>
+            <param name="pose_frame_id" value="$(arg pose_frame_id)"/>
+            <param name="ual_server" value="$(arg ual_server)"/>
+            <param name="ual_pub_rate" value="$(arg ual_pub_rate)"/>
+            <param name="mavros_offboard_rate" value="$(arg mavros_offboard_rate)"/>
+            <param name="home_pose_parent_frame" value="map"/>
+            <!-- default= map -->
+            <!-- Define home pose relative to global map frame -->
+            <rosparam param="home_pose">[0, -5, 0]</rosparam>            <!-- [x,y,z] -->
+            <!-- Define the global map frame geo position and let the UAL estimate the relative home pose -->
+            <!-- <rosparam param="map_origin_geo">[37.558542, -5.931074, 7.89]</rosparam> -->            <!-- [lat,lon,alt] -->
+        </node>
+    </group>
 
     <!-- Visualization -->
     <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find uav_path_manager)/rviz/mision.rviz" required="true"/>
@@ -70,5 +99,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <node pkg="uav_path_manager" type="path_follower_node" name="path_follower_node" output="screen" required="true">
         <param name="uav_id" value="1"/>
     </node>
+    
+    <group if="$(arg multi)">
+        <node pkg="uav_path_manager" type="path_manager_node" name="path_manager_node_2" output="screen">
+            <param name="uav_id" value="2"/>
+            <param name="save_csv" value="false"/>
+        </node>
+        <node pkg="uav_path_manager" type="path_follower_node" name="path_follower_node_2" output="screen" required="true">
+            <param name="uav_id" value="2"/>
+        </node>
+    </group>
 
 </launch>
