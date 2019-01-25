@@ -17,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   ecl_geometry
 )
 find_package(Eigen3 REQUIRED)
+find_package(rostest REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -231,5 +232,13 @@ add_dependencies(path_follower_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-catkin_add_gtest(path_generator-test tests/tests_path_generator.cpp)
-target_link_libraries(path_generator-test path_generator ${catkin_LIBRARIES})
+# catkin_add_gtest(path_generator-test tests/tests_path_generator.cpp)
+# target_link_libraries(path_generator-test path_generator ${catkin_LIBRARIES})
+
+if(CATKIN_ENABLE_TESTING)
+  find_package(rostest REQUIRED)
+  # add_rostest_gtest(tests_mynode test/mynode.test src/test/test_mynode.cpp [more cpp files])
+  # target_link_libraries(tests_mynode ${catkin_LIBRARIES})
+  catkin_add_gtest(path_generator-test launch/run_tests.test tests/tests_path_generator.cpp)
+  target_link_libraries(path_generator-test path_generator ${catkin_LIBRARIES})
+  endif()
