@@ -1,0 +1,39 @@
+<!-- 
+The MIT License (MIT)
+Copyright (c) 2016 GRVC University of Seville
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+-->
+<launch>
+    <arg name="save_data" default="false"/>
+    <arg name="multi" default="true"/>
+    <!-- UAL Server -->
+    <include file="$(find uav_path_manager)/launch/ual_server.launch">
+        <arg name="multi" value="$(arg multi)"/>
+    </include>
+    <!-- Visualization -->
+    <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find uav_path_manager)/rviz/mision.rviz" required="true"/>
+    <!-- UAV Path Manager nodes -->
+    <node pkg="uav_path_manager" type="path_manager_node" name="path_manager_node" output="screen">
+        <param name="uav_id" value="1"/>
+        <param name="save_csv" value="$(arg save_data)"/>
+    </node>
+    <node pkg="uav_path_manager" type="path_generator_node" name="path_generator_node" output="screen" required="true"/>
+    <node pkg="uav_path_manager" type="path_follower_node" name="path_follower_node" output="screen" required="true">
+        <param name="uav_id" value="1"/>
+    </node>
+    
+    <group if="$(arg multi)">
+        <node pkg="uav_path_manager" type="path_manager_node" name="path_manager_node_2" output="screen">
+            <param name="uav_id" value="2"/>
+        </node>
+        <node pkg="uav_path_manager" type="path_follower_node" name="path_follower_node_2" output="screen" required="true">
+            <param name="uav_id" value="2"/>
+        </node>
+    </group>
+
+</launch>

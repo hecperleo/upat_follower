@@ -37,7 +37,7 @@ class PathManager {
     // Services
     ros::ServiceClient srv_take_off, srv_land, srv_generated_path, srv_give_generated_path;
     // Variables
-    std::string folder_name;
+    std::string folder_data_name;
     bool on_path, end_path;
     nav_msgs::Path path, init_path, current_path;
     geometry_msgs::PoseStamped ual_pose;
