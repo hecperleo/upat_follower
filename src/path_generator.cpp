@@ -60,6 +60,9 @@ bool PathGenerator::pathCallback(uav_path_manager::GeneratePath::Request &req_pa
         list_pose_y.push_back(req_path.init_path.poses.at(i).pose.position.y);
         list_pose_z.push_back(req_path.init_path.poses.at(i).pose.position.z);
     }
+    list_pose_x.push_back(list_pose_x.back());
+    list_pose_y.push_back(list_pose_y.back());
+    list_pose_z.push_back(list_pose_z.back());
     switch (req_path.generator_mode.data) {
         case 1:
             mode = mode_interp1;
