@@ -1,6 +1,6 @@
 #include <uav_path_manager/path_follower.h>
 
-PathFollower::PathFollower(): nh(), pnh("~") {
+PathFollower::PathFollower() : nh(), pnh("~") {
     // Parameters
     pnh.getParam("uav_id", uav_id);
     // Subscriptions
@@ -19,6 +19,7 @@ bool PathFollower::pathCallback(uav_path_manager::GetGeneratedPath::Request &req
     path = req_path.generated_path;
     res_path.ok.data = true;
     flag_run = false;
+    
     return true;
 }
 
@@ -28,7 +29,12 @@ void PathFollower::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_
 
 int PathFollower::calculatePosOnPath(Eigen::Vector3f current_p) {
     std::vector<double> vec_distances;
-    for (int i = 0; i < path.poses.size() - 1; i++) {
+    int search_range = 10; // Find UAV position on path in a range, do not search in all path. 
+    int start_search_pos_on_path = prev_normal_pos_on_path - search_range;
+    int end_search_pos_on_path = prev_normal_pos_on_path + search_range;
+    if (start_search_pos_on_path <= 0) start_search_pos_on_path = 0;
+    if (end_search_pos_on_path >= path.poses.size()) end_search_pos_on_path = path.poses.size() - 1;
+    for (int i = start_search_pos_on_path; i < end_search_pos_on_path; i++) {
         Eigen::Vector3f path_p;
         path_p = Eigen::Vector3f(path.poses.at(i).pose.position.x, path.poses.at(i).pose.position.y, path.poses.at(i).pose.position.z);
         vec_distances.push_back((path_p - current_p).norm());
@@ -36,7 +42,7 @@ int PathFollower::calculatePosOnPath(Eigen::Vector3f current_p) {
     auto smallest_dist = std::min_element(vec_distances.begin(), vec_distances.end());
     int pos_on_path = smallest_dist - vec_distances.begin();
 
-    return pos_on_path;
+    return pos_on_path + start_search_pos_on_path;
 }
 
 int PathFollower::calculatePosLookAhead(int pos_on_path) {
@@ -46,9 +52,9 @@ int PathFollower::calculatePosLookAhead(int pos_on_path) {
     path_p = Eigen::Vector3f(path.poses.at(pos_on_path).pose.position.x, path.poses.at(pos_on_path).pose.position.y, path.poses.at(pos_on_path).pose.position.z);
     for (pos_on_path; pos_on_path < path.poses.size(); pos_on_path++) {
         Eigen::Vector3f la_p = Eigen::Vector3f(path.poses.at(pos_on_path).pose.position.x, path.poses.at(pos_on_path).pose.position.y, path.poses.at(pos_on_path).pose.position.z);
-        if((la_p - path_p).norm() < look_ahead){
+        if ((la_p - path_p).norm() <= look_ahead) {
             pos_la = pos_on_path;
-        }else{
+        } else {
             pos_on_path = path.poses.size();
         }
     }
@@ -86,9 +92,9 @@ void PathFollower::followPath() {
         }
         if (flag_run) {
             int normal_pos_on_path = calculatePosOnPath(current_point);
+            prev_normal_pos_on_path = normal_pos_on_path;
             int pos_look_ahead = calculatePosLookAhead(normal_pos_on_path);
             out_velocity = calculateVelocity(current_point, pos_look_ahead);
         }
-    } else {
     }
 }

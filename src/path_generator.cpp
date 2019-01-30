@@ -76,6 +76,7 @@ bool PathGenerator::pathCallback(uav_path_manager::GeneratePath::Request &req_pa
     }
     res_path.generated_path = pathManagement(list_pose_x, list_pose_y, list_pose_z);
     res_path.generated_path.header.frame_id = req_path.init_path.header.frame_id;
+
     return true;
 }
 
@@ -93,6 +94,7 @@ std::vector<double> PathGenerator::interpWaypointList(std::vector<double> list_p
         new_aux_axis.push_back(new_pose);
     }
     auto interp1_path = linealInterp1(aux_axis, list_pose_axis, new_aux_axis);
+
     return interp1_path;
 }
 
@@ -109,6 +111,7 @@ nav_msgs::Path PathGenerator::constructPath(std::vector<double> wps_x, std::vect
         poses.at(i).pose.orientation.w = 1;
     }
     path_msg.poses = poses;
+
     return path_msg;
 }
 
@@ -123,6 +126,7 @@ nav_msgs::Path PathGenerator::createPathInterp1(std::vector<double> list_x, std:
         // Construct path
         interp1_path = constructPath(interp1_list_x, interp1_list_y, interp1_list_z);
     }
+
     return interp1_path;
 }
 
@@ -179,6 +183,7 @@ nav_msgs::Path PathGenerator::createPathCubicSpline(std::vector<double> list_x, 
         // Construct path
         cubic_spline_path = constructPath(spline_list_x, spline_list_y, spline_list_z);
     }
+
     return cubic_spline_path;
 }
 
@@ -197,5 +202,6 @@ nav_msgs::Path PathGenerator::pathManagement(std::vector<double> list_pose_x, st
         default:
             break;
     }
+    
     return output_path_;
 }

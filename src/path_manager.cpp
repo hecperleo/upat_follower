@@ -48,6 +48,7 @@ nav_msgs::Path PathManager::constructPath(std::vector<double> wps_x, std::vector
         poses.at(i).pose.orientation.w = 1;
     }
     path_msg.poses = poses;
+    
     return path_msg;
 }
 

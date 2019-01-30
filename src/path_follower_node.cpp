@@ -5,7 +5,7 @@ int main(int _argc, char **_argv) {
 
     PathFollower path_follower;
 
-    ros::Rate rate(10);
+    ros::Rate rate(50);
     while (ros::ok()) {
         path_follower.followPath();
         path_follower.pubMsgs();

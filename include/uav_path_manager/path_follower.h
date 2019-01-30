@@ -3,6 +3,7 @@
 #include <uav_path_manager/GetGeneratedPath.h>
 #include <Eigen/Eigen>
 #include "geometry_msgs/PoseStamped.h"
+#include "geometry_msgs/PointStamped.h"
 #include "geometry_msgs/TwistStamped.h"
 #include "nav_msgs/Path.h"
 
@@ -32,6 +33,7 @@ class PathFollower {
     ros::ServiceServer srv_get_generated_path;
     // Variables
     int uav_id;
+    int prev_normal_pos_on_path = 0;
     bool flag_run;
     double look_ahead = 1.0;
     nav_msgs::Path path;
