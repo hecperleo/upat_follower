@@ -1,0 +1,3 @@
+nav_msgs/Path generated_trajectory
+---
+std_msgs/Bool ok
