@@ -3,6 +3,7 @@
 PathGenerator::PathGenerator() : nh() {
     // Services
     srv_generate_path = nh.advertiseService("/uav_path_manager/generator/generate_path", &PathGenerator::pathCallback, this);
+    srv_generate_trajectory = nh.advertiseService("/uav_path_manager/generator/generate_trajectory", &PathGenerator::trajectoryCallback, this);
 }
 
 PathGenerator::~PathGenerator() {
@@ -77,6 +78,24 @@ bool PathGenerator::pathCallback(uav_path_manager::GeneratePath::Request &req_pa
     res_path.generated_path = pathManagement(list_pose_x, list_pose_y, list_pose_z);
     res_path.generated_path.header.frame_id = req_path.init_path.header.frame_id;
 
+    return true;
+}
+
+bool PathGenerator::trajectoryCallback(uav_path_manager::GenerateTrajectory::Request &req_trajectory,
+                                       uav_path_manager::GenerateTrajectory::Response &res_trajectory) {
+    std::vector<double> list_pose_x, list_pose_y, list_pose_z, time_intervals;
+    for (int i = 0; i < req_trajectory.init_path.poses.size(); i++) {
+        list_pose_x.push_back(req_trajectory.init_path.poses.at(i).pose.position.x);
+        list_pose_y.push_back(req_trajectory.init_path.poses.at(i).pose.position.y);
+        list_pose_z.push_back(req_trajectory.init_path.poses.at(i).pose.position.z);
+    }
+    list_pose_x.push_back(list_pose_x.back());
+    list_pose_y.push_back(list_pose_y.back());
+    list_pose_z.push_back(list_pose_z.back());
+    for (int i = 0; i < req_trajectory.time_intervals.data.size(); i++) {
+        time_intervals.push_back(req_trajectory.time_intervals.data.at(i));
+    }
+    mode = mode_trajectory;
     return true;
 }
 
@@ -187,6 +206,9 @@ nav_msgs::Path PathGenerator::createPathCubicSpline(std::vector<double> list_x, 
     return cubic_spline_path;
 }
 
+nav_msgs::Path PathGenerator::createTrajectory() {
+}
+
 nav_msgs::Path PathGenerator::pathManagement(std::vector<double> list_pose_x, std::vector<double> list_pose_y, std::vector<double> list_pose_z) {
     int interp1_final_size = 10000;
     switch (mode) {
@@ -199,9 +221,12 @@ nav_msgs::Path PathGenerator::pathManagement(std::vector<double> list_pose_x, st
         case mode_cubic_spline:
             output_path_ = createPathCubicSpline(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size());
             break;
+        case mode_trajectory:
+            output_trajectory_ = createTrajectory();
+            break;
         default:
             break;
     }
-    
+
     return output_path_;
 }

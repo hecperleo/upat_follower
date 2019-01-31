@@ -2,6 +2,7 @@
 
 #include <uav_abstraction_layer/ual.h>
 #include <uav_path_manager/GeneratePath.h>
+#include <uav_path_manager/GenerateTrajectory.h>
 #include <Eigen/Eigen>
 #include "ecl/geometry.hpp"
 #include "geometry_msgs/PoseStamped.h"
@@ -20,15 +21,18 @@ class PathGenerator {
 
     nav_msgs::Path createPathInterp1(std::vector<double> list_x, std::vector<double> list_y, std::vector<double> list_z, int path_size, int new_path_size);
     nav_msgs::Path createPathCubicSpline(std::vector<double> list_x, std::vector<double> list_y, std::vector<double> list_z, int path_size);
+    nav_msgs::Path createTrajectory();
     enum mode_t { mode_interp1,
                   mode_cubic_spline_loyal,
                   mode_cubic_spline,
+                  mode_trajectory,
                   mode_idle };
     mode_t mode = mode_idle;
 
    private:
     // Callbacks
     bool pathCallback(uav_path_manager::GeneratePath::Request &req_path, uav_path_manager::GeneratePath::Response &res_path);
+    bool trajectoryCallback(uav_path_manager::GenerateTrajectory::Request &req_trajectory, uav_path_manager::GenerateTrajectory::Response &res_trajectory);
     // Methods
     int nearestNeighbourIndex(std::vector<double> &x, double &value);
     std::vector<double> linealInterp1(std::vector<double> &x, std::vector<double> &y, std::vector<double> &x_new);
@@ -38,7 +42,7 @@ class PathGenerator {
     // Node handlers
     ros::NodeHandle nh;
     // Services
-    ros::ServiceServer srv_generate_path;
+    ros::ServiceServer srv_generate_path, srv_generate_trajectory;
     // Variables
-    nav_msgs::Path output_path_;
+    nav_msgs::Path output_path_, output_trajectory_;
 };
