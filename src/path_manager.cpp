@@ -27,7 +27,7 @@ PathManager::PathManager() : nh(), pnh("~") {
     // Save data
     if (save_csv) {
         std::string pkg_name_path = ros::package::getPath("uav_path_manager");
-        folder_name = pkg_name_path + "/data";
+        folder_data_name = pkg_name_path + "/tests/data";
     }
 }
 
@@ -63,6 +63,49 @@ void PathManager::velocityCallback(const geometry_msgs::TwistStamped &_velocity)
     velocity_ = _velocity;
 }
 
+void PathManager::saveDataForTesting() {
+    uav_path_manager::GeneratePath generate_path;
+    std_msgs::Int8 generator_mode;
+    std::ofstream csv_cubic_loyal, csv_cubic, csv_interp1, csv_init;
+    csv_init.open(folder_data_name + "/init.csv");
+    csv_init << std::fixed << std::setprecision(5);
+    for (int i = 0; i < init_path.poses.size(); i++) {
+        csv_init << init_path.poses.at(i).pose.position.x << ", " << init_path.poses.at(i).pose.position.y << ", " << init_path.poses.at(i).pose.position.z << std::endl;
+    }
+    csv_init.close();
+    generator_mode.data = 1;
+    generate_path.request.generator_mode = generator_mode;
+    generate_path.request.init_path = init_path;
+    srv_generated_path.call(generate_path);
+    path = generate_path.response.generated_path;
+    csv_interp1.open(folder_data_name + "/interp1.csv");
+    csv_interp1 << std::fixed << std::setprecision(5);
+    for (int i = 0; i < path.poses.size(); i++) {
+        csv_interp1 << path.poses.at(i).pose.position.x << ", " << path.poses.at(i).pose.position.y << ", " << path.poses.at(i).pose.position.z << std::endl;
+    }
+    csv_interp1.close();
+    generator_mode.data = 2;
+    generate_path.request.generator_mode = generator_mode;
+    srv_generated_path.call(generate_path);
+    path = generate_path.response.generated_path;
+    csv_cubic_loyal.open(folder_data_name + "/cubic_spline_loyal.csv");
+    csv_cubic_loyal << std::fixed << std::setprecision(5);
+    for (int i = 0; i < path.poses.size(); i++) {
+        csv_cubic_loyal << path.poses.at(i).pose.position.x << ", " << path.poses.at(i).pose.position.y << ", " << path.poses.at(i).pose.position.z << std::endl;
+    }
+    csv_cubic_loyal.close();
+    generator_mode.data = 3;
+    generate_path.request.generator_mode = generator_mode;
+    srv_generated_path.call(generate_path);
+    path = generate_path.response.generated_path;
+    csv_cubic.open(folder_data_name + "/cubic_spline.csv");
+    csv_cubic << std::fixed << std::setprecision(5);
+    for (int i = 0; i < path.poses.size(); i++) {
+        csv_cubic << path.poses.at(i).pose.position.x << ", " << path.poses.at(i).pose.position.y << ", " << path.poses.at(i).pose.position.z << std::endl;
+    }
+    csv_cubic.close();
+}
+
 void PathManager::pubMsgs() {
     pub_init_path.publish(init_path);
     pub_generated_path.publish(path);
@@ -75,23 +118,15 @@ void PathManager::runMission() {
     uav_path_manager::GeneratePath generate_path;
     uav_path_manager::GetGeneratedPath give_generated_path;
     std_msgs::Int8 generator_mode;
-    generator_mode.data = 2;
-    generate_path.request.generator_mode = generator_mode;
-    generate_path.request.init_path = init_path;
     if (path.poses.size() < 1) {
+        if (save_csv) saveDataForTesting();
+        generator_mode.data = 2;
+        generate_path.request.generator_mode = generator_mode;
+        generate_path.request.init_path = init_path;
         srv_generated_path.call(generate_path);
         path = generate_path.response.generated_path;
         give_generated_path.request.generated_path = path;
         srv_give_generated_path.call(give_generated_path);
-        if (save_csv) {
-            std::ofstream csv_file;
-            csv_file.open(folder_name + "/cubic_spline_loyal.csv");
-            csv_file << std::fixed << std::setprecision(5);
-            for (int i = 0; i < path.poses.size(); i++) {
-                csv_file << path.poses.at(i).pose.position.x << ", " << path.poses.at(i).pose.position.y << ", " << path.poses.at(i).pose.position.z << std::endl;
-            }
-            csv_file.close();
-        }
     }
     Eigen::Vector3f current_p, path0_p, path_end_p;
     current_p = Eigen::Vector3f(ual_pose.pose.position.x, ual_pose.pose.position.y, ual_pose.pose.position.z);

@@ -1,3 +1,4 @@
+#include <ros/package.h>
 #include <ros/ros.h>
 #include <uav_abstraction_layer/Land.h>
 #include <uav_abstraction_layer/State.h>
@@ -11,7 +12,6 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "nav_msgs/Path.h"
 #include "std_msgs/Int8.h"
-#include <ros/package.h>
 
 class PathManager {
    public:
@@ -28,6 +28,7 @@ class PathManager {
     void velocityCallback(const geometry_msgs::TwistStamped &_velocity);
     // Methods
     nav_msgs::Path constructPath(std::vector<double> wps_x, std::vector<double> wps_y, std::vector<double> wps_z, std::string frame_id);
+    void saveDataForTesting();
     // Node handlers
     ros::NodeHandle nh, pnh;
     // Subscribers
@@ -37,15 +38,18 @@ class PathManager {
     // Services
     ros::ServiceClient srv_take_off, srv_land, srv_generated_path, srv_give_generated_path;
     // Variables
-    std::string folder_name;
+    std::string folder_data_name;
     bool on_path, end_path;
     nav_msgs::Path path, init_path, current_path;
     geometry_msgs::PoseStamped ual_pose;
     geometry_msgs::TwistStamped velocity_;
     uav_abstraction_layer::State ual_state;
-    std::vector<double> list_init_x = {5.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0, 15.0, 15.0, 15.0, 20.0, 20.0, 20.0, 20.0};  // Last waypoint
-    std::vector<double> list_init_y = {-2.5, 2.5, 2.5, -2.5, -2.5, -2.5, 2.5, 2.5, 2.5, -2.5, -2.5, -2.5, 2.5, 2.5};     // should be
-    std::vector<double> list_init_z = {10.0, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0};    // duplicated
+    // std::vector<double> list_init_x = {5.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0, 15.0, 15.0, 15.0, 20.0, 20.0, 20.0};
+    // std::vector<double> list_init_y = {-2.5, 2.5, 2.5, -2.5, -2.5, -2.5, 2.5, 2.5, 2.5, -2.5, -2.5, -2.5, 2.5};
+    // std::vector<double> list_init_z = {10.0, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0, 10.0, 5.0, 5.0, 5.0, 10.0, 10.0};
+    std::vector<double> list_init_x = {-2.50,-2.66, -20, -25.75, -25.75, -14.25, -14.25, -20.0/* , -2.66 */};
+    std::vector<double> list_init_y = {5.10, 5.0, 0.0, -11.25, 11.25, 11.25, -11.25, 0.0/* , 5.0 */};
+    std::vector<double> list_init_z = {2.25, 14.0, 14.0, 10, 10.0, 10.0, 10.0, 14.0/* , 14.0 */};
     // Params
     int uav_id;
     bool save_csv;

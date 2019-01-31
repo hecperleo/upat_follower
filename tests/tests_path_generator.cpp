@@ -38,7 +38,7 @@ nav_msgs::Path constructPath(std::vector<double> wps_x, std::vector<double> wps_
 nav_msgs::Path csvToPath(std::string file_name) {
     nav_msgs::Path out_path;
     std::string pkg_name_path = ros::package::getPath("uav_path_manager");
-    std::string folder_name =  pkg_name_path + "/data" + file_name;
+    std::string folder_name =  pkg_name_path + "/tests/data" + file_name;
     std::fstream read_csv;
     read_csv.open(folder_name);
     std::vector<double> list_x, list_y, list_z;

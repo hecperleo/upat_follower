@@ -60,6 +60,9 @@ bool PathGenerator::pathCallback(uav_path_manager::GeneratePath::Request &req_pa
         list_pose_y.push_back(req_path.init_path.poses.at(i).pose.position.y);
         list_pose_z.push_back(req_path.init_path.poses.at(i).pose.position.z);
     }
+    list_pose_x.push_back(list_pose_x.back());
+    list_pose_y.push_back(list_pose_y.back());
+    list_pose_z.push_back(list_pose_z.back());
     switch (req_path.generator_mode.data) {
         case 1:
             mode = mode_interp1;
@@ -126,6 +129,14 @@ nav_msgs::Path PathGenerator::createPathInterp1(std::vector<double> list_x, std:
 nav_msgs::Path PathGenerator::createPathCubicSpline(std::vector<double> list_x, std::vector<double> list_y, std::vector<double> list_z, int path_size) {
     nav_msgs::Path cubic_spline_path;
     if (path_size > 1) {
+        // Calculate total distance
+        int total_distance = 0;
+        for (int i = 0; i < path_size - 1; i++) {
+            Eigen::Vector3f point_1, point_2;
+            point_1 = Eigen::Vector3f(list_x[i], list_y[i], list_z[i]);
+            point_2 = Eigen::Vector3f(list_x[i + 1], list_y[i + 1], list_z[i + 1]);
+            total_distance = total_distance + (point_2 - point_1).norm();
+        }
         // Calculate number of joints
         int num_joints = 0;
         switch (mode) {
@@ -136,12 +147,7 @@ nav_msgs::Path PathGenerator::createPathCubicSpline(std::vector<double> list_x, 
                 num_joints = path_size;
                 break;
             default:
-                for (int i = 0; i < path_size - 1; i++) {
-                    Eigen::Vector3f point_1, point_2;
-                    point_1 = Eigen::Vector3f(list_x[i], list_y[i], list_z[i]);
-                    point_2 = Eigen::Vector3f(list_x[i + 1], list_y[i + 1], list_z[i + 1]);
-                    num_joints = num_joints + (point_2 - point_1).norm();
-                }
+                num_joints = total_distance;  // TODO: For trajectory generator
                 break;
         }
         // Lineal interpolation
@@ -162,7 +168,7 @@ nav_msgs::Path PathGenerator::createPathCubicSpline(std::vector<double> list_x, 
         ecl::CubicSpline spline_y = ecl::CubicSpline::Natural(t_set, y_set);
         ecl::CubicSpline spline_z = ecl::CubicSpline::Natural(t_set, z_set);
         // Change format: ecl::CubicSpline -> std::vector
-        double sp_pts = 100.0;
+        double sp_pts = total_distance;
         int amount_of_points = (interp1_list_x.size() - 1) * sp_pts;
         std::vector<double> spline_list_x(amount_of_points), spline_list_y(amount_of_points), spline_list_z(amount_of_points);
         for (int i = 0; i < amount_of_points; i++) {
