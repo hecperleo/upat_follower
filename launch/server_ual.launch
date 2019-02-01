@@ -1,5 +1,6 @@
 <launch>
     <arg name="multi" default="true"/>
+    <arg name="robot_model" default="iris"/>
     <arg name="ns_prefix" default="uav_"/>
     <arg name="mode" default="sitl"/>
     <arg name="pose_frame_id" default=""/>
@@ -23,6 +24,7 @@
     -->
     <!-- Launch robot id=1 -->
     <include file="$(find px4_bringup)/launch/spawn_robot.launch" ns="$(arg ns_prefix)1">
+        <arg name="robot_model" value="$(arg robot_model)"/>
         <arg name="id" value="1"/>
         <arg name="material" value="Orange"/>
         <arg name="mode" value="$(arg mode)"/>
@@ -35,6 +37,7 @@
     <group if="$(arg multi)">
         <!-- Launch robot id=2 -->
         <include file="$(find px4_bringup)/launch/spawn_robot.launch" ns="$(arg ns_prefix)2">
+            <arg name="robot_model" value="$(arg robot_model)"/>
             <arg name="id" value="2"/>
             <arg name="material" value="Indigo"/>
             <arg name="mode" value="$(arg mode)"/>
