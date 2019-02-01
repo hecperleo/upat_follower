@@ -118,6 +118,7 @@ void PathManager::runMission() {
     uav_abstraction_layer::Land land;
     uav_path_manager::GeneratePath generate_path;
     uav_path_manager::GetGeneratedPath give_generated_path;
+    std_msgs::Float32 cruising_speed, look_ahead;
     std_msgs::Int8 generator_mode;
     if (path.poses.size() < 1) {
         if (save_csv) saveDataForTesting();
@@ -127,6 +128,10 @@ void PathManager::runMission() {
         srv_generated_path.call(generate_path);
         path = generate_path.response.generated_path;
         give_generated_path.request.generated_path = path;
+        cruising_speed.data = 1.0; 
+        look_ahead.data = 1.2;
+        give_generated_path.request.cruising_speed = cruising_speed;
+        give_generated_path.request.look_ahead = look_ahead;
         srv_give_generated_path.call(give_generated_path);
     }
     Eigen::Vector3f current_p, path0_p, path_end_p;

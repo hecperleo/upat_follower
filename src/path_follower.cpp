@@ -18,6 +18,8 @@ bool PathFollower::pathCallback(uav_path_manager::GetGeneratedPath::Request &req
                                 uav_path_manager::GetGeneratedPath::Response &res_path) {
     path = req_path.generated_path;
     res_path.ok.data = true;
+    look_ahead = req_path.look_ahead.data;
+    cruising_speed = req_path.cruising_speed.data;
     flag_run = false;
     
     return true;
@@ -64,7 +66,7 @@ int PathFollower::calculatePosLookAhead(int pos_on_path) {
 
 geometry_msgs::TwistStamped PathFollower::calculateVelocity(Eigen::Vector3f current_p, int pos_la) {
     geometry_msgs::TwistStamped out_vel;
-    double cruising_speed = 1.0;
+    // double cruising_speed = 1.0;
     Eigen::Vector3f target_p;
     target_p = Eigen::Vector3f(path.poses.at(pos_la).pose.position.x, path.poses.at(pos_la).pose.position.y, path.poses.at(pos_la).pose.position.z);
     double distance = (target_p - current_p).norm();

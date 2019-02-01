@@ -36,6 +36,7 @@ class PathFollower {
     int prev_normal_pos_on_path = 0;
     bool flag_run;
     double look_ahead = 1.0;
+    double cruising_speed = 1.0;
     nav_msgs::Path path;
     geometry_msgs::PoseStamped ual_pose;
     geometry_msgs::TwistStamped out_velocity;
