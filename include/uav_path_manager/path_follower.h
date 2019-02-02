@@ -16,26 +16,26 @@ class PathFollower {
 
    private:
     // Callbacks
-    bool pathCallback(uav_path_manager::GetGeneratedPath::Request &req_path, uav_path_manager::GetGeneratedPath::Response &res_path);
+    bool pathCallback(uav_path_manager::GetGeneratedPath::Request &_req_path, uav_path_manager::GetGeneratedPath::Response &_res_path);
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
     // Methods
-    int calculatePosOnPath(Eigen::Vector3f current_p);
-    int calculatePosLookAhead(int pos_on_path);
-    geometry_msgs::TwistStamped calculateVelocity(Eigen::Vector3f current_p, int pos_la);
+    int calculatePosOnPath(Eigen::Vector3f _current_p);
+    int calculatePosLookAhead(int _pos_on_path);
+    geometry_msgs::TwistStamped calculateVelocity(Eigen::Vector3f _current_p, int _pos_la);
     // Node handlers
-    ros::NodeHandle nh, pnh;
+    ros::NodeHandle nh_, pnh_;
     // Subscribers
-    ros::Subscriber sub_pose;
+    ros::Subscriber sub_pose_;
     // Publishers
-    ros::Publisher pub_output_vel;
+    ros::Publisher pub_output_velocity_;
     // Services
-    ros::ServiceServer srv_get_generated_path;
+    ros::ServiceServer srv_get_generated_path_;
     // Variables
-    int uav_id;
-    bool flag_run;
-    double look_ahead = 1.0;
-    double cruising_speed = 1.0;
-    nav_msgs::Path path;
-    geometry_msgs::PoseStamped ual_pose;
-    geometry_msgs::TwistStamped out_velocity;
+    int uav_id_;
+    bool flag_run_;
+    double look_ahead_ = 1.0;
+    double cruising_speed_ = 1.0;
+    nav_msgs::Path target_path_;
+    geometry_msgs::PoseStamped ual_pose_;
+    geometry_msgs::TwistStamped out_velocity_;
 };
