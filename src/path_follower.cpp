@@ -42,26 +42,26 @@ int PathFollower::calculatePosOnPath(Eigen::Vector3f _current_p) {
 }
 
 int PathFollower::calculatePosLookAhead(int _pos_on_path) {
-    int pos_la;
+    int pos_look_ahead;
     std::vector<double> vec_distances;
     Eigen::Vector3f target_path_point;
     target_path_point = Eigen::Vector3f(target_path_.poses.at(_pos_on_path).pose.position.x, target_path_.poses.at(_pos_on_path).pose.position.y, target_path_.poses.at(_pos_on_path).pose.position.z);
     for (_pos_on_path; _pos_on_path < target_path_.poses.size(); _pos_on_path++) {
         Eigen::Vector3f look_ahead_point = Eigen::Vector3f(target_path_.poses.at(_pos_on_path).pose.position.x, target_path_.poses.at(_pos_on_path).pose.position.y, target_path_.poses.at(_pos_on_path).pose.position.z);
         if((look_ahead_point - target_path_point).norm() < look_ahead_){
-            pos_la = _pos_on_path;
+            pos_look_ahead = _pos_on_path;
         }else{
             _pos_on_path = target_path_.poses.size();
         }
     }
 
-    return pos_la;
+    return pos_look_ahead;
 }
 
-geometry_msgs::TwistStamped PathFollower::calculateVelocity(Eigen::Vector3f _current_p, int _pos_la) {
+geometry_msgs::TwistStamped PathFollower::calculateVelocity(Eigen::Vector3f _current_p, int _pos_look_ahead) {
     geometry_msgs::TwistStamped out_vel;
     Eigen::Vector3f target_p;
-    target_p = Eigen::Vector3f(target_path_.poses.at(_pos_la).pose.position.x, target_path_.poses.at(_pos_la).pose.position.y, target_path_.poses.at(_pos_la).pose.position.z);
+    target_p = Eigen::Vector3f(target_path_.poses.at(_pos_look_ahead).pose.position.x, target_path_.poses.at(_pos_look_ahead).pose.position.y, target_path_.poses.at(_pos_look_ahead).pose.position.z);
     double distance = (target_p - _current_p).norm();
     Eigen::Vector3f unit_vec = (target_p - _current_p) / distance;
     unit_vec = unit_vec / unit_vec.norm();
