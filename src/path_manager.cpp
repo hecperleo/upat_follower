@@ -12,6 +12,7 @@ PathManager::PathManager() : nh_(), pnh_("~") {
     pub_init_path_ = nh_.advertise<nav_msgs::Path>("/uav_path_manager/visualization/manager/uav_" + std::to_string(uav_id_) + "/init_path", 1000);
     pub_generated_path_ = nh_.advertise<nav_msgs::Path>("/uav_path_manager/visualization/manager/uav_" + std::to_string(uav_id_) + "/generated_path", 1000);
     pub_current_path_ = nh_.advertise<nav_msgs::Path>("/uav_path_manager/visualization/manager/uav_" + std::to_string(uav_id_) + "/current_path", 1000);
+    pub_trajectory_ = nh_.advertise<nav_msgs::Path>("/uav_path_manager/visualization/manager/uav_" + std::to_string(uav_id_) + "/trajectory", 1000);
     pub_set_pose_ = nh_.advertise<geometry_msgs::PoseStamped>("/uav_" + std::to_string(uav_id_) + "/ual/set_pose", 1000);
     pub_set_velocity_ = nh_.advertise<geometry_msgs::TwistStamped>("/uav_" + std::to_string(uav_id_) + "/ual/set_velocity", 1000);
     // Services
@@ -19,6 +20,7 @@ PathManager::PathManager() : nh_(), pnh_("~") {
     srv_land_ = nh_.serviceClient<uav_abstraction_layer::Land>("/uav_" + std::to_string(uav_id_) + "/ual/land");
     srv_generated_path_ = nh_.serviceClient<uav_path_manager::GeneratePath>("/uav_path_manager/generator/generate_path");
     srv_give_generated_path_ = nh_.serviceClient<uav_path_manager::GetGeneratedPath>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/generated_path");
+    srv_generated_trajectory_ = nh_.serviceClient<uav_path_manager::GenerateTrajectory>("/uav_path_manager/generator/generate_trajectory");
     // Flags
     on_path_ = false;
     end_path_ = false;
@@ -110,6 +112,7 @@ void PathManager::pubMsgs() {
     pub_init_path_.publish(init_path_);
     pub_generated_path_.publish(path);
     pub_current_path_.publish(current_path_);
+    pub_trajectory_.publish(trajectory_);
 }
 
 void PathManager::runMission() {
@@ -127,11 +130,22 @@ void PathManager::runMission() {
         srv_generated_path_.call(generate_path);
         path = generate_path.response.generated_path;
         give_generated_path.request.generated_path = path;
-        cruising_speed.data = 1.0; 
+        cruising_speed.data = 1.0;
         look_ahead.data = 1.2;
         give_generated_path.request.cruising_speed = cruising_speed;
         give_generated_path.request.look_ahead = look_ahead;
         srv_give_generated_path_.call(give_generated_path);
+        // TESTING TRAJECTORY
+        uav_path_manager::GenerateTrajectory generate_trajectory;
+        generate_trajectory.request.init_path = init_path_;
+        for (int i = 0; i < time_intervals.size(); i++) {
+            std_msgs::Int8 time_interval;
+            time_interval.data = time_intervals[i];
+            generate_trajectory.request.time_intervals.push_back(time_interval);
+        }
+        srv_generated_trajectory_.call(generate_trajectory);
+        trajectory_ = generate_trajectory.response.generated_trajectory;
+        // TESTING TRAJECTORY
     }
     Eigen::Vector3f current_p, path0_p, path_end_p;
     current_p = Eigen::Vector3f(ual_pose_.pose.position.x, ual_pose_.pose.position.y, ual_pose_.pose.position.z);
