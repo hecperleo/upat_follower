@@ -100,7 +100,7 @@ TEST_F(MyTestSuite, interp1) {
 }
 
 TEST_F(MyTestSuite, cubicSpline) {
-    generator.mode = generator.mode_cubic_spline;
+    generator.mode_ = generator.mode_cubic_spline_;
     nav_msgs::Path init_path = csvToPath("/init.csv");
     nav_msgs::Path ref_path = csvToPath("/cubic_spline.csv");
     std::vector<double> list_pose_x = pathToVector(init_path, "x");
@@ -116,7 +116,7 @@ TEST_F(MyTestSuite, cubicSpline) {
 }
 
 TEST_F(MyTestSuite, cubicSplineLoyal) {
-    generator.mode = generator.mode_cubic_spline_loyal;
+    generator.mode_ = generator.mode_cubic_spline_loyal_;
     nav_msgs::Path init_path = csvToPath("/init.csv");
     nav_msgs::Path ref_path = csvToPath("/cubic_spline_loyal.csv");
     std::vector<double> list_pose_x = pathToVector(init_path, "x");

@@ -5,7 +5,7 @@ int main(int _argc, char **_argv) {
 
     PathGenerator generator;
 
-    ros::Rate rate(50);
+    ros::Rate rate(30);
     while (ros::ok()) {
         ros::spinOnce();
         rate.sleep();

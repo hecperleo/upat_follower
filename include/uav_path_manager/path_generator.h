@@ -18,27 +18,25 @@ class PathGenerator {
     PathGenerator();
     ~PathGenerator();
 
-    nav_msgs::Path createPathInterp1(std::vector<double> list_x, std::vector<double> list_y, std::vector<double> list_z, int path_size, int new_path_size);
-    nav_msgs::Path createPathCubicSpline(std::vector<double> list_x, std::vector<double> list_y, std::vector<double> list_z, int path_size);
-    enum mode_t { mode_interp1,
-                  mode_cubic_spline_loyal,
-                  mode_cubic_spline,
-                  mode_idle };
-    mode_t mode = mode_idle;
+    nav_msgs::Path createPathInterp1(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size, int _new_path_size);
+    nav_msgs::Path createPathCubicSpline(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size);
+    enum mode_t { mode_interp1_,
+                  mode_cubic_spline_loyal_,
+                  mode_cubic_spline_,
+                  mode_idle_ };
+    mode_t mode_ = mode_idle_;
 
    private:
     // Callbacks
-    bool pathCallback(uav_path_manager::GeneratePath::Request &req_path, uav_path_manager::GeneratePath::Response &res_path);
+    bool pathCallback(uav_path_manager::GeneratePath::Request &_req_path, uav_path_manager::GeneratePath::Response &_res_path);
     // Methods
-    int nearestNeighbourIndex(std::vector<double> &x, double &value);
-    std::vector<double> linealInterp1(std::vector<double> &x, std::vector<double> &y, std::vector<double> &x_new);
-    std::vector<double> interpWaypointList(std::vector<double> list_pose_axis, int amount_of_points);
-    nav_msgs::Path constructPath(std::vector<double> wps_x, std::vector<double> wps_y, std::vector<double> wps_z);
-    nav_msgs::Path pathManagement(std::vector<double> list_pose_x, std::vector<double> list_pose_y, std::vector<double> list_pose_z);
+    int nearestNeighbourIndex(std::vector<double> &_x, double &_value);
+    std::vector<double> linealInterp1(std::vector<double> &_x, std::vector<double> &_y, std::vector<double> &_x_new);
+    std::vector<double> interpWaypointList(std::vector<double> _list_pose_axis, int _amount_of_points);
+    nav_msgs::Path constructPath(std::vector<double> _wps_x, std::vector<double> _wps_y, std::vector<double> _wps_z);
+    nav_msgs::Path pathManagement(std::vector<double> _list_pose_x, std::vector<double> _list_pose_y, std::vector<double> _list_pose_z);
     // Node handlers
-    ros::NodeHandle nh;
+    ros::NodeHandle nh_;
     // Services
-    ros::ServiceServer srv_generate_path;
-    // Variables
-    nav_msgs::Path output_path_;
+    ros::ServiceServer srv_generate_path_;
 };

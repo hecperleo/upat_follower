@@ -5,7 +5,7 @@ int main(int _argc, char **_argv) {
 
     PathManager manager;
 
-    ros::Rate rate(50);
+    ros::Rate rate(30);
     while (ros::ok()) {
         manager.runMission();
         manager.pubMsgs();
