@@ -104,6 +104,8 @@ bool PathGenerator::trajectoryCallback(uav_path_manager::GenerateTrajectory::Req
             _res_trajectory.generated_time_intervals.push_back(time_interval);
         }
     }
+    // TODO: Be careful! p/t is not always an integer.
+    // std::cout << "t: " << time_intervals.size() << " p: " << _res_trajectory.generated_trajectory.poses.size() <<  " p/t: " << _res_trajectory.generated_trajectory.poses.size() / time_intervals.size() << " sp: " << _res_trajectory.generated_time_intervals.size() << std::endl;
 
     return true;
 }
@@ -228,6 +230,7 @@ nav_msgs::Path PathGenerator::createTrajectory(std::vector<double> _list_x, std:
         // Calculate number of joints
         int num_joints = total_distance;
         bool try_fit_spline = true;
+        const int smallest_max_vel = -1;
         while (try_fit_spline) {
             // Lineal interpolation
             std::vector<double> interp1_list_x, interp1_list_y, interp1_list_z;
@@ -254,13 +257,14 @@ nav_msgs::Path PathGenerator::createTrajectory(std::vector<double> _list_x, std:
                 spline_list_x[i] = spline_x(i / sp_pts);
                 spline_list_y[i] = spline_y(i / sp_pts);
                 spline_list_z[i] = spline_z(i / sp_pts);
-                vel_z_vec[i] = spline_z.derivative(i / sp_pts);
+                // TODO: Check in which axis is the smallest max velocity and use it. 
+                vel_z_vec[i] = spline_z.derivative(i / sp_pts); // We use Z axis because we know that at this axis is the smallest max velocity. 
             }
             double smallest_vel_z = *std::min_element(vel_z_vec.begin(), vel_z_vec.end());
-            ROS_WARN("smallest Vz: %f", smallest_vel_z);
-            if (smallest_vel_z < -1) {
+            if (smallest_vel_z < smallest_max_vel) {
                 num_joints++;
             } else {
+                ROS_INFO("Generator -> smallest Z velocity: %f", smallest_vel_z);
                 cubic_spline_path = constructPath(spline_list_x, spline_list_y, spline_list_z);
                 try_fit_spline = false;
             }
