@@ -21,6 +21,7 @@ PathManager::PathManager() : nh_(), pnh_("~") {
     srv_generated_path_ = nh_.serviceClient<uav_path_manager::GeneratePath>("/uav_path_manager/generator/generate_path");
     srv_give_generated_path_ = nh_.serviceClient<uav_path_manager::GetGeneratedPath>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/generated_path");
     srv_generated_trajectory_ = nh_.serviceClient<uav_path_manager::GenerateTrajectory>("/uav_path_manager/generator/generate_trajectory");
+    srv_give_generated_trajectory_ = nh_.serviceClient<uav_path_manager::GetGeneratedTrajectory>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/generated_trajectory");
     // Flags
     on_path_ = false;
     end_path_ = false;
@@ -145,6 +146,10 @@ void PathManager::runMission() {
         }
         srv_generated_trajectory_.call(generate_trajectory);
         trajectory_ = generate_trajectory.response.generated_trajectory;
+        uav_path_manager::GetGeneratedTrajectory give_generated_trajectory;
+        give_generated_trajectory.request.generated_trajectory = trajectory_;
+        give_generated_trajectory.request.generated_time_intervals = generate_trajectory.response.generated_time_intervals;
+        srv_give_generated_trajectory_.call(give_generated_trajectory);
         // TESTING TRAJECTORY
     }
     Eigen::Vector3f current_p, path0_p, path_end_p;

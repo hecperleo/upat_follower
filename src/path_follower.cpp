@@ -1,6 +1,6 @@
 #include <uav_path_manager/path_follower.h>
 
-PathFollower::PathFollower(): nh_(), pnh_("~") {
+PathFollower::PathFollower() : nh_(), pnh_("~") {
     // Parameters
     pnh_.getParam("uav_id", uav_id_);
     // Subscriptions
@@ -9,6 +9,7 @@ PathFollower::PathFollower(): nh_(), pnh_("~") {
     pub_output_velocity_ = nh_.advertise<geometry_msgs::TwistStamped>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/output_vel", 1000);
     // Services
     srv_get_generated_path_ = nh_.advertiseService("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/generated_path", &PathFollower::pathCallback, this);
+    srv_get_generated_trajectory_ = nh_.advertiseService("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/generated_trajectory", &PathFollower::trajectoryCallback, this);
 }
 
 PathFollower::~PathFollower() {
@@ -24,13 +25,24 @@ bool PathFollower::pathCallback(uav_path_manager::GetGeneratedPath::Request &_re
     return true;
 }
 
+bool PathFollower::trajectoryCallback(uav_path_manager::GetGeneratedTrajectory::Request &_req_trajectory,
+                                      uav_path_manager::GetGeneratedTrajectory::Response &_res_trajectory) {
+    target_trajectory_ = _req_trajectory.generated_trajectory;
+    _res_trajectory.ok.data = true;
+    for (int i = 0; i < _req_trajectory.generated_time_intervals.size(); i++) {
+        generated_time_intervals_.push_back(_req_trajectory.generated_time_intervals.at(i).data);
+    }
+    ROS_WARN("%d = %d", generated_time_intervals_.size(), _req_trajectory.generated_time_intervals.size());
+    return true;
+}
+
 void PathFollower::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose) {
     ual_pose_ = *_ual_pose;
 }
 
 int PathFollower::calculatePosOnPath(Eigen::Vector3f _current_point) {
     std::vector<double> vec_distances;
-    const int search_range = 10; // Find UAV position on path in a range, do not search in all path. 
+    const int search_range = 10;  // Find UAV position on path in a range, do not search in all path.
     int start_search_pos_on_path = prev_normal_pos_on_path_ - search_range;
     int end_search_pos_on_path = prev_normal_pos_on_path_ + search_range;
     if (start_search_pos_on_path <= 0) start_search_pos_on_path = 0;
@@ -53,9 +65,9 @@ int PathFollower::calculatePosLookAhead(int _pos_on_path) {
     target_path_point = Eigen::Vector3f(target_path_.poses.at(_pos_on_path).pose.position.x, target_path_.poses.at(_pos_on_path).pose.position.y, target_path_.poses.at(_pos_on_path).pose.position.z);
     for (_pos_on_path; _pos_on_path < target_path_.poses.size(); _pos_on_path++) {
         Eigen::Vector3f look_ahead_point = Eigen::Vector3f(target_path_.poses.at(_pos_on_path).pose.position.x, target_path_.poses.at(_pos_on_path).pose.position.y, target_path_.poses.at(_pos_on_path).pose.position.z);
-        if((look_ahead_point - target_path_point).norm() < look_ahead_){
+        if ((look_ahead_point - target_path_point).norm() < look_ahead_) {
             pos_look_ahead = _pos_on_path;
-        }else{
+        } else {
             _pos_on_path = target_path_.poses.size();
         }
     }
