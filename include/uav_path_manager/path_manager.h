@@ -5,9 +5,7 @@
 #include <uav_abstraction_layer/TakeOff.h>
 #include <uav_abstraction_layer/ual.h>
 #include <uav_path_manager/GeneratePath.h>
-#include <uav_path_manager/GenerateTrajectory.h>
-#include <uav_path_manager/GetGeneratedPath.h>
-#include <uav_path_manager/GetGeneratedTrajectory.h>
+#include <uav_path_manager/FollowPath.h>
 #include <Eigen/Eigen>
 #include <fstream>
 #include "ecl/geometry.hpp"
@@ -39,7 +37,7 @@ class PathManager {
     // Publishers
     ros::Publisher pub_generated_path_, pub_init_path_, pub_current_path_, pub_trajectory_, pub_set_velocity_, pub_set_pose_;
     // Services
-    ros::ServiceClient srv_take_off_, srv_land_, srv_generated_path_, srv_give_generated_path_, srv_generated_trajectory_, srv_give_generated_trajectory_;
+    ros::ServiceClient client_take_off_, client_land_, client_generate_path_, client_follow_path_;
     // Variables
     std::string folder_data_name_;
     bool on_path_, end_path_;

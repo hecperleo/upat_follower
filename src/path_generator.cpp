@@ -2,8 +2,8 @@
 
 PathGenerator::PathGenerator() : nh_() {
     // Services
-    srv_generate_path_ = nh_.advertiseService("/uav_path_manager/generator/generate_path", &PathGenerator::pathCallback, this);
-    srv_generate_trajectory_ = nh_.advertiseService("/uav_path_manager/generator/generate_trajectory", &PathGenerator::trajectoryCallback, this);
+    server_generate_path_ = nh_.advertiseService("/uav_path_manager/generator/generate_path", &PathGenerator::pathCallback, this);
+    // srv_generate_trajectory_ = nh_.advertiseService("/uav_path_manager/generator/generate_trajectory", &PathGenerator::trajectoryCallback, this);
 }
 
 PathGenerator::~PathGenerator() {
@@ -67,46 +67,34 @@ bool PathGenerator::pathCallback(uav_path_manager::GeneratePath::Request &_req_p
     switch (_req_path.generator_mode.data) {
         case 1:
             mode_ = mode_interp1_;
+            _res_path.generated_path = pathManagement(list_pose_x, list_pose_y, list_pose_z);
             break;
         case 2:
             mode_ = mode_cubic_spline_loyal_;
+            _res_path.generated_path = pathManagement(list_pose_x, list_pose_y, list_pose_z);
             break;
         case 3:
             mode_ = mode_cubic_spline_;
+            _res_path.generated_path = pathManagement(list_pose_x, list_pose_y, list_pose_z);
+            break;
+        case 4:
+            mode_ = mode_trajectory_;
+            std::vector<double> time_intervals;
+            for (int i = 0; i < _req_path.time_intervals.size(); i++) {
+                time_intervals.push_back(_req_path.time_intervals.at(i).data);
+            }
+            _res_path.generated_path = createTrajectory(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), time_intervals);
+            for (int i = 0; i < time_intervals.size(); i++) {
+                for (int j = 0; j < (_res_path.generated_path.poses.size() / time_intervals.size()); j++) {
+                    std_msgs::Int8 time_interval;
+                    time_interval.data = time_intervals[i];
+                    _res_path.generated_time_intervals.push_back(time_interval);
+                }
+            }
             break;
     }
-    _res_path.generated_path = pathManagement(list_pose_x, list_pose_y, list_pose_z);
     _res_path.generated_path.header.frame_id = _req_path.init_path.header.frame_id;
-    return true;
-}
-
-bool PathGenerator::trajectoryCallback(uav_path_manager::GenerateTrajectory::Request &_req_trajectory,
-                                       uav_path_manager::GenerateTrajectory::Response &_res_trajectory) {
-    std::vector<double> list_pose_x, list_pose_y, list_pose_z, time_intervals;
-    for (int i = 0; i < _req_trajectory.init_path.poses.size(); i++) {
-        list_pose_x.push_back(_req_trajectory.init_path.poses.at(i).pose.position.x);
-        list_pose_y.push_back(_req_trajectory.init_path.poses.at(i).pose.position.y);
-        list_pose_z.push_back(_req_trajectory.init_path.poses.at(i).pose.position.z);
-    }
-    list_pose_x.push_back(list_pose_x.back());
-    list_pose_y.push_back(list_pose_y.back());
-    list_pose_z.push_back(list_pose_z.back());
-    for (int i = 0; i < _req_trajectory.time_intervals.size(); i++) {
-        time_intervals.push_back(_req_trajectory.time_intervals.at(i).data);
-    }
-    mode_ = mode_trajectory_;
-    _res_trajectory.generated_trajectory = createTrajectory(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), time_intervals);
-    _res_trajectory.generated_trajectory.header.frame_id = _req_trajectory.init_path.header.frame_id;
-    for (int i = 0; i < time_intervals.size(); i++) {
-        for (int j = 0; j < (_res_trajectory.generated_trajectory.poses.size() / time_intervals.size()); j++) {
-            std_msgs::Int8 time_interval;
-            time_interval.data = time_intervals[i];
-            _res_trajectory.generated_time_intervals.push_back(time_interval);
-        }
-    }
-    // TODO: Be careful! p/t is not always an integer.
-    // std::cout << "t: " << time_intervals.size() << " p: " << _res_trajectory.generated_trajectory.poses.size() <<  " p/t: " << _res_trajectory.generated_trajectory.poses.size() / time_intervals.size() << " sp: " << _res_trajectory.generated_time_intervals.size() << std::endl;
-
+    
     return true;
 }
 
@@ -257,8 +245,8 @@ nav_msgs::Path PathGenerator::createTrajectory(std::vector<double> _list_x, std:
                 spline_list_x[i] = spline_x(i / sp_pts);
                 spline_list_y[i] = spline_y(i / sp_pts);
                 spline_list_z[i] = spline_z(i / sp_pts);
-                // TODO: Check in which axis is the smallest max velocity and use it. 
-                vel_z_vec[i] = spline_z.derivative(i / sp_pts); // We use Z axis because we know that at this axis is the smallest max velocity. 
+                // TODO: Check in which axis is the smallest max velocity and use it.
+                vel_z_vec[i] = spline_z.derivative(i / sp_pts);  // We use Z axis because we know that at this axis is the smallest max velocity.
             }
             double smallest_vel_z = *std::min_element(vel_z_vec.begin(), vel_z_vec.end());
             if (smallest_vel_z < smallest_max_vel) {

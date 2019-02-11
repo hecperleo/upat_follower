@@ -2,7 +2,6 @@
 
 #include <uav_abstraction_layer/ual.h>
 #include <uav_path_manager/GeneratePath.h>
-#include <uav_path_manager/GenerateTrajectory.h>
 #include <Eigen/Eigen>
 #include "ecl/geometry.hpp"
 #include "geometry_msgs/PoseStamped.h"
@@ -33,7 +32,6 @@ class PathGenerator {
    private:
     // Callbacks
     bool pathCallback(uav_path_manager::GeneratePath::Request &_req_path, uav_path_manager::GeneratePath::Response &_res_path);
-    bool trajectoryCallback(uav_path_manager::GenerateTrajectory::Request &_req_trajectory, uav_path_manager::GenerateTrajectory::Response &_res_trajectory);
     // Methods
     int nearestNeighbourIndex(std::vector<double> &_x, double &_value);
     std::vector<double> linealInterp1(std::vector<double> &_x, std::vector<double> &_y, std::vector<double> &_x_new);
@@ -43,5 +41,5 @@ class PathGenerator {
     // Node handlers
     ros::NodeHandle nh_;
     // Services
-    ros::ServiceServer srv_generate_path_, srv_generate_trajectory_;
+    ros::ServiceServer server_generate_path_, srv_generate_trajectory_;
 };

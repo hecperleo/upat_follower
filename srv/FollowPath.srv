@@ -1,5 +1,7 @@
 nav_msgs/Path generated_path
 std_msgs/Float32 cruising_speed
 std_msgs/Float32 look_ahead
+std_msgs/Int8 follower_mode
+std_msgs/Int8[] generated_time_intervals
 ---
 std_msgs/Bool ok

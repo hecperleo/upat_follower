@@ -62,9 +62,7 @@ find_package(rostest REQUIRED)
 add_service_files(
   FILES
   GeneratePath.srv
-  GenerateTrajectory.srv
-  GetGeneratedPath.srv
-  GetGeneratedTrajectory.srv
+  FollowPath.srv
 )
 
 ## Generate actions in the 'action' folder

@@ -8,31 +8,31 @@ PathFollower::PathFollower() : nh_(), pnh_("~") {
     // Publishers
     pub_output_velocity_ = nh_.advertise<geometry_msgs::TwistStamped>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/output_vel", 1000);
     // Services
-    srv_get_generated_path_ = nh_.advertiseService("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/generated_path", &PathFollower::pathCallback, this);
-    srv_get_generated_trajectory_ = nh_.advertiseService("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/generated_trajectory", &PathFollower::trajectoryCallback, this);
+    server_follow_path_ = nh_.advertiseService("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/follow_path", &PathFollower::pathCallback, this);
 }
 
 PathFollower::~PathFollower() {
 }
 
-bool PathFollower::pathCallback(uav_path_manager::GetGeneratedPath::Request &_req_path,
-                                uav_path_manager::GetGeneratedPath::Response &_res_path) {
+bool PathFollower::pathCallback(uav_path_manager::FollowPath::Request &_req_path,
+                                uav_path_manager::FollowPath::Response &_res_path) {
     target_path_ = _req_path.generated_path;
-    _res_path.ok.data = true;
-    look_ahead_ = _req_path.look_ahead.data;
-    cruising_speed_ = _req_path.cruising_speed.data;
-    flag_run_ = false;
-    return true;
-}
 
-bool PathFollower::trajectoryCallback(uav_path_manager::GetGeneratedTrajectory::Request &_req_trajectory,
-                                      uav_path_manager::GetGeneratedTrajectory::Response &_res_trajectory) {
-    target_trajectory_ = _req_trajectory.generated_trajectory;
-    _res_trajectory.ok.data = true;
-    for (int i = 0; i < _req_trajectory.generated_time_intervals.size(); i++) {
-        generated_time_intervals_.push_back(_req_trajectory.generated_time_intervals.at(i).data);
+    switch (_req_path.follower_mode.data) {
+        case 1:
+            look_ahead_ = _req_path.look_ahead.data;
+            cruising_speed_ = _req_path.cruising_speed.data;
+            break;
+        case 2:
+            for (int i = 0; i < _req_path.generated_time_intervals.size(); i++) {
+                generated_time_intervals_.push_back(_req_path.generated_time_intervals.at(i).data);
+            }
+            break;
     }
-    ROS_WARN("%d = %d", generated_time_intervals_.size(), _req_trajectory.generated_time_intervals.size());
+
+    _res_path.ok.data = true;
+    flag_run_ = false;
+
     return true;
 }
 

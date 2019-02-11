@@ -1,4 +1,6 @@
 nav_msgs/Path init_path
 std_msgs/Int8 generator_mode
+std_msgs/Int8[] time_intervals
 ---
 nav_msgs/Path generated_path
+std_msgs/Int8[] generated_time_intervals
