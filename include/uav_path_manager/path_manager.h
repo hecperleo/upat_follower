@@ -34,13 +34,13 @@ class PathManager {
     // Subscribers
     ros::Subscriber sub_pose_, sub_state_, sub_velocity_;
     // Publishers
-    ros::Publisher pub_generated_path_, pub_init_path_, pub_current_path_, pub_trajectory_, pub_set_velocity_, pub_set_pose_;
+    ros::Publisher pub_generated_path_, pub_init_path_, pub_current_path_, pub_set_velocity_, pub_set_pose_;
     // Services
     ros::ServiceClient client_take_off_, client_land_, client_generate_path_, client_follow_path_;
     // Variables
     std::string folder_data_name_;
     bool on_path_, end_path_;
-    nav_msgs::Path path, init_path_, current_path_, trajectory_;
+    nav_msgs::Path path, init_path_, current_path_;
     geometry_msgs::PoseStamped ual_pose_;
     geometry_msgs::TwistStamped velocity_;
     uav_abstraction_layer::State ual_state_;
@@ -54,4 +54,5 @@ class PathManager {
     // Params
     int uav_id_;
     bool save_csv_;
+    bool trajectory_;
 };

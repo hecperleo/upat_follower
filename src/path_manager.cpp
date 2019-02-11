@@ -3,7 +3,8 @@
 PathManager::PathManager() : nh_(), pnh_("~") {
     // Parameters
     pnh_.getParam("uav_id", uav_id_);
-    pnh_.getParam("save_csv_", save_csv_);
+    pnh_.getParam("save_csv", save_csv_);
+    pnh_.getParam("trajectory", trajectory_);
     // Subscriptions
     sub_pose_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/pose", 0, &PathManager::ualPoseCallback, this);
     sub_state_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/state", 0, &PathManager::ualStateCallback, this);
@@ -12,14 +13,14 @@ PathManager::PathManager() : nh_(), pnh_("~") {
     pub_init_path_ = nh_.advertise<nav_msgs::Path>("/uav_path_manager/visualization/manager/uav_" + std::to_string(uav_id_) + "/init_path", 1000);
     pub_generated_path_ = nh_.advertise<nav_msgs::Path>("/uav_path_manager/visualization/manager/uav_" + std::to_string(uav_id_) + "/generated_path", 1000);
     pub_current_path_ = nh_.advertise<nav_msgs::Path>("/uav_path_manager/visualization/manager/uav_" + std::to_string(uav_id_) + "/current_path", 1000);
-    pub_trajectory_ = nh_.advertise<nav_msgs::Path>("/uav_path_manager/visualization/manager/uav_" + std::to_string(uav_id_) + "/trajectory", 1000);
     pub_set_pose_ = nh_.advertise<geometry_msgs::PoseStamped>("/uav_" + std::to_string(uav_id_) + "/ual/set_pose", 1000);
     pub_set_velocity_ = nh_.advertise<geometry_msgs::TwistStamped>("/uav_" + std::to_string(uav_id_) + "/ual/set_velocity", 1000);
     // Services
     client_take_off_ = nh_.serviceClient<uav_abstraction_layer::TakeOff>("/uav_" + std::to_string(uav_id_) + "/ual/take_off");
     client_land_ = nh_.serviceClient<uav_abstraction_layer::Land>("/uav_" + std::to_string(uav_id_) + "/ual/land");
     client_generate_path_ = nh_.serviceClient<uav_path_manager::GeneratePath>("/uav_path_manager/generator/generate_path");
-    client_follow_path_ = nh_.serviceClient<uav_path_manager::FollowPath>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/follow_path");  // Flags
+    client_follow_path_ = nh_.serviceClient<uav_path_manager::FollowPath>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/follow_path");
+    // Flags
     on_path_ = false;
     end_path_ = false;
     // Initialize path
@@ -110,7 +111,6 @@ void PathManager::pubMsgs() {
     pub_init_path_.publish(init_path_);
     pub_generated_path_.publish(path);
     pub_current_path_.publish(current_path_);
-    pub_trajectory_.publish(trajectory_);
 }
 
 void PathManager::runMission() {
@@ -122,39 +122,38 @@ void PathManager::runMission() {
     std_msgs::Int8 generator_mode, follower_mode;
     if (path.poses.size() < 1) {
         if (save_csv_) saveDataForTesting();
-        generator_mode.data = 2;
-        generate_path.request.generator_mode = generator_mode;
-        generate_path.request.init_path = init_path_;
-        client_generate_path_.call(generate_path);
-        path = generate_path.response.generated_path;
-        follow_path.request.generated_path = path;
-        cruising_speed.data = 1.0;
-        look_ahead.data = 1.2;
-        follower_mode.data = 1;
-        follow_path.request.cruising_speed = cruising_speed;
-        follow_path.request.look_ahead = look_ahead;
-        follow_path.request.follower_mode = follower_mode;
-        // client_follow_path_.call(follow_path);
-        // TESTING TRAJECTORY GENERATOR
-        generate_path.request.init_path = init_path_;
-        for (int i = 0; i < time_intervals.size(); i++) {
-            std_msgs::Float32 time_interval;
-            time_interval.data = time_intervals[i];
-            generate_path.request.time_intervals.push_back(time_interval);
+        if (trajectory_) {
+            generate_path.request.init_path = init_path_;
+            for (int i = 0; i < time_intervals.size(); i++) {
+                std_msgs::Float32 time_interval;
+                time_interval.data = time_intervals[i];
+                generate_path.request.time_intervals.push_back(time_interval);
+            }
+            generator_mode.data = 4;
+            generate_path.request.generator_mode = generator_mode;
+            client_generate_path_.call(generate_path);
+            path = generate_path.response.generated_path;
+            follower_mode.data = 2;
+            follow_path.request.follower_mode = follower_mode;
+            follow_path.request.generated_path = path;
+            follow_path.request.generated_time_intervals = generate_path.response.generated_time_intervals;
+            follow_path.request.max_velocity = generate_path.response.max_velocity;
+            client_follow_path_.call(follow_path);
+        } else {
+            generator_mode.data = 2;
+            generate_path.request.generator_mode = generator_mode;
+            generate_path.request.init_path = init_path_;
+            client_generate_path_.call(generate_path);
+            path = generate_path.response.generated_path;
+            follow_path.request.generated_path = path;
+            cruising_speed.data = 1.0;
+            look_ahead.data = 1.2;
+            follower_mode.data = 1;
+            follow_path.request.cruising_speed = cruising_speed;
+            follow_path.request.look_ahead = look_ahead;
+            follow_path.request.follower_mode = follower_mode;
+            client_follow_path_.call(follow_path);
         }
-        generator_mode.data = 4;
-        generate_path.request.generator_mode = generator_mode;
-        client_generate_path_.call(generate_path);
-        trajectory_ = generate_path.response.generated_path;
-        // TESTING TRAJECTORY GENERATOR
-        // TESTING TRAJECTORY FOLLOWER
-        follower_mode.data = 2;
-        follow_path.request.follower_mode = follower_mode;
-        follow_path.request.generated_path = trajectory_;
-        follow_path.request.generated_time_intervals = generate_path.response.generated_time_intervals;
-        follow_path.request.max_velocity = generate_path.response.max_velocity;
-        client_follow_path_.call(follow_path);
-        // TESTING TRAJECTORY FOLLOWER
     }
     Eigen::Vector3f current_p, path0_p, path_end_p;
     current_p = Eigen::Vector3f(ual_pose_.pose.position.x, ual_pose_.pose.position.y, ual_pose_.pose.position.z);
