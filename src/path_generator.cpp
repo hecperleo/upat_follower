@@ -99,6 +99,7 @@ bool PathGenerator::pathCallback(uav_path_manager::GeneratePath::Request &_req_p
                     _res_path.generated_time_intervals.push_back(time_interval);
                 }
             }
+            _res_path.max_velocity.data = abs(smallest_max_vel_);
             break;
     }
     _res_path.generated_path.header.frame_id = _req_path.init_path.header.frame_id;
@@ -226,7 +227,7 @@ nav_msgs::Path PathGenerator::createTrajectory(std::vector<double> _list_x, std:
         // Calculate number of joints
         int num_joints = total_distance;
         bool try_fit_spline = true;
-        const double smallest_max_vel = checkSmallestMaxVel();
+        smallest_max_vel_ = checkSmallestMaxVel();
         while (try_fit_spline) {
             // Lineal interpolation
             std::vector<double> interp1_list_x, interp1_list_y, interp1_list_z;
@@ -257,7 +258,7 @@ nav_msgs::Path PathGenerator::createTrajectory(std::vector<double> _list_x, std:
                 vel_z_vec[i] = spline_z.derivative(i / sp_pts);  // We use Z axis because we know that at this axis is the smallest max velocity.
             }
             double smallest_vel_z = *std::min_element(vel_z_vec.begin(), vel_z_vec.end());
-            if (smallest_vel_z < smallest_max_vel) {
+            if (smallest_vel_z < smallest_max_vel_) {
                 num_joints++;
             } else {
                 ROS_INFO("Generator -> smallest Z velocity: %f", smallest_vel_z);

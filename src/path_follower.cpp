@@ -27,6 +27,7 @@ bool PathFollower::pathCallback(uav_path_manager::FollowPath::Request &_req_path
             for (int i = 0; i < _req_path.generated_time_intervals.size(); i++) {
                 generated_time_intervals_.push_back(_req_path.generated_time_intervals.at(i).data);
             }
+            max_vel_ = _req_path.max_velocity.data;
             break;
     }
     _res_path.ok.data = true;
@@ -75,8 +76,7 @@ int PathFollower::calculatePosLookAhead(int _pos_on_path) {
 }
 
 double PathFollower::changeLookAhead(int _pos_on_path) {
-    double max_vel = 1.0;
-    return  max_vel * generated_time_intervals_[_pos_on_path];
+    return max_vel_ * generated_time_intervals_[_pos_on_path];
 }
 
 geometry_msgs::TwistStamped PathFollower::calculateVelocity(Eigen::Vector3f _current_point, int _pos_look_ahead) {

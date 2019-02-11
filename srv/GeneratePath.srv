@@ -3,4 +3,5 @@ std_msgs/Int8 generator_mode
 std_msgs/Float32[] time_intervals
 ---
 nav_msgs/Path generated_path
+std_msgs/Float32 max_velocity
 std_msgs/Float32[] generated_time_intervals

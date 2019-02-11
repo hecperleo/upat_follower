@@ -47,4 +47,6 @@ class PathGenerator {
     ros::ServiceServer server_generate_path_, srv_generate_trajectory_;
     ros::ServiceClient get_param_client_;
     std::map<std::string, double> mavros_params_;
+    // Variables
+    double smallest_max_vel_ = 1.0;
 };

@@ -152,6 +152,7 @@ void PathManager::runMission() {
         follow_path.request.follower_mode = follower_mode;
         follow_path.request.generated_path = trajectory_;
         follow_path.request.generated_time_intervals = generate_path.response.generated_time_intervals;
+        follow_path.request.max_velocity = generate_path.response.max_velocity;
         client_follow_path_.call(follow_path);
         // TESTING TRAJECTORY FOLLOWER
     }
