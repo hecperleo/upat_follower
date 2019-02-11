@@ -41,5 +41,5 @@ class PathFollower {
     nav_msgs::Path target_path_;
     geometry_msgs::PoseStamped ual_pose_;
     geometry_msgs::TwistStamped out_velocity_;
-    std::vector<int> generated_time_intervals_;
+    std::vector<double> generated_time_intervals_;
 };

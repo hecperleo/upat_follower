@@ -33,7 +33,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         <node pkg="uav_path_manager" type="path_manager_node" name="path_manager_node_2" output="screen">
             <param name="uav_id" value="2"/>
         </node>
-        <node pkg="uav_path_manager" type="path_follower_node" name="path_follower_node_2" output="screen" required="true">
+        <node pkg="uav_path_manager" type="path_follower_node" name="path_follower_node_2" required="true">
             <param name="uav_id" value="2"/>
         </node>
     </group>

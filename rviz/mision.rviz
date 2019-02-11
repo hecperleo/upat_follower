@@ -113,7 +113,7 @@ Visualization Manager:
       Buffer Length: 1
       Class: rviz/Path
       Color: 0; 85; 255
-      Enabled: true
+      Enabled: false
       Head Diameter: 0.300000012
       Head Length: 0.200000003
       Length: 0.300000012
@@ -131,7 +131,7 @@ Visualization Manager:
       Shaft Length: 0.100000001
       Topic: /uav_path_manager/visualization/manager/uav_1/generated_path
       Unreliable: false
-      Value: true
+      Value: false
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
@@ -205,7 +205,7 @@ Visualization Manager:
       Buffer Length: 1
       Class: rviz/Path
       Color: 0; 163; 0
-      Enabled: true
+      Enabled: false
       Head Diameter: 0.300000012
       Head Length: 0.200000003
       Length: 0.300000012
@@ -223,7 +223,7 @@ Visualization Manager:
       Shaft Length: 0.100000001
       Topic: /uav_path_manager/visualization/manager/uav_2/generated_path
       Unreliable: false
-      Value: true
+      Value: false
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
@@ -310,10 +310,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.610397816
+      Pitch: 0.615397811
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.59178138
+      Yaw: 3.58678126
     Saved: ~
 Window Geometry:
   Displays:

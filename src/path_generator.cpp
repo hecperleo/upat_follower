@@ -3,7 +3,15 @@
 PathGenerator::PathGenerator() : nh_() {
     // Services
     server_generate_path_ = nh_.advertiseService("/uav_path_manager/generator/generate_path", &PathGenerator::pathCallback, this);
-    // srv_generate_trajectory_ = nh_.advertiseService("/uav_path_manager/generator/generate_trajectory", &PathGenerator::trajectoryCallback, this);
+
+    // Client to get parameters from mavros and required default values
+    get_param_client_ = nh_.serviceClient<mavros_msgs::ParamGet>("mavros/param/get");
+    mavros_params_["MPC_XY_VEL_MAX"] = 2.0;    // [m/s]   Default value
+    mavros_params_["MPC_Z_VEL_MAX_UP"] = 3.0;  // [m/s]   Default value
+    mavros_params_["MPC_Z_VEL_MAX_DN"] = 1.0;  // [m/s]   Default value
+    mavros_params_["MC_YAWRATE_MAX"] = 200.0;  // [deg/s] Default value
+    mavros_params_["MPC_TKO_SPEED"] = 1.5;     // [m/s]   Default value
+    // Updating here is non-sense as service seems to be slow in waking up
 }
 
 PathGenerator::~PathGenerator() {
@@ -86,7 +94,7 @@ bool PathGenerator::pathCallback(uav_path_manager::GeneratePath::Request &_req_p
             _res_path.generated_path = createTrajectory(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), time_intervals);
             for (int i = 0; i < time_intervals.size(); i++) {
                 for (int j = 0; j < (_res_path.generated_path.poses.size() / time_intervals.size()); j++) {
-                    std_msgs::Int8 time_interval;
+                    std_msgs::Float32 time_interval;
                     time_interval.data = time_intervals[i];
                     _res_path.generated_time_intervals.push_back(time_interval);
                 }
@@ -94,7 +102,7 @@ bool PathGenerator::pathCallback(uav_path_manager::GeneratePath::Request &_req_p
             break;
     }
     _res_path.generated_path.header.frame_id = _req_path.init_path.header.frame_id;
-    
+
     return true;
 }
 
@@ -218,7 +226,7 @@ nav_msgs::Path PathGenerator::createTrajectory(std::vector<double> _list_x, std:
         // Calculate number of joints
         int num_joints = total_distance;
         bool try_fit_spline = true;
-        const int smallest_max_vel = -1;
+        const double smallest_max_vel = checkSmallestMaxVel();
         while (try_fit_spline) {
             // Lineal interpolation
             std::vector<double> interp1_list_x, interp1_list_y, interp1_list_z;
@@ -274,4 +282,34 @@ nav_msgs::Path PathGenerator::pathManagement(std::vector<double> _list_pose_x, s
             // case mode_trajectory_:
             //     return createTrajectory(_list_pose_x, _list_pose_y, _list_pose_z, _list_pose_x.size());
     }
+}
+
+double PathGenerator::checkSmallestMaxVel() {
+    double mpc_xy_vel_max = updateParam("MPC_XY_VEL_MAX");
+    double mpc_z_vel_max_up = updateParam("MPC_Z_VEL_MAX_UP");
+    double mpc_z_vel_max_dn = updateParam("MPC_Z_VEL_MAX_DN");
+    mpc_z_vel_max_dn = - mpc_z_vel_max_dn;
+    std::vector<double> velocities;
+    velocities.push_back(mpc_xy_vel_max);
+    velocities.push_back(mpc_z_vel_max_up);
+    velocities.push_back(mpc_z_vel_max_dn);
+
+    return *std::min_element(velocities.begin(), velocities.end());;
+}
+
+double PathGenerator::updateParam(const std::string &_param_id) {
+    mavros_msgs::ParamGet get_param_service;
+    get_param_service.request.param_id = _param_id;
+    if (get_param_client_.call(get_param_service) && get_param_service.response.success) {
+        mavros_params_[_param_id] = get_param_service.response.value.integer ? get_param_service.response.value.integer : get_param_service.response.value.real;
+        ROS_INFO("Parameter [%s] value is [%f]", get_param_service.request.param_id.c_str(), mavros_params_[_param_id]);
+    } else if (mavros_params_.count(_param_id)) {
+        ROS_ERROR("Error in get param [%s] service calling, leaving current value [%f]",
+                  get_param_service.request.param_id.c_str(), mavros_params_[_param_id]);
+    } else {
+        mavros_params_[_param_id] = 0.0;
+        ROS_ERROR("Error in get param [%s] service calling, initializing it to zero",
+                  get_param_service.request.param_id.c_str());
+    }
+    return mavros_params_[_param_id];
 }

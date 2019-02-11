@@ -138,7 +138,7 @@ void PathManager::runMission() {
         // TESTING TRAJECTORY GENERATOR
         generate_path.request.init_path = init_path_;
         for (int i = 0; i < time_intervals.size(); i++) {
-            std_msgs::Int8 time_interval;
+            std_msgs::Float32 time_interval;
             time_interval.data = time_intervals[i];
             generate_path.request.time_intervals.push_back(time_interval);
         }

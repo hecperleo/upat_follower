@@ -75,7 +75,8 @@ int PathFollower::calculatePosLookAhead(int _pos_on_path) {
 }
 
 double PathFollower::changeLookAhead(int _pos_on_path) {
-    return  1.0 / generated_time_intervals_[_pos_on_path];
+    double max_vel = 1.0;
+    return  max_vel * generated_time_intervals_[_pos_on_path];
 }
 
 geometry_msgs::TwistStamped PathFollower::calculateVelocity(Eigen::Vector3f _current_point, int _pos_look_ahead) {

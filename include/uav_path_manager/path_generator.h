@@ -6,8 +6,9 @@
 #include "ecl/geometry.hpp"
 #include "geometry_msgs/PoseStamped.h"
 #include "nav_msgs/Path.h"
-#include "std_msgs/Int8.h"
-#include "std_msgs/Int8MultiArray.h"
+#include "std_msgs/Float32.h"
+#include "std_msgs/Float32MultiArray.h"
+#include <mavros_msgs/ParamGet.h>
 // linealInterp1
 #include <cmath>
 #include <iostream>
@@ -38,8 +39,12 @@ class PathGenerator {
     std::vector<double> interpWaypointList(std::vector<double> _list_pose_axis, int _amount_of_points);
     nav_msgs::Path constructPath(std::vector<double> _wps_x, std::vector<double> _wps_y, std::vector<double> _wps_z);
     nav_msgs::Path pathManagement(std::vector<double> _list_pose_x, std::vector<double> _list_pose_y, std::vector<double> _list_pose_z);
+    double checkSmallestMaxVel();
+    double updateParam(const std::string& _param_id);
     // Node handlers
     ros::NodeHandle nh_;
     // Services
     ros::ServiceServer server_generate_path_, srv_generate_trajectory_;
+    ros::ServiceClient get_param_client_;
+    std::map<std::string, double> mavros_params_;
 };
