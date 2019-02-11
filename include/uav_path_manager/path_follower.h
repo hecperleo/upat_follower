@@ -20,6 +20,7 @@ class PathFollower {
     bool pathCallback(uav_path_manager::FollowPath::Request &_req_path, uav_path_manager::FollowPath::Response &_res_path);
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
     // Methods
+    double changeLookAhead(int _pos_on_path);
     int calculatePosOnPath(Eigen::Vector3f _current_p);
     int calculatePosLookAhead(int _pos_on_path);
     geometry_msgs::TwistStamped calculateVelocity(Eigen::Vector3f _current_p, int _pos_la);
@@ -32,7 +33,7 @@ class PathFollower {
     // Services
     ros::ServiceServer server_follow_path_;
     // Variables
-    int uav_id_;
+    int uav_id_, follower_mode_;
     bool flag_run_;
     double look_ahead_ = 1.0;
     double cruising_speed_ = 1.0;

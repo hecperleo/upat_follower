@@ -134,7 +134,7 @@ void PathManager::runMission() {
         follow_path.request.cruising_speed = cruising_speed;
         follow_path.request.look_ahead = look_ahead;
         follow_path.request.follower_mode = follower_mode;
-        client_follow_path_.call(follow_path);
+        // client_follow_path_.call(follow_path);
         // TESTING TRAJECTORY GENERATOR
         generate_path.request.init_path = init_path_;
         for (int i = 0; i < time_intervals.size(); i++) {
@@ -148,11 +148,11 @@ void PathManager::runMission() {
         trajectory_ = generate_path.response.generated_path;
         // TESTING TRAJECTORY GENERATOR
         // TESTING TRAJECTORY FOLLOWER
-        // follower_mode.data = 2;
-        // follow_path.request.follower_mode = follower_mode;
-        // follow_path.request.generated_path = trajectory_;
-        // follow_path.request.generated_time_intervals = generate_path.response.generated_time_intervals;
-        // client_follow_path_.call(follow_path);
+        follower_mode.data = 2;
+        follow_path.request.follower_mode = follower_mode;
+        follow_path.request.generated_path = trajectory_;
+        follow_path.request.generated_time_intervals = generate_path.response.generated_time_intervals;
+        client_follow_path_.call(follow_path);
         // TESTING TRAJECTORY FOLLOWER
     }
     Eigen::Vector3f current_p, path0_p, path_end_p;

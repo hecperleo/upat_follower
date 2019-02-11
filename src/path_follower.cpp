@@ -17,8 +17,8 @@ PathFollower::~PathFollower() {
 bool PathFollower::pathCallback(uav_path_manager::FollowPath::Request &_req_path,
                                 uav_path_manager::FollowPath::Response &_res_path) {
     target_path_ = _req_path.generated_path;
-
-    switch (_req_path.follower_mode.data) {
+    follower_mode_ = _req_path.follower_mode.data;
+    switch (follower_mode_) {
         case 1:
             look_ahead_ = _req_path.look_ahead.data;
             cruising_speed_ = _req_path.cruising_speed.data;
@@ -29,7 +29,6 @@ bool PathFollower::pathCallback(uav_path_manager::FollowPath::Request &_req_path
             }
             break;
     }
-
     _res_path.ok.data = true;
     flag_run_ = false;
 
@@ -75,16 +74,30 @@ int PathFollower::calculatePosLookAhead(int _pos_on_path) {
     return pos_look_ahead;
 }
 
+double PathFollower::changeLookAhead(int _pos_on_path) {
+    return  1.0 / generated_time_intervals_[_pos_on_path];
+}
+
 geometry_msgs::TwistStamped PathFollower::calculateVelocity(Eigen::Vector3f _current_point, int _pos_look_ahead) {
     geometry_msgs::TwistStamped out_vel;
-    Eigen::Vector3f target_p;
+    Eigen::Vector3f target_p, unit_vec, hypo_vec;
     target_p = Eigen::Vector3f(target_path_.poses.at(_pos_look_ahead).pose.position.x, target_path_.poses.at(_pos_look_ahead).pose.position.y, target_path_.poses.at(_pos_look_ahead).pose.position.z);
     double distance = (target_p - _current_point).norm();
-    Eigen::Vector3f unit_vec = (target_p - _current_point) / distance;
-    unit_vec = unit_vec / unit_vec.norm();
-    out_vel.twist.linear.x = unit_vec(0) * cruising_speed_;
-    out_vel.twist.linear.y = unit_vec(1) * cruising_speed_;
-    out_vel.twist.linear.z = unit_vec(2) * cruising_speed_;
+    switch (follower_mode_) {
+        case 1:
+            unit_vec = (target_p - _current_point) / distance;
+            unit_vec = unit_vec / unit_vec.norm();
+            out_vel.twist.linear.x = unit_vec(0) * cruising_speed_;
+            out_vel.twist.linear.y = unit_vec(1) * cruising_speed_;
+            out_vel.twist.linear.z = unit_vec(2) * cruising_speed_;
+            break;
+        case 2:
+            hypo_vec = (target_p - _current_point);
+            out_vel.twist.linear.x = hypo_vec(0);
+            out_vel.twist.linear.y = hypo_vec(1);
+            out_vel.twist.linear.z = hypo_vec(2);
+            break;
+    }
     out_vel.header.frame_id = target_path_.header.frame_id;
 
     return out_vel;
@@ -104,9 +117,10 @@ void PathFollower::followPath() {
         }
         if (flag_run_) {
             int normal_pos_on_path = calculatePosOnPath(current_point);
-            prev_normal_pos_on_path_ = normal_pos_on_path;
+            if (follower_mode_ == 2) look_ahead_ = changeLookAhead(normal_pos_on_path);
             int pos_look_ahead = calculatePosLookAhead(normal_pos_on_path);
             out_velocity_ = calculateVelocity(current_point, pos_look_ahead);
+            prev_normal_pos_on_path_ = normal_pos_on_path;
         }
     }
 }
