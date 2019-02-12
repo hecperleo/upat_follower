@@ -90,20 +90,26 @@ bool PathGenerator::pathCallback(uav_path_manager::GeneratePath::Request &_req_p
             _res_path.generated_path = pathManagement(list_pose_x, list_pose_y, list_pose_z);
             break;
         case 4:
-            mode_ = mode_trajectory_;
-            std::vector<double> time_intervals;
-            for (int i = 0; i < _req_path.time_intervals.size(); i++) {
-                time_intervals.push_back(_req_path.time_intervals.at(i).data);
-            }
-            _res_path.generated_path = createTrajectory(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), time_intervals);
-            for (int i = 0; i < time_intervals.size(); i++) {
-                for (int j = 0; j < (_res_path.generated_path.poses.size() / time_intervals.size()); j++) {
-                    std_msgs::Float32 time_interval;
-                    time_interval.data = time_intervals[i];
-                    _res_path.generated_time_intervals.push_back(time_interval);
+            if (_req_path.init_path.poses.size() - 1 == _req_path.time_intervals.size()){
+                mode_ = mode_trajectory_;
+                std::vector<double> time_intervals;
+                for (int i = 0; i < _req_path.time_intervals.size(); i++) {
+                    time_intervals.push_back(_req_path.time_intervals.at(i).data);
                 }
+                _res_path.generated_path = createTrajectory(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), time_intervals);
+                for (int i = 0; i < time_intervals.size(); i++) {
+                    for (int j = 0; j < (_res_path.generated_path.poses.size() / time_intervals.size()); j++) {
+                        std_msgs::Float32 time_interval;
+                        time_interval.data = time_intervals[i];
+                        _res_path.generated_time_intervals.push_back(time_interval);
+                    }
+                }
+                _res_path.max_velocity.data = abs(smallest_max_vel_);
+            }else{
+                // Instead of using the %d type specifier, you should use an unsigned specifier like %ud, or the dedicated specifier for size_t: %zd to avoid warning while compiling
+                ROS_ERROR("Time intervals size (%zd) should has one less element than init path size (%zd)", _req_path.time_intervals.size(), _req_path.init_path.poses.size());
+                return false;
             }
-            _res_path.max_velocity.data = abs(smallest_max_vel_);
             break;
     }
     _res_path.generated_path.header.frame_id = _req_path.init_path.header.frame_id;
