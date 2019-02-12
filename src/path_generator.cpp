@@ -217,6 +217,7 @@ nav_msgs::Path PathGenerator::createTrajectory(std::vector<double> _list_x, std:
     nav_msgs::Path cubic_spline_path;
     if (_path_size > 1) {
         // Calculate total distance
+        // TODO: Use or not use total_distance (?)
         int total_distance = 0;
         for (int i = 0; i < _path_size - 1; i++) {
             Eigen::Vector3f point_1, point_2;
@@ -225,7 +226,7 @@ nav_msgs::Path PathGenerator::createTrajectory(std::vector<double> _list_x, std:
             total_distance = total_distance + (point_2 - point_1).norm();
         }
         // Calculate number of joints
-        int num_joints = total_distance;
+        int num_joints = _path_size;
         bool try_fit_spline = true;
         smallest_max_vel_ = checkSmallestMaxVel();
         while (try_fit_spline) {
@@ -249,19 +250,23 @@ nav_msgs::Path PathGenerator::createTrajectory(std::vector<double> _list_x, std:
             // Change format: ecl::CubicSpline -> std::vector
             double sp_pts = total_distance;
             int _amount_of_points = (interp1_list_x.size() - 1) * sp_pts;
-            std::vector<double> spline_list_x(_amount_of_points), spline_list_y(_amount_of_points), spline_list_z(_amount_of_points), vel_z_vec(_amount_of_points);
+            std::vector<double> spline_list_x(_amount_of_points), spline_list_y(_amount_of_points), spline_list_z(_amount_of_points) /* , vec_check_vel(_amount_of_points) */;
+            std::vector<double> vec_check_vel;
             for (int i = 0; i < _amount_of_points; i++) {
                 spline_list_x[i] = spline_x(i / sp_pts);
                 spline_list_y[i] = spline_y(i / sp_pts);
                 spline_list_z[i] = spline_z(i / sp_pts);
-                // TODO: Check in which axis is the smallest max velocity and use it.
-                vel_z_vec[i] = spline_z.derivative(i / sp_pts);  // We use Z axis because we know that at this axis is the smallest max velocity.
+                vec_check_vel.push_back(spline_x.derivative(i / sp_pts));
+                vec_check_vel.push_back(spline_y.derivative(i / sp_pts));
+                vec_check_vel.push_back(spline_z.derivative(i / sp_pts));
             }
-            double smallest_vel_z = *std::min_element(vel_z_vec.begin(), vel_z_vec.end());
-            if (smallest_vel_z < smallest_max_vel_) {
+            // Check max and min velocity
+            double spline_max_vel = *std::max_element(vec_check_vel.begin(), vec_check_vel.end());
+            double spline_min_vel = *std::min_element(vec_check_vel.begin(), vec_check_vel.end());
+            if (spline_max_vel > smallest_max_vel_ || fabs(spline_min_vel) > smallest_max_vel_) {
                 num_joints++;
             } else {
-                ROS_INFO("Generator -> smallest Z velocity: %f", smallest_vel_z);
+                ROS_INFO("PathGenerator -> Spline done in %d iterations! Spline max velocities: %f and %f", num_joints - _path_size, spline_max_vel, spline_min_vel);
                 cubic_spline_path = constructPath(spline_list_x, spline_list_y, spline_list_z);
                 try_fit_spline = false;
             }
@@ -289,13 +294,16 @@ double PathGenerator::checkSmallestMaxVel() {
     double mpc_xy_vel_max = updateParam("MPC_XY_VEL_MAX");
     double mpc_z_vel_max_up = updateParam("MPC_Z_VEL_MAX_UP");
     double mpc_z_vel_max_dn = updateParam("MPC_Z_VEL_MAX_DN");
-    mpc_z_vel_max_dn = - mpc_z_vel_max_dn;
+    double min_max_vel;
+    mpc_z_vel_max_dn = mpc_z_vel_max_dn;
     std::vector<double> velocities;
     velocities.push_back(mpc_xy_vel_max);
     velocities.push_back(mpc_z_vel_max_up);
     velocities.push_back(mpc_z_vel_max_dn);
+    min_max_vel = *std::min_element(velocities.begin(), velocities.end());
+    ROS_INFO("PathGenerator -> Smallest max velocity: %f", min_max_vel);
 
-    return *std::min_element(velocities.begin(), velocities.end());;
+    return min_max_vel;
 }
 
 double PathGenerator::updateParam(const std::string &_param_id) {
@@ -305,7 +313,7 @@ double PathGenerator::updateParam(const std::string &_param_id) {
         mavros_params_[_param_id] = get_param_service.response.value.integer ? get_param_service.response.value.integer : get_param_service.response.value.real;
         ROS_INFO("Parameter [%s] value is [%f]", get_param_service.request.param_id.c_str(), mavros_params_[_param_id]);
     } else if (mavros_params_.count(_param_id)) {
-        ROS_ERROR("Error in get param [%s] service calling, leaving current value [%f]",
+        ROS_WARN("Error in get param [%s] service calling, leaving current value [%f]",
                   get_param_service.request.param_id.c_str(), mavros_params_[_param_id]);
     } else {
         mavros_params_[_param_id] = 0.0;

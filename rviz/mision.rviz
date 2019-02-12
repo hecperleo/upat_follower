@@ -67,10 +67,6 @@ Visualization Manager:
           Value: true
         uav_1_home:
           Value: true
-        uav_2:
-          Value: true
-        uav_2_home:
-          Value: true
       Marker Scale: 1
       Name: TF
       Show Arrows: false
@@ -80,9 +76,6 @@ Visualization Manager:
         map:
           uav_1_home:
             uav_1:
-              {}
-          uav_2_home:
-            uav_2:
               {}
       Update Interval: 0
       Value: true
@@ -113,7 +106,7 @@ Visualization Manager:
       Buffer Length: 1
       Class: rviz/Path
       Color: 0; 85; 255
-      Enabled: false
+      Enabled: true
       Head Diameter: 0.300000012
       Head Length: 0.200000003
       Length: 0.300000012
@@ -131,7 +124,7 @@ Visualization Manager:
       Shaft Length: 0.100000001
       Topic: /uav_path_manager/visualization/manager/uav_1/generated_path
       Unreliable: false
-      Value: false
+      Value: true
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
@@ -153,29 +146,6 @@ Visualization Manager:
       Shaft Diameter: 0.100000001
       Shaft Length: 0.100000001
       Topic: /uav_path_manager/visualization/manager/uav_1/current_path
-      Unreliable: false
-      Value: true
-    - Alpha: 1
-      Buffer Length: 1
-      Class: rviz/Path
-      Color: 170; 170; 255
-      Enabled: true
-      Head Diameter: 0.300000012
-      Head Length: 0.200000003
-      Length: 0.300000012
-      Line Style: Lines
-      Line Width: 0.0299999993
-      Name: /uav_1/trajectory
-      Offset:
-        X: 0
-        Y: 0
-        Z: 0
-      Pose Color: 255; 85; 255
-      Pose Style: None
-      Radius: 0.0299999993
-      Shaft Diameter: 0.100000001
-      Shaft Length: 0.100000001
-      Topic: /uav_path_manager/visualization/manager/uav_1/trajectory
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -205,7 +175,7 @@ Visualization Manager:
       Buffer Length: 1
       Class: rviz/Path
       Color: 0; 163; 0
-      Enabled: false
+      Enabled: true
       Head Diameter: 0.300000012
       Head Length: 0.200000003
       Length: 0.300000012
@@ -223,7 +193,7 @@ Visualization Manager:
       Shaft Length: 0.100000001
       Topic: /uav_path_manager/visualization/manager/uav_2/generated_path
       Unreliable: false
-      Value: false
+      Value: true
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
@@ -245,29 +215,6 @@ Visualization Manager:
       Shaft Diameter: 0.100000001
       Shaft Length: 0.100000001
       Topic: /uav_path_manager/visualization/manager/uav_2/current_path
-      Unreliable: false
-      Value: true
-    - Alpha: 1
-      Buffer Length: 1
-      Class: rviz/Path
-      Color: 255; 170; 127
-      Enabled: true
-      Head Diameter: 0.300000012
-      Head Length: 0.200000003
-      Length: 0.300000012
-      Line Style: Lines
-      Line Width: 0.0299999993
-      Name: /uav_2/trajectory
-      Offset:
-        X: 0
-        Y: 0
-        Z: 0
-      Pose Color: 255; 85; 255
-      Pose Style: None
-      Radius: 0.0299999993
-      Shaft Diameter: 0.100000001
-      Shaft Length: 0.100000001
-      Topic: /uav_path_manager/visualization/manager/uav_2/trajectory
       Unreliable: false
       Value: true
   Enabled: true
