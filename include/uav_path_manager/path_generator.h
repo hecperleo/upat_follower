@@ -1,5 +1,6 @@
 #include <ros/ros.h>
 
+#include <mavros_msgs/ParamGet.h>
 #include <uav_abstraction_layer/ual.h>
 #include <uav_path_manager/GeneratePath.h>
 #include <Eigen/Eigen>
@@ -8,7 +9,6 @@
 #include "nav_msgs/Path.h"
 #include "std_msgs/Float32.h"
 #include "std_msgs/Float32MultiArray.h"
-#include <mavros_msgs/ParamGet.h>
 // linealInterp1
 #include <cmath>
 #include <iostream>
@@ -40,9 +40,10 @@ class PathGenerator {
     nav_msgs::Path constructPath(std::vector<double> _wps_x, std::vector<double> _wps_y, std::vector<double> _wps_z);
     nav_msgs::Path pathManagement(std::vector<double> _list_pose_x, std::vector<double> _list_pose_y, std::vector<double> _list_pose_z);
     double checkSmallestMaxVel();
-    double updateParam(const std::string& _param_id);
+    double updateParam(const std::string &_param_id);
     // Node handlers
     ros::NodeHandle nh_;
+    ros::NodeHandle pnh_;
     // Services
     ros::ServiceServer server_generate_path_, srv_generate_trajectory_;
     ros::ServiceClient get_param_client_;

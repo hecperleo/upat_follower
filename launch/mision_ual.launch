@@ -13,6 +13,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <arg name="multi" default="true"/>
     <arg name="robot_model" default="iris"/>
     <arg name="trajectory" default="true"/>
+    <arg name="vel_max_xy" default="2.0"/>
+    <arg name="vel_max_z_up" default="3.0"/>
+    <arg name="vel_max_z_dn" default="1.0"/>
 
     <!-- Visualization -->
     <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find uav_path_manager)/rviz/mision.rviz" required="true"/>
@@ -24,12 +27,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     </include>
 
     <!-- UAV Path Manager nodes -->
+    <node pkg="uav_path_manager" type="path_generator_node" name="path_generator_node" output="screen" required="true">
+        <param name="vel_max_xy" value="$(arg vel_max_xy)"/>
+        <param name="vel_max_z_up" value="$(arg vel_max_z_up)"/>
+        <param name="vel_max_z_dn" value="$(arg vel_max_z_dn)"/>
+    </node>
     <node pkg="uav_path_manager" type="path_manager_node" name="path_manager_node" output="screen">
         <param name="uav_id" value="1"/>
         <param name="save_csv" value="$(arg save_data)"/>
         <param name="trajectory" value="$(arg trajectory)"/>
     </node>
-    <node pkg="uav_path_manager" type="path_generator_node" name="path_generator_node" output="screen" required="true"/>
     <node pkg="uav_path_manager" type="path_follower_node" name="path_follower_node" output="screen" required="true">
         <param name="uav_id" value="1"/>
     </node>

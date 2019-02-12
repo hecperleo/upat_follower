@@ -1,16 +1,20 @@
 #include <uav_path_manager/path_generator.h>
 
-PathGenerator::PathGenerator() : nh_() {
+PathGenerator::PathGenerator() : nh_(), pnh_("~") {
+    double vel_max_xy, vel_max_z_up, vel_max_z_dn;
+    // Parameters
+    pnh_.param<double>("vel_max_xy", vel_max_xy, 2.0);
+    pnh_.param<double>("vel_max_z_up", vel_max_z_up, 3.0);
+    pnh_.param<double>("vel_max_z_dn", vel_max_z_dn, 1.0);
+
     // Services
     server_generate_path_ = nh_.advertiseService("/uav_path_manager/generator/generate_path", &PathGenerator::pathCallback, this);
 
     // Client to get parameters from mavros and required default values
     get_param_client_ = nh_.serviceClient<mavros_msgs::ParamGet>("mavros/param/get");
-    mavros_params_["MPC_XY_VEL_MAX"] = 2.0;    // [m/s]   Default value
-    mavros_params_["MPC_Z_VEL_MAX_UP"] = 3.0;  // [m/s]   Default value
-    mavros_params_["MPC_Z_VEL_MAX_DN"] = 1.0;  // [m/s]   Default value
-    mavros_params_["MC_YAWRATE_MAX"] = 200.0;  // [deg/s] Default value
-    mavros_params_["MPC_TKO_SPEED"] = 1.5;     // [m/s]   Default value
+    mavros_params_["MPC_XY_VEL_MAX"] = vel_max_xy;      // [m/s]   Default value
+    mavros_params_["MPC_Z_VEL_MAX_UP"] = vel_max_z_up;  // [m/s]   Default value
+    mavros_params_["MPC_Z_VEL_MAX_DN"] = vel_max_z_dn;  // [m/s]   Default value
     // Updating here is non-sense as service seems to be slow in waking up
 }
 
@@ -314,7 +318,7 @@ double PathGenerator::updateParam(const std::string &_param_id) {
         ROS_INFO("Parameter [%s] value is [%f]", get_param_service.request.param_id.c_str(), mavros_params_[_param_id]);
     } else if (mavros_params_.count(_param_id)) {
         ROS_WARN("Error in get param [%s] service calling, leaving current value [%f]",
-                  get_param_service.request.param_id.c_str(), mavros_params_[_param_id]);
+                 get_param_service.request.param_id.c_str(), mavros_params_[_param_id]);
     } else {
         mavros_params_[_param_id] = 0.0;
         ROS_ERROR("Error in get param [%s] service calling, initializing it to zero",
