@@ -1,20 +1,20 @@
 #include <uav_path_manager/path_generator.h>
 
 PathGenerator::PathGenerator() : nh_(), pnh_("~") {
-    double vel_max_xy, vel_max_z_up, vel_max_z_dn;
+    double vxy, vz_up, vz_dn;
     // Parameters
-    pnh_.param<double>("vel_max_xy", vel_max_xy, 2.0);
-    pnh_.param<double>("vel_max_z_up", vel_max_z_up, 3.0);
-    pnh_.param<double>("vel_max_z_dn", vel_max_z_dn, 1.0);
+    pnh_.param<double>("vxy", vxy, 2.0);
+    pnh_.param<double>("vz_up", vz_up, 3.0);
+    pnh_.param<double>("vz_dn", vz_dn, 1.0);
 
     // Services
     server_generate_path_ = nh_.advertiseService("/uav_path_manager/generator/generate_path", &PathGenerator::pathCallback, this);
 
     // Client to get parameters from mavros and required default values
     get_param_client_ = nh_.serviceClient<mavros_msgs::ParamGet>("mavros/param/get");
-    mavros_params_["MPC_XY_VEL_MAX"] = vel_max_xy;      // [m/s]   Default value
-    mavros_params_["MPC_Z_VEL_MAX_UP"] = vel_max_z_up;  // [m/s]   Default value
-    mavros_params_["MPC_Z_VEL_MAX_DN"] = vel_max_z_dn;  // [m/s]   Default value
+    mavros_params_["MPC_XY_VEL_MAX"] = vxy;      // [m/s]   Default value
+    mavros_params_["MPC_Z_VEL_MAX_UP"] = vz_up;  // [m/s]   Default value
+    mavros_params_["MPC_Z_VEL_MAX_DN"] = vz_dn;  // [m/s]   Default value
     // Updating here is non-sense as service seems to be slow in waking up
 }
 
@@ -90,22 +90,29 @@ bool PathGenerator::pathCallback(uav_path_manager::GeneratePath::Request &_req_p
             _res_path.generated_path = pathManagement(list_pose_x, list_pose_y, list_pose_z);
             break;
         case 4:
-            if (_req_path.init_path.poses.size() - 1 == _req_path.time_intervals.size()){
+            if (_req_path.init_path.poses.size() - 1 == _req_path.time_intervals.size()) {
                 mode_ = mode_trajectory_;
                 std::vector<double> time_intervals;
                 for (int i = 0; i < _req_path.time_intervals.size(); i++) {
                     time_intervals.push_back(_req_path.time_intervals.at(i).data);
                 }
                 _res_path.generated_path = createTrajectory(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), time_intervals);
-                for (int i = 0; i < time_intervals.size(); i++) {
-                    for (int j = 0; j < (_res_path.generated_path.poses.size() / time_intervals.size()); j++) {
+                for (int i = 0; i < _req_path.init_path.poses.size(); i++) {
+                    for (int j = 0; j < _res_path.generated_path.poses.size() / _req_path.init_path.poses.size(); j++) {
                         std_msgs::Float32 time_interval;
                         time_interval.data = time_intervals[i];
                         _res_path.generated_time_intervals.push_back(time_interval);
                     }
                 }
+                ///////////////// TODO: not same size t and sp. Find a better way to fix this /////////////////
+                while (_res_path.generated_time_intervals.size() < _res_path.generated_path.poses.size()) {  //
+                    std_msgs::Float32 time_interval;                                                         //
+                    time_interval.data = time_intervals.back();                                              //
+                    _res_path.generated_time_intervals.push_back(time_interval);                             //
+                }                                                                                            //
+                ///////////////////////////////////////////////////////////////////////////////////////////////
                 _res_path.max_velocity.data = abs(smallest_max_vel_);
-            }else{
+            } else {
                 // Instead of using the %d type specifier, you should use an unsigned specifier like %ud, or the dedicated specifier for size_t: %zd to avoid warning while compiling
                 ROS_ERROR("Time intervals size (%zd) should has one less element than init path size (%zd)", _req_path.time_intervals.size(), _req_path.init_path.poses.size());
                 return false;
