@@ -4,8 +4,8 @@
 #include <uav_abstraction_layer/State.h>
 #include <uav_abstraction_layer/TakeOff.h>
 #include <uav_abstraction_layer/ual.h>
-#include <uav_path_manager/GeneratePath.h>
 #include <uav_path_manager/FollowPath.h>
+#include <uav_path_manager/GeneratePath.h>
 #include <Eigen/Eigen>
 #include <fstream>
 #include "ecl/geometry.hpp"
@@ -50,7 +50,7 @@ class PathManager {
     // std::vector<double> list_init_x_ = {-2.50, -2.66, -20, -25.75, -25.75, -14.25, -14.25, -20.00, -2.66};
     // std::vector<double> list_init_y_ = {5.10, 5.0, 0.0, -4.0, 5.0, 5.0, -4.0, 0.0, 5.0};
     // std::vector<double> list_init_z_ = {2.25, 14.0, 14.0, 10.0, 10.0, 10.0, 10.0, 14.0, 14.0};
-    std::vector<double> time_intervals = {1.0, 0.5, 0.25, 0.5, 1, 0.5, 0.25, 0.5};
+    std::vector<double> max_vel_percentage = {1.0, 0.8, 0.5, 0.8, 1, 0.8, 0.5, 0.8};
     // Params
     int uav_id_;
     bool save_csv_;

@@ -2,8 +2,8 @@
 #include <uav_abstraction_layer/ual.h>
 #include <uav_path_manager/FollowPath.h>
 #include <Eigen/Eigen>
-#include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/PointStamped.h"
+#include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/TwistStamped.h"
 #include "nav_msgs/Path.h"
 
@@ -42,5 +42,5 @@ class PathFollower {
     nav_msgs::Path target_path_;
     geometry_msgs::PoseStamped ual_pose_;
     geometry_msgs::TwistStamped out_velocity_;
-    std::vector<double> generated_time_intervals_;
+    std::vector<double> generated_max_vel_percentage_;
 };

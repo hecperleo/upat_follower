@@ -124,10 +124,10 @@ void PathManager::runMission() {
         if (save_csv_) saveDataForTesting();
         if (trajectory_) {
             generate_path.request.init_path = init_path_;
-            for (int i = 0; i < time_intervals.size(); i++) {
-                std_msgs::Float32 time_interval;
-                time_interval.data = time_intervals[i];
-                generate_path.request.time_intervals.push_back(time_interval);
+            for (int i = 0; i < max_vel_percentage.size(); i++) {
+                std_msgs::Float32 v_percentage;
+                v_percentage.data = max_vel_percentage[i];
+                generate_path.request.max_vel_percentage.push_back(v_percentage);
             }
             generator_mode.data = 4;
             generate_path.request.generator_mode = generator_mode;
@@ -136,7 +136,7 @@ void PathManager::runMission() {
             follower_mode.data = 2;
             follow_path.request.follower_mode = follower_mode;
             follow_path.request.generated_path = path;
-            follow_path.request.generated_time_intervals = generate_path.response.generated_time_intervals;
+            follow_path.request.generated_max_vel_percentage = generate_path.response.generated_max_vel_percentage;
             follow_path.request.max_velocity = generate_path.response.max_velocity;
             client_follow_path_.call(follow_path);
         } else {

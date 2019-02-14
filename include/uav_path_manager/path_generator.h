@@ -22,7 +22,7 @@ class PathGenerator {
 
     nav_msgs::Path createPathInterp1(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size, int _new_path_size);
     nav_msgs::Path createPathCubicSpline(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size);
-    nav_msgs::Path createTrajectory(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size, std::vector<double> _time_intervals);
+    nav_msgs::Path createTrajectory(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size, std::vector<double> _max_vel_percentage);
     enum mode_t { mode_interp1_,
                   mode_cubic_spline_loyal_,
                   mode_cubic_spline_,

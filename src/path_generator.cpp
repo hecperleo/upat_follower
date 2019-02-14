@@ -90,31 +90,33 @@ bool PathGenerator::pathCallback(uav_path_manager::GeneratePath::Request &_req_p
             _res_path.generated_path = pathManagement(list_pose_x, list_pose_y, list_pose_z);
             break;
         case 4:
-            if (_req_path.init_path.poses.size() - 1 == _req_path.time_intervals.size()) {
+            if (_req_path.init_path.poses.size() - 1 == _req_path.max_vel_percentage.size()) {
                 mode_ = mode_trajectory_;
-                std::vector<double> time_intervals;
-                for (int i = 0; i < _req_path.time_intervals.size(); i++) {
-                    time_intervals.push_back(_req_path.time_intervals.at(i).data);
+                std::vector<double> max_vel_percentage;
+                for (int i = 0; i < _req_path.max_vel_percentage.size(); i++) {
+                    max_vel_percentage.push_back(_req_path.max_vel_percentage.at(i).data);
                 }
-                _res_path.generated_path = createTrajectory(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), time_intervals);
+                _res_path.generated_path = createTrajectory(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), max_vel_percentage);
                 for (int i = 0; i < _req_path.init_path.poses.size(); i++) {
                     for (int j = 0; j < _res_path.generated_path.poses.size() / _req_path.init_path.poses.size(); j++) {
-                        std_msgs::Float32 time_interval;
-                        time_interval.data = time_intervals[i];
-                        _res_path.generated_time_intervals.push_back(time_interval);
+                        std_msgs::Float32 v_percentage;
+                        v_percentage.data = max_vel_percentage[i];
+                        _res_path.generated_max_vel_percentage.push_back(v_percentage);
                     }
                 }
                 ///////////////// TODO: not same size t and sp. Find a better way to fix this /////////////////
-                while (_res_path.generated_time_intervals.size() < _res_path.generated_path.poses.size()) {  //
-                    std_msgs::Float32 time_interval;                                                         //
-                    time_interval.data = time_intervals.back();                                              //
-                    _res_path.generated_time_intervals.push_back(time_interval);                             //
-                }                                                                                            //
+                while (_res_path.generated_max_vel_percentage.size() < _res_path.generated_path.poses.size()) {  //
+                    std_msgs::Float32 v_percentage;                                                              //
+                    v_percentage.data = max_vel_percentage.front();                                              //
+                    _res_path.generated_max_vel_percentage.push_back(v_percentage);                              //
+                }
+                ROS_WARN("sp: %zd, t: %zd", _res_path.generated_path.poses.size(), _res_path.generated_max_vel_percentage.size());  //
+                ROS_WARN("t front: %f", max_vel_percentage.front());
                 ///////////////////////////////////////////////////////////////////////////////////////////////
                 _res_path.max_velocity.data = abs(smallest_max_vel_);
             } else {
                 // Instead of using the %d type specifier, you should use an unsigned specifier like %ud, or the dedicated specifier for size_t: %zd to avoid warning while compiling
-                ROS_ERROR("Time intervals size (%zd) should has one less element than init path size (%zd)", _req_path.time_intervals.size(), _req_path.init_path.poses.size());
+                ROS_ERROR("Time intervals size (%zd) should has one less element than init path size (%zd)", _req_path.max_vel_percentage.size(), _req_path.init_path.poses.size());
                 return false;
             }
             break;
@@ -230,7 +232,7 @@ nav_msgs::Path PathGenerator::createPathCubicSpline(std::vector<double> _list_x,
     return cubic_spline_path;
 }
 
-nav_msgs::Path PathGenerator::createTrajectory(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size, std::vector<double> _time_intervals) {
+nav_msgs::Path PathGenerator::createTrajectory(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size, std::vector<double> _max_vel_percentage) {
     nav_msgs::Path cubic_spline_path;
     if (_path_size > 1) {
         // Calculate total distance
