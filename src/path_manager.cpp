@@ -136,6 +136,7 @@ void PathManager::runMission() {
             follower_mode.data = 2;
             follow_path.request.follower_mode = follower_mode;
             follow_path.request.generated_path = path;
+            follow_path.request.generated_path_vel_percentage = generate_path.response.generated_path_vel_percentage;
             follow_path.request.generated_max_vel_percentage = generate_path.response.generated_max_vel_percentage;
             follow_path.request.max_velocity = generate_path.response.max_velocity;
             client_follow_path_.call(follow_path);

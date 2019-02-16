@@ -50,4 +50,6 @@ class PathGenerator {
     std::map<std::string, double> mavros_params_;
     // Variables
     double smallest_max_vel_ = 1.0;
+    int size_vec_percentage_ = 0;
+    int interp1_final_size_ = 10000;
 };

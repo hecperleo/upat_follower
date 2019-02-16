@@ -96,23 +96,20 @@ bool PathGenerator::pathCallback(uav_path_manager::GeneratePath::Request &_req_p
                 for (int i = 0; i < _req_path.max_vel_percentage.size(); i++) {
                     max_vel_percentage.push_back(_req_path.max_vel_percentage.at(i).data);
                 }
+                size_vec_percentage_ = _req_path.max_vel_percentage.size();
                 _res_path.generated_path = createTrajectory(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), max_vel_percentage);
-                for (int i = 0; i < _req_path.init_path.poses.size(); i++) {
-                    for (int j = 0; j < _res_path.generated_path.poses.size() / _req_path.init_path.poses.size(); j++) {
+                mode_ = mode_interp1_;
+                interp1_final_size_ = _res_path.generated_path.poses.size();
+                _res_path.generated_path_vel_percentage = pathManagement(list_pose_x, list_pose_y, list_pose_z);
+                for (int i = 0; i < _req_path.max_vel_percentage.size(); i++) {
+                    int j = 0;
+                    for (j = 0; j < _res_path.generated_path_vel_percentage.poses.size() / _req_path.max_vel_percentage.size(); j++) {
                         std_msgs::Float32 v_percentage;
                         v_percentage.data = max_vel_percentage[i];
                         _res_path.generated_max_vel_percentage.push_back(v_percentage);
                     }
                 }
-                ///////////////// TODO: not same size t and sp. Find a better way to fix this /////////////////
-                while (_res_path.generated_max_vel_percentage.size() < _res_path.generated_path.poses.size()) {  //
-                    std_msgs::Float32 v_percentage;                                                              //
-                    v_percentage.data = max_vel_percentage.front();                                              //
-                    _res_path.generated_max_vel_percentage.push_back(v_percentage);                              //
-                }
-                ROS_WARN("sp: %zd, t: %zd", _res_path.generated_path.poses.size(), _res_path.generated_max_vel_percentage.size());  //
-                ROS_WARN("t front: %f", max_vel_percentage.front());
-                ///////////////////////////////////////////////////////////////////////////////////////////////
+                ROS_WARN("sp: %zd, %: %zd", _res_path.generated_path.poses.size(), _res_path.generated_max_vel_percentage.size());
                 _res_path.max_velocity.data = abs(smallest_max_vel_);
             } else {
                 // Instead of using the %d type specifier, you should use an unsigned specifier like %ud, or the dedicated specifier for size_t: %zd to avoid warning while compiling
@@ -282,7 +279,8 @@ nav_msgs::Path PathGenerator::createTrajectory(std::vector<double> _list_x, std:
             // Check max and min velocity
             double spline_max_vel = *std::max_element(vec_check_vel.begin(), vec_check_vel.end());
             double spline_min_vel = *std::min_element(vec_check_vel.begin(), vec_check_vel.end());
-            if (spline_max_vel > smallest_max_vel_ || fabs(spline_min_vel) > smallest_max_vel_) {
+            std::div_t temp_div = std::div(spline_list_x.size(), size_vec_percentage_);
+            if (spline_max_vel > smallest_max_vel_ || fabs(spline_min_vel) > smallest_max_vel_ || temp_div.rem != 0) {
                 num_joints++;
             } else {
                 ROS_INFO("PathGenerator -> Spline done in %d iterations! Spline max velocities: %f and %f", num_joints - _path_size, spline_max_vel, spline_min_vel);
@@ -296,10 +294,10 @@ nav_msgs::Path PathGenerator::createTrajectory(std::vector<double> _list_x, std:
 }
 
 nav_msgs::Path PathGenerator::pathManagement(std::vector<double> _list_pose_x, std::vector<double> _list_pose_y, std::vector<double> _list_pose_z) {
-    const int interp1_final_size = 10000;
+    // const int _interp1_final_size = 10000;
     switch (mode_) {
         case mode_interp1_:
-            return createPathInterp1(_list_pose_x, _list_pose_y, _list_pose_z, _list_pose_x.size(), interp1_final_size);
+            return createPathInterp1(_list_pose_x, _list_pose_y, _list_pose_z, _list_pose_x.size(), interp1_final_size_);
         case mode_cubic_spline_loyal_:
             return createPathCubicSpline(_list_pose_x, _list_pose_y, _list_pose_z, _list_pose_x.size());
         case mode_cubic_spline_:

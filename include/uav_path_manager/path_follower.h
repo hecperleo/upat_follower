@@ -22,6 +22,7 @@ class PathFollower {
     // Methods
     double changeLookAhead(int _pos_on_path);
     int calculatePosOnPath(Eigen::Vector3f _current_p);
+    int calculateVelOnPath(Eigen::Vector3f _current_p);
     int calculatePosLookAhead(int _pos_on_path);
     geometry_msgs::TwistStamped calculateVelocity(Eigen::Vector3f _current_p, int _pos_la);
     // Node handlers
@@ -29,7 +30,7 @@ class PathFollower {
     // Subscribers
     ros::Subscriber sub_pose_;
     // Publishers
-    ros::Publisher pub_output_velocity_;
+    ros::Publisher pub_output_velocity_, pub_path_v_;
     // Services
     ros::ServiceServer server_follow_path_;
     // Variables
@@ -39,7 +40,8 @@ class PathFollower {
     double cruising_speed_ = 1.0;
     double max_vel_ = 1.0;
     int prev_normal_pos_on_path_ = 0;
-    nav_msgs::Path target_path_;
+    int prev_normal_vel_on_path_ = 0;
+    nav_msgs::Path target_path_, target_vel_path_;
     geometry_msgs::PoseStamped ual_pose_;
     geometry_msgs::TwistStamped out_velocity_;
     std::vector<double> generated_max_vel_percentage_;
