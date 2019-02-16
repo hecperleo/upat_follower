@@ -218,6 +218,7 @@ Visualization Manager:
       Topic: /uav_path_manager/visualization/manager/uav_2/current_path
       Unreliable: false
       Value: true
+<<<<<<< HEAD
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
@@ -240,6 +241,15 @@ Visualization Manager:
       Shaft Length: 0.100000001
       Topic: /uav_path_manager/follower/uav_1/path_v_
       Unreliable: false
+=======
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /uav_path_manager/visualization/marker_array
+      Name: MarkerArray
+      Namespaces:
+        {}
+      Queue Size: 100
+>>>>>>> fixEndPathTimes
       Value: true
   Enabled: true
   Global Options:
@@ -281,10 +291,17 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
+<<<<<<< HEAD
       Pitch: 0.540397882
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
       Yaw: 3.65178847
+=======
+      Pitch: 0.485397935
+      Target Frame: <Fixed Frame>
+      Value: Orbit (rviz)
+      Yaw: 3.55178046
+>>>>>>> fixEndPathTimes
     Saved: ~
 Window Geometry:
   Displays:

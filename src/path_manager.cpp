@@ -141,7 +141,7 @@ void PathManager::runMission() {
             follow_path.request.max_velocity = generate_path.response.max_velocity;
             client_follow_path_.call(follow_path);
         } else {
-            generator_mode.data = 2;
+            generator_mode.data = 3;
             generate_path.request.generator_mode = generator_mode;
             generate_path.request.init_path = init_path_;
             client_generate_path_.call(generate_path);

@@ -15,6 +15,8 @@
 #include <limits>
 #include <vector>
 
+#include <visualization_msgs/MarkerArray.h>
+
 class PathGenerator {
    public:
     PathGenerator();
@@ -29,6 +31,8 @@ class PathGenerator {
                   mode_trajectory_,
                   mode_idle_ };
     mode_t mode_ = mode_idle_;
+
+    void pubMsgs();
 
    private:
     // Callbacks
@@ -48,8 +52,11 @@ class PathGenerator {
     ros::ServiceServer server_generate_path_, srv_generate_trajectory_;
     ros::ServiceClient get_param_client_;
     std::map<std::string, double> mavros_params_;
+    // Publisher
+    ros::Publisher pub_marker_array;
     // Variables
     double smallest_max_vel_ = 1.0;
     int size_vec_percentage_ = 0;
     int interp1_final_size_ = 10000;
+    visualization_msgs::MarkerArray marker_array;
 };

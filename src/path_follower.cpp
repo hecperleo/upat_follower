@@ -115,10 +115,15 @@ geometry_msgs::TwistStamped PathFollower::calculateVelocity(Eigen::Vector3f _cur
             out_vel.twist.linear.z = unit_vec(2) * cruising_speed_;
             break;
         case 2:
-            hypo_vec = (target_p - _current_point);
-            out_vel.twist.linear.x = hypo_vec(0);
-            out_vel.twist.linear.y = hypo_vec(1);
-            out_vel.twist.linear.z = hypo_vec(2);
+            // hypo_vec = (target_p - _current_point);
+            // out_vel.twist.linear.x = hypo_vec(0);
+            // out_vel.twist.linear.y = hypo_vec(1);
+            // out_vel.twist.linear.z = hypo_vec(2);
+            unit_vec = (target_p - _current_point) / distance;
+            unit_vec = unit_vec / unit_vec.norm();
+            out_vel.twist.linear.x = unit_vec(0) * cruising_speed_;
+            out_vel.twist.linear.y = unit_vec(1) * cruising_speed_;
+            out_vel.twist.linear.z = unit_vec(2) * cruising_speed_;
             break;
     }
     out_vel.header.frame_id = target_path_.header.frame_id;
