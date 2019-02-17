@@ -1,5 +1,7 @@
 #include <uav_path_manager/path_generator.h>
 
+#include <visualization_msgs/Marker.h>
+
 PathGenerator::PathGenerator() : nh_(), pnh_("~") {
     double vxy, vz_up, vz_dn;
     // Parameters
@@ -9,6 +11,8 @@ PathGenerator::PathGenerator() : nh_(), pnh_("~") {
 
     // Services
     server_generate_path_ = nh_.advertiseService("/uav_path_manager/generator/generate_path", &PathGenerator::pathCallback, this);
+
+    pub_marker_array = nh_.advertise<visualization_msgs::MarkerArray>("/uav_path_manager/visualization/marker_array", 1);
 
     // Client to get parameters from mavros and required default values
     get_param_client_ = nh_.serviceClient<mavros_msgs::ParamGet>("mavros/param/get");
@@ -65,6 +69,10 @@ std::vector<double> PathGenerator::linealInterp1(std::vector<double> &_x, std::v
     return y_new;
 }
 
+void PathGenerator::pubMsgs() {
+    pub_marker_array.publish(marker_array);
+}
+
 bool PathGenerator::pathCallback(uav_path_manager::GeneratePath::Request &_req_path,
                                  uav_path_manager::GeneratePath::Response &_res_path) {
     std::vector<double> list_pose_x, list_pose_y, list_pose_z;
@@ -96,23 +104,38 @@ bool PathGenerator::pathCallback(uav_path_manager::GeneratePath::Request &_req_p
                 for (int i = 0; i < _req_path.max_vel_percentage.size(); i++) {
                     max_vel_percentage.push_back(_req_path.max_vel_percentage.at(i).data);
                 }
+                size_vec_percentage_ = _req_path.max_vel_percentage.size();
                 _res_path.generated_path = createTrajectory(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), max_vel_percentage);
-                for (int i = 0; i < _req_path.init_path.poses.size(); i++) {
-                    for (int j = 0; j < _res_path.generated_path.poses.size() / _req_path.init_path.poses.size(); j++) {
+                mode_ = mode_interp1_;
+                interp1_final_size_ = _res_path.generated_path.poses.size();
+                _res_path.generated_path_vel_percentage = pathManagement(list_pose_x, list_pose_y, list_pose_z);
+                for (int i = 0; i < _req_path.max_vel_percentage.size(); i++) {
+                    int j = 0;
+                    for (j = 0; j < _res_path.generated_path_vel_percentage.poses.size() / (_req_path.max_vel_percentage.size() + 1); j++) {
                         std_msgs::Float32 v_percentage;
                         v_percentage.data = max_vel_percentage[i];
                         _res_path.generated_max_vel_percentage.push_back(v_percentage);
                     }
+                    if (i > 0) {
+                        visualization_msgs::Marker marker;
+                        marker.id = i;
+                        marker.header.frame_id = "uav_1_home";
+                        marker.type = visualization_msgs::Marker::SPHERE;
+                        marker.pose = _res_path.generated_path_vel_percentage.poses.at(i * j).pose;
+                        marker.scale.x = marker.scale.y = marker.scale.z = 0.2;
+                        marker.color.a = 1;
+                        marker.color.r = 0.5;
+                        marker.color.g = 0.5;
+                        marker.color.b = 0.5;
+                        marker_array.markers.push_back(marker);
+                    }
                 }
-                ///////////////// TODO: not same size t and sp. Find a better way to fix this /////////////////
-                while (_res_path.generated_max_vel_percentage.size() < _res_path.generated_path.poses.size()) {  //
-                    std_msgs::Float32 v_percentage;                                                              //
-                    v_percentage.data = max_vel_percentage.front();                                              //
-                    _res_path.generated_max_vel_percentage.push_back(v_percentage);                              //
+                while (_res_path.generated_path.poses.size() > _res_path.generated_max_vel_percentage.size()) {
+                    std_msgs::Float32 v_percentage;
+                    v_percentage.data = max_vel_percentage.back();
+                    _res_path.generated_max_vel_percentage.push_back(v_percentage);
                 }
-                ROS_WARN("sp: %zd, t: %zd", _res_path.generated_path.poses.size(), _res_path.generated_max_vel_percentage.size());  //
-                ROS_WARN("t front: %f", max_vel_percentage.front());
-                ///////////////////////////////////////////////////////////////////////////////////////////////
+                ROS_INFO("PathGenerator -> Path sizes -> spline: %zd, maxVel: %zd, init: %zd", _res_path.generated_path.poses.size(), _res_path.generated_max_vel_percentage.size(), _req_path.init_path.poses.size());
                 _res_path.max_velocity.data = abs(smallest_max_vel_);
             } else {
                 // Instead of using the %d type specifier, you should use an unsigned specifier like %ud, or the dedicated specifier for size_t: %zd to avoid warning while compiling
@@ -190,10 +213,10 @@ nav_msgs::Path PathGenerator::createPathCubicSpline(std::vector<double> _list_x,
         int num_joints = 0;
         switch (mode_) {
             case mode_cubic_spline_loyal_:
-                num_joints = _path_size * 2;
+                num_joints = (_path_size - 1) * 2;
                 break;
             case mode_cubic_spline_:
-                num_joints = _path_size;
+                num_joints = _path_size - 1;
                 break;
             default:
                 num_joints = total_distance;  // TODO: For trajectory generator
@@ -213,18 +236,29 @@ nav_msgs::Path PathGenerator::createPathCubicSpline(std::vector<double> _list_x,
             t_set[i] = (double)i;
         }
         // Create a cubic spline per axis
-        ecl::CubicSpline spline_x = ecl::CubicSpline::Natural(t_set, x_set);
-        ecl::CubicSpline spline_y = ecl::CubicSpline::Natural(t_set, y_set);
-        ecl::CubicSpline spline_z = ecl::CubicSpline::Natural(t_set, z_set);
+        // ecl::CubicSpline spline_x = ecl::CubicSpline::Natural(t_set, x_set);
+        // ecl::CubicSpline spline_y = ecl::CubicSpline::Natural(t_set, y_set);
+        // ecl::CubicSpline spline_z = ecl::CubicSpline::Natural(t_set, z_set);
+        double tension = 1.0;
+        ecl::TensionSpline spline_x = ecl::TensionSpline::Natural(t_set, x_set, tension);
+        ecl::TensionSpline spline_y = ecl::TensionSpline::Natural(t_set, y_set, tension);
+        ecl::TensionSpline spline_z = ecl::TensionSpline::Natural(t_set, z_set, tension);
         // Change format: ecl::CubicSpline -> std::vector
         double sp_pts = total_distance;
         int _amount_of_points = (interp1_list_x.size() - 1) * sp_pts;
         std::vector<double> spline_list_x(_amount_of_points), spline_list_y(_amount_of_points), spline_list_z(_amount_of_points);
+        std::vector<double> vec_check_vel;
         for (int i = 0; i < _amount_of_points; i++) {
             spline_list_x[i] = spline_x(i / sp_pts);
             spline_list_y[i] = spline_y(i / sp_pts);
             spline_list_z[i] = spline_z(i / sp_pts);
+            vec_check_vel.push_back(spline_x.derivative(i / sp_pts));
+            vec_check_vel.push_back(spline_y.derivative(i / sp_pts));
+            vec_check_vel.push_back(spline_z.derivative(i / sp_pts));
         }
+        double spline_max_vel = *std::max_element(vec_check_vel.begin(), vec_check_vel.end());
+        double spline_min_vel = *std::min_element(vec_check_vel.begin(), vec_check_vel.end());
+        ROS_WARN("max: %f, min: %f", spline_max_vel, spline_min_vel);
         // Construct path
         cubic_spline_path = constructPath(spline_list_x, spline_list_y, spline_list_z);
     }
@@ -248,6 +282,7 @@ nav_msgs::Path PathGenerator::createTrajectory(std::vector<double> _list_x, std:
         int num_joints = _path_size;
         bool try_fit_spline = true;
         smallest_max_vel_ = checkSmallestMaxVel();
+        double tension = 1.0;
         while (try_fit_spline) {
             // Lineal interpolation
             std::vector<double> interp1_list_x, interp1_list_y, interp1_list_z;
@@ -263,9 +298,12 @@ nav_msgs::Path PathGenerator::createTrajectory(std::vector<double> _list_x, std:
                 t_set[i] = (double)i;
             }
             // Create a cubic spline per axis
-            ecl::CubicSpline spline_x = ecl::CubicSpline::Natural(t_set, x_set);
-            ecl::CubicSpline spline_y = ecl::CubicSpline::Natural(t_set, y_set);
-            ecl::CubicSpline spline_z = ecl::CubicSpline::Natural(t_set, z_set);
+            // ecl::CubicSpline spline_x = ecl::CubicSpline::Natural(t_set, x_set);
+            // ecl::CubicSpline spline_y = ecl::CubicSpline::Natural(t_set, y_set);
+            // ecl::CubicSpline spline_z = ecl::CubicSpline::Natural(t_set, z_set);
+            ecl::TensionSpline spline_x = ecl::TensionSpline::Natural(t_set, x_set, tension);
+            ecl::TensionSpline spline_y = ecl::TensionSpline::Natural(t_set, y_set, tension);
+            ecl::TensionSpline spline_z = ecl::TensionSpline::Natural(t_set, z_set, tension);
             // Change format: ecl::CubicSpline -> std::vector
             double sp_pts = total_distance;
             int _amount_of_points = (interp1_list_x.size() - 1) * sp_pts;
@@ -282,7 +320,8 @@ nav_msgs::Path PathGenerator::createTrajectory(std::vector<double> _list_x, std:
             // Check max and min velocity
             double spline_max_vel = *std::max_element(vec_check_vel.begin(), vec_check_vel.end());
             double spline_min_vel = *std::min_element(vec_check_vel.begin(), vec_check_vel.end());
-            if (spline_max_vel > smallest_max_vel_ || fabs(spline_min_vel) > smallest_max_vel_) {
+            std::div_t temp_div = std::div(spline_list_x.size(), size_vec_percentage_);
+            if (spline_max_vel > smallest_max_vel_ || fabs(spline_min_vel) > smallest_max_vel_ || temp_div.rem != 0) {
                 num_joints++;
             } else {
                 ROS_INFO("PathGenerator -> Spline done in %d iterations! Spline max velocities: %f and %f", num_joints - _path_size, spline_max_vel, spline_min_vel);
@@ -296,10 +335,10 @@ nav_msgs::Path PathGenerator::createTrajectory(std::vector<double> _list_x, std:
 }
 
 nav_msgs::Path PathGenerator::pathManagement(std::vector<double> _list_pose_x, std::vector<double> _list_pose_y, std::vector<double> _list_pose_z) {
-    const int interp1_final_size = 10000;
+    // const int _interp1_final_size = 10000;
     switch (mode_) {
         case mode_interp1_:
-            return createPathInterp1(_list_pose_x, _list_pose_y, _list_pose_z, _list_pose_x.size(), interp1_final_size);
+            return createPathInterp1(_list_pose_x, _list_pose_y, _list_pose_z, _list_pose_x.size(), interp1_final_size_);
         case mode_cubic_spline_loyal_:
             return createPathCubicSpline(_list_pose_x, _list_pose_y, _list_pose_z, _list_pose_x.size());
         case mode_cubic_spline_:

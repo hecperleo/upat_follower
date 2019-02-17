@@ -40,7 +40,7 @@ class PathManager {
     // Variables
     std::string folder_data_name_;
     bool on_path_, end_path_;
-    nav_msgs::Path path, init_path_, current_path_;
+    nav_msgs::Path path, vel_percentage_path_, init_path_, current_path_;
     geometry_msgs::PoseStamped ual_pose_;
     geometry_msgs::TwistStamped velocity_;
     uav_abstraction_layer::State ual_state_;
