@@ -97,7 +97,7 @@ int PathFollower::calculatePosLookAhead(int _pos_on_path) {
 }
 
 double PathFollower::changeLookAhead(int _pos_on_path) {
-    ROS_WARN("la: %f, max: %f, %: %f", max_vel_ * generated_max_vel_percentage_[_pos_on_path], max_vel_, generated_max_vel_percentage_[_pos_on_path]);
+    // ROS_WARN("la: %f, max: %f, %: %f", max_vel_ * generated_max_vel_percentage_[_pos_on_path], max_vel_, generated_max_vel_percentage_[_pos_on_path]);
     return max_vel_ * generated_max_vel_percentage_[_pos_on_path];
 }
 
@@ -115,15 +115,15 @@ geometry_msgs::TwistStamped PathFollower::calculateVelocity(Eigen::Vector3f _cur
             out_vel.twist.linear.z = unit_vec(2) * cruising_speed_;
             break;
         case 2:
-            // hypo_vec = (target_p - _current_point);
-            // out_vel.twist.linear.x = hypo_vec(0);
-            // out_vel.twist.linear.y = hypo_vec(1);
-            // out_vel.twist.linear.z = hypo_vec(2);
-            unit_vec = (target_p - _current_point) / distance;
-            unit_vec = unit_vec / unit_vec.norm();
-            out_vel.twist.linear.x = unit_vec(0) * cruising_speed_;
-            out_vel.twist.linear.y = unit_vec(1) * cruising_speed_;
-            out_vel.twist.linear.z = unit_vec(2) * cruising_speed_;
+            hypo_vec = (target_p - _current_point);
+            out_vel.twist.linear.x = hypo_vec(0);
+            out_vel.twist.linear.y = hypo_vec(1);
+            out_vel.twist.linear.z = hypo_vec(2);
+            // unit_vec = (target_p - _current_point) / distance;
+            // unit_vec = unit_vec / unit_vec.norm();
+            // out_vel.twist.linear.x = unit_vec(0) * cruising_speed_;
+            // out_vel.twist.linear.y = unit_vec(1) * cruising_speed_;
+            // out_vel.twist.linear.z = unit_vec(2) * cruising_speed_;
             break;
     }
     out_vel.header.frame_id = target_path_.header.frame_id;
@@ -154,7 +154,6 @@ void PathFollower::followPath() {
                 v_on_path_.point.y = target_vel_path_.poses.at(normal_vel_on_path).pose.position.y;
                 v_on_path_.point.z = target_vel_path_.poses.at(normal_vel_on_path).pose.position.z;
                 v_on_path_.header.frame_id = target_vel_path_.header.frame_id;
-                // ROS_WARN("p: %zd, v: %zd", normal_pos_on_path, normal_vel_on_path);
             }
             int pos_look_ahead = calculatePosLookAhead(normal_pos_on_path);
             out_velocity_ = calculateVelocity(current_point, pos_look_ahead);
