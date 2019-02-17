@@ -82,11 +82,12 @@ int PathFollower::calculateVelOnPath(Eigen::Vector3f _current_point) {
 int PathFollower::calculatePosLookAhead(int _pos_on_path) {
     int pos_look_ahead;
     std::vector<double> vec_distances;
-    Eigen::Vector3f target_path_point;
-    target_path_point = Eigen::Vector3f(target_path_.poses.at(_pos_on_path).pose.position.x, target_path_.poses.at(_pos_on_path).pose.position.y, target_path_.poses.at(_pos_on_path).pose.position.z);
-    for (_pos_on_path; _pos_on_path < target_path_.poses.size(); _pos_on_path++) {
-        Eigen::Vector3f look_ahead_point = Eigen::Vector3f(target_path_.poses.at(_pos_on_path).pose.position.x, target_path_.poses.at(_pos_on_path).pose.position.y, target_path_.poses.at(_pos_on_path).pose.position.z);
-        if ((look_ahead_point - target_path_point).norm() < look_ahead_) {
+    double temp_dist = 0.0;
+    for (_pos_on_path; _pos_on_path < target_path_.poses.size()-1; _pos_on_path++) {
+        Eigen::Vector3f p1 = Eigen::Vector3f(target_path_.poses.at(_pos_on_path).pose.position.x, target_path_.poses.at(_pos_on_path).pose.position.y, target_path_.poses.at(_pos_on_path).pose.position.z);
+        Eigen::Vector3f p2 = Eigen::Vector3f(target_path_.poses.at(_pos_on_path+1).pose.position.x, target_path_.poses.at(_pos_on_path+1).pose.position.y, target_path_.poses.at(_pos_on_path+1).pose.position.z);
+        temp_dist = temp_dist + (p2 - p1).norm();
+        if (temp_dist < look_ahead_) {
             pos_look_ahead = _pos_on_path;
         } else {
             _pos_on_path = target_path_.poses.size();
