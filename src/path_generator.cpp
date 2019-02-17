@@ -111,33 +111,31 @@ bool PathGenerator::pathCallback(uav_path_manager::GeneratePath::Request &_req_p
                 _res_path.generated_path_vel_percentage = pathManagement(list_pose_x, list_pose_y, list_pose_z);
                 for (int i = 0; i < _req_path.max_vel_percentage.size(); i++) {
                     int j = 0;
-                    for (j = 0; j < _res_path.generated_path_vel_percentage.poses.size() / _req_path.max_vel_percentage.size(); j++) {
+                    for (j = 0; j < _res_path.generated_path_vel_percentage.poses.size() / (_req_path.max_vel_percentage.size() + 1); j++) {
                         std_msgs::Float32 v_percentage;
                         v_percentage.data = max_vel_percentage[i];
                         _res_path.generated_max_vel_percentage.push_back(v_percentage);
                     }
-                    // }
                     if (i > 0) {
                         visualization_msgs::Marker marker;
                         marker.id = i;
                         marker.header.frame_id = "uav_1_home";
                         marker.type = visualization_msgs::Marker::SPHERE;
-                        marker.pose = _res_path.generated_path.poses.at(i * j).pose;
+                        marker.pose = _res_path.generated_path_vel_percentage.poses.at(i * j).pose;
                         marker.scale.x = marker.scale.y = marker.scale.z = 0.2;
                         marker.color.a = 1;
-                        marker.color.r = 1.0;
+                        marker.color.r = 0.5;
+                        marker.color.g = 0.5;
+                        marker.color.b = 0.5;
                         marker_array.markers.push_back(marker);
                     }
                 }
-                ROS_WARN("p: %f, %f, %f", _res_path.generated_path.poses.at(_res_path.generated_path.poses.size() - 1).pose.position.x,
-                         _res_path.generated_path.poses.at(_res_path.generated_path.poses.size() - 1).pose.position.y,
-                         _res_path.generated_path.poses.at(_res_path.generated_path.poses.size() - 1).pose.position.z);
-                ROS_WARN("m: %f, %f, %f", marker_array.markers.at(marker_array.markers.size() - 1).pose.position.x,
-                         marker_array.markers.at(marker_array.markers.size() - 1).pose.position.y,
-                         marker_array.markers.at(marker_array.markers.size() - 1).pose.position.z);
-                ROS_WARN("ps: %zd, ts: %zd", _res_path.generated_path.poses.size(), _res_path.generated_max_vel_percentage.size());
-                ROS_WARN("spline: %zd, init: %zd, div: %f", _res_path.generated_path.poses.size(), _req_path.init_path.poses.size(), _res_path.generated_path.poses.size() / _req_path.init_path.poses.size());
-                std::cout << _res_path.generated_path.poses.size() / _req_path.init_path.poses.size() << std::endl;
+                while (_res_path.generated_path.poses.size() > _res_path.generated_max_vel_percentage.size()) {
+                    std_msgs::Float32 v_percentage;
+                    v_percentage.data = max_vel_percentage.back();
+                    _res_path.generated_max_vel_percentage.push_back(v_percentage);
+                }
+                ROS_INFO("PathGenerator -> Path sizes -> spline: %zd, maxVel: %zd, init: %zd", _res_path.generated_path.poses.size(), _res_path.generated_max_vel_percentage.size(), _req_path.init_path.poses.size());
                 _res_path.max_velocity.data = abs(smallest_max_vel_);
             } else {
                 // Instead of using the %d type specifier, you should use an unsigned specifier like %ud, or the dedicated specifier for size_t: %zd to avoid warning while compiling
@@ -325,11 +323,6 @@ nav_msgs::Path PathGenerator::createTrajectory(std::vector<double> _list_x, std:
             std::div_t temp_div = std::div(spline_list_x.size(), size_vec_percentage_);
             if (spline_max_vel > smallest_max_vel_ || fabs(spline_min_vel) > smallest_max_vel_ || temp_div.rem != 0) {
                 num_joints++;
-                // tension++;
-                // if (tension == 100){
-                //     num_joints++;
-                //     tension = 1.0;
-                // }
             } else {
                 ROS_INFO("PathGenerator -> Spline done in %d iterations! Spline max velocities: %f and %f", num_joints - _path_size, spline_max_vel, spline_min_vel);
                 cubic_spline_path = constructPath(spline_list_x, spline_list_y, spline_list_z);

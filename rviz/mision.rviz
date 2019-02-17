@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /Path1
       Splitter Ratio: 0.719444454
     Tree Height: 379
   - Class: rviz/Selection
@@ -80,6 +79,24 @@ Visualization Manager:
               {}
       Update Interval: 0
       Value: true
+    - Class: rviz/MarkerArray
+      Enabled: false
+      Marker Topic: /uav_path_manager/visualization/marker_array
+      Name: ChangeVelMarks
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: false
+    - Alpha: 1
+      Class: rviz/PointStamped
+      Color: 204; 41; 204
+      Enabled: false
+      History Length: 1
+      Name: ChangeVelPoint
+      Radius: 0.200000003
+      Topic: /uav_path_manager/follower/uav_1/v_on_path_
+      Unreliable: false
+      Value: false
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
@@ -218,39 +235,6 @@ Visualization Manager:
       Topic: /uav_path_manager/visualization/manager/uav_2/current_path
       Unreliable: false
       Value: true
-<<<<<<< HEAD
-    - Alpha: 1
-      Buffer Length: 1
-      Class: rviz/Path
-      Color: 25; 255; 0
-      Enabled: true
-      Head Diameter: 0.300000012
-      Head Length: 0.200000003
-      Length: 0.300000012
-      Line Style: Lines
-      Line Width: 0.0299999993
-      Name: Path
-      Offset:
-        X: 0
-        Y: 0
-        Z: 0
-      Pose Color: 255; 85; 255
-      Pose Style: None
-      Radius: 0.0299999993
-      Shaft Diameter: 0.100000001
-      Shaft Length: 0.100000001
-      Topic: /uav_path_manager/follower/uav_1/path_v_
-      Unreliable: false
-=======
-    - Class: rviz/MarkerArray
-      Enabled: true
-      Marker Topic: /uav_path_manager/visualization/marker_array
-      Name: MarkerArray
-      Namespaces:
-        {}
-      Queue Size: 100
->>>>>>> fixEndPathTimes
-      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -276,32 +260,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 27.7089558
+      Distance: 26.4573135
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 11.4509144
-        Y: 4.967834
-        Z: 7.38887739
+        X: 10.7047472
+        Y: 7.80732727
+        Z: 7.56952381
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-<<<<<<< HEAD
-      Pitch: 0.540397882
+      Pitch: 0.390398026
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.65178847
-=======
-      Pitch: 0.485397935
-      Target Frame: <Fixed Frame>
-      Value: Orbit (rviz)
-      Yaw: 3.55178046
->>>>>>> fixEndPathTimes
+      Yaw: 4.22680855
     Saved: ~
 Window Geometry:
   Displays:
