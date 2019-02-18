@@ -8,11 +8,10 @@ int main(int _argc, char **_argv) {
     ros::Rate rate(50);
     while (ros::ok()) {
         manager.runMission();
-        manager.pubMsgs();
+        manager.callVisualization();
         ros::spinOnce();
         rate.sleep();
     }
-
 
     return 0;
 }

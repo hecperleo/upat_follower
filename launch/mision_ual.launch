@@ -16,40 +16,53 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <arg name="vxy" default="2.0"/>
     <arg name="vz_up" default="3.0"/>
     <arg name="vz_dn" default="1.0"/>
+    <arg name="ns_prefix" default="uav_"/>
 
     <!-- Visualization -->
     <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find uav_path_manager)/rviz/mision.rviz" required="true"/>
 
     <!-- UAL Server -->
-    <include file="$(find uav_path_manager)/launch/server_ual.launch" required="true">
+    <include file="$(find uav_path_manager)/launch/server_ual.launch">
         <arg name="multi" value="$(arg multi)"/>
         <arg name="robot_model" value="$(arg robot_model)"/>
     </include>
 
     <!-- UAV Path Manager nodes -->
-    <node pkg="uav_path_manager" type="path_generator_node" name="path_generator_node" output="screen" required="true">
-        <param name="vxy" value="$(arg vxy)"/>
-        <param name="vz_up" value="$(arg vz_up)"/>
-        <param name="vz_dn" value="$(arg vz_dn)"/>
-    </node>
-    <node pkg="uav_path_manager" type="path_manager_node" name="path_manager_node" output="screen" required="true">
-        <param name="uav_id" value="1"/>
-        <param name="save_csv" value="$(arg save_data)"/>
-        <param name="trajectory" value="$(arg trajectory)"/>
-    </node>
-    <node pkg="uav_path_manager" type="path_follower_node" name="path_follower_node" output="screen" required="true">
-        <param name="uav_id" value="1"/>
-    </node>
+    <group ns="uav_path_manager">
+        <group ns="$(arg ns_prefix)1">
+            <node pkg="uav_path_manager" type="path_generator_node" name="generator" output="screen" required="true">
+                <param name="vxy" value="$(arg vxy)"/>
+                <param name="vz_up" value="$(arg vz_up)"/>
+                <param name="vz_dn" value="$(arg vz_dn)"/>
+            </node>
+            <node pkg="uav_path_manager" type="path_manager_node" name="manager" output="screen" required="true">
+                <param name="uav_id" value="1"/>
+                <param name="save_csv" value="$(arg save_data)"/>
+                <param name="trajectory" value="$(arg trajectory)"/>
+            </node>
+            <node pkg="uav_path_manager" type="path_follower_node" name="follower" output="screen" required="true">
+                <param name="uav_id" value="1"/>
+            </node>
+            <node pkg="uav_path_manager" type="visualization_node" name="visualization" required="true">
+                <param name="uav_id" value="1"/>
+                <param name="robot_model" value="$(arg robot_model)"/>
+            </node>
+        </group>
 
-    <!-- Add one more UAV and nodes to manage it -->
-    <group if="$(arg multi)">
-        <node pkg="uav_path_manager" type="path_manager_node" name="path_manager_node_2" required="true" output="screen">
-            <param name="uav_id" value="2"/>
-            <param name="trajectory" value="$(arg trajectory)"/>
-        </node>
-        <node pkg="uav_path_manager" type="path_follower_node" name="path_follower_node_2" required="true">
-            <param name="uav_id" value="2"/>
-        </node>
+        <!-- Add one more UAV and nodes to manage it -->
+        <group if="$(arg multi)" ns="$(arg ns_prefix)2">
+            <node pkg="uav_path_manager" type="path_manager_node" name="manager" required="true" output="screen">
+                <param name="uav_id" value="2"/>
+                <param name="trajectory" value="$(arg trajectory)"/>
+            </node>
+            <node pkg="uav_path_manager" type="path_follower_node" name="follower" required="true">
+                <param name="uav_id" value="2"/>
+            </node>
+            <node pkg="uav_path_manager" type="visualization_node" name="visualization" required="true">
+                <param name="uav_id" value="2"/>
+                <param name="robot_model" value="$(arg robot_model)"/>
+            </node>
+        </group>
     </group>
 
 </launch>

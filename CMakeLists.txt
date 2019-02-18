@@ -63,6 +63,7 @@ add_service_files(
   FILES
   GeneratePath.srv
   FollowPath.srv
+  Visualize.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -185,6 +186,13 @@ add_executable(path_follower_node src/path_follower_node.cpp)
 target_link_libraries(path_follower_node path_follower ${catkin_LIBRARIES})
 add_dependencies(path_follower_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+
+add_library(visualization src/visualization.cpp)
+add_dependencies(visualization ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(visualization_node src/visualization_node.cpp)
+target_link_libraries(visualization_node visualization ${catkin_LIBRARIES})
+add_dependencies(visualization_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 
 #############
