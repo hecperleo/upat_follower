@@ -21,11 +21,11 @@ bool PathFollower::pathCallback(uav_path_manager::FollowPath::Request &_req_path
     target_vel_path_.header.frame_id = _req_path.generated_path.header.frame_id;
     follower_mode_ = _req_path.follower_mode.data;
     switch (follower_mode_) {
-        case 1:
+        case 1:  // Path
             look_ahead_ = _req_path.look_ahead.data;
             cruising_speed_ = _req_path.cruising_speed.data;
             break;
-        case 2:
+        case 2:  // Trajectory
             for (int i = 0; i < _req_path.generated_max_vel_percentage.size(); i++) {
                 generated_max_vel_percentage_.push_back(_req_path.generated_max_vel_percentage.at(i).data);
             }
@@ -42,11 +42,11 @@ void PathFollower::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_
     ual_pose_ = *_ual_pose;
 }
 
-int PathFollower::calculatePosOnPath(Eigen::Vector3f _current_point) {
+int PathFollower::calculatePosOnPath(Eigen::Vector3f _current_point, int _search_range, int _prev_normal_pos_on_path, nav_msgs::Path _path_search) {
     std::vector<double> vec_distances;
-    const int search_range = 10;  // Find UAV position on path in a range, do not search in all path.
-    int start_search_pos_on_path = prev_normal_pos_on_path_ - search_range;
-    int end_search_pos_on_path = prev_normal_pos_on_path_ + search_range;
+    // const int search_range = 10;  // Find UAV position on path in a range, do not search in all path.
+    int start_search_pos_on_path = _prev_normal_pos_on_path - _search_range;
+    int end_search_pos_on_path = _prev_normal_pos_on_path + _search_range;
     if (start_search_pos_on_path <= 0) start_search_pos_on_path = 0;
     if (end_search_pos_on_path >= target_path_.poses.size()) end_search_pos_on_path = target_path_.poses.size() - 1;
     for (int i = start_search_pos_on_path; i < end_search_pos_on_path; i++) {
@@ -58,24 +58,6 @@ int PathFollower::calculatePosOnPath(Eigen::Vector3f _current_point) {
     int pos_on_path = smallest_distance - vec_distances.begin();
 
     return pos_on_path + start_search_pos_on_path;
-}
-
-int PathFollower::calculateVelOnPath(Eigen::Vector3f _current_point) {
-    std::vector<double> vec_distances;
-    const int search_range = target_vel_path_.poses.size() * 0.4;  // Find UAV position on path in a range, do not search in all path.
-    int start_search_vel_on_path = prev_normal_vel_on_path_ - search_range;
-    int end_search_vel_on_path = prev_normal_vel_on_path_ + search_range;
-    if (start_search_vel_on_path <= 0) start_search_vel_on_path = 0;
-    if (end_search_vel_on_path >= target_vel_path_.poses.size()) end_search_vel_on_path = target_vel_path_.poses.size() - 1;
-    for (int i = start_search_vel_on_path; i < end_search_vel_on_path; i++) {
-        Eigen::Vector3f target_vel_path_point;
-        target_vel_path_point = Eigen::Vector3f(target_vel_path_.poses.at(i).pose.position.x, target_vel_path_.poses.at(i).pose.position.y, target_vel_path_.poses.at(i).pose.position.z);
-        vec_distances.push_back((target_vel_path_point - _current_point).norm());
-    }
-    auto smallest_distance = std::min_element(vec_distances.begin(), vec_distances.end());
-    int pos_on_path = smallest_distance - vec_distances.begin();
-
-    return pos_on_path + start_search_vel_on_path;
 }
 
 int PathFollower::calculatePosLookAhead(int _pos_on_path) {
@@ -144,9 +126,11 @@ void PathFollower::followPath() {
             flag_run_ = true;
         }
         if (flag_run_) {
-            int normal_pos_on_path = calculatePosOnPath(current_point);
+            int const search_range_pos = 10;
+            int normal_pos_on_path = calculatePosOnPath(current_point, search_range_pos, prev_normal_pos_on_path_, target_path_);
             if (follower_mode_ == 2) {
-                int normal_vel_on_path = calculateVelOnPath(current_point);
+                int const search_range_vel = target_vel_path_.poses.size() * 0.4;
+                int normal_vel_on_path = calculatePosOnPath(current_point, search_range_vel, prev_normal_vel_on_path_, target_vel_path_);
                 prev_normal_vel_on_path_ = normal_vel_on_path;
                 look_ahead_ = changeLookAhead(normal_vel_on_path);
             }

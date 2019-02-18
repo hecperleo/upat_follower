@@ -21,8 +21,7 @@ class PathFollower {
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
     // Methods
     double changeLookAhead(int _pos_on_path);
-    int calculatePosOnPath(Eigen::Vector3f _current_p);
-    int calculateVelOnPath(Eigen::Vector3f _current_p);
+    int calculatePosOnPath(Eigen::Vector3f _current_point, int _search_range, int _prev_normal_pos_on_path, nav_msgs::Path _path_search);
     int calculatePosLookAhead(int _pos_on_path);
     geometry_msgs::TwistStamped calculateVelocity(Eigen::Vector3f _current_p, int _pos_la);
     // Node handlers
