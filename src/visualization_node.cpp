@@ -7,6 +7,7 @@ int main(int _argc, char **_argv) {
 
     ros::Rate rate(50);
     while (ros::ok()) {
+        visual.pubMsgs();
         ros::spinOnce();
         rate.sleep();
     }

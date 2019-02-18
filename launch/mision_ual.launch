@@ -40,6 +40,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <node pkg="uav_path_manager" type="path_follower_node" name="path_follower_node" output="screen" required="true">
         <param name="uav_id" value="1"/>
     </node>
+    <node pkg="uav_path_manager" type="visualization_node" name="visualization_node" required="true">
+        <param name="uav_id" value="1"/>
+    </node>
 
     <!-- Add one more UAV and nodes to manage it -->
     <group if="$(arg multi)">
@@ -48,6 +51,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             <param name="trajectory" value="$(arg trajectory)"/>
         </node>
         <node pkg="uav_path_manager" type="path_follower_node" name="path_follower_node_2" required="true">
+            <param name="uav_id" value="2"/>
+        </node>
+        <node pkg="uav_path_manager" type="visualization_node" name="visualization_node_2" required="true">
             <param name="uav_id" value="2"/>
         </node>
     </group>
