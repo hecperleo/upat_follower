@@ -8,12 +8,8 @@ PathGenerator::PathGenerator() : nh_(), pnh_("~") {
     pnh_.param<double>("vxy", vxy, 2.0);
     pnh_.param<double>("vz_up", vz_up, 3.0);
     pnh_.param<double>("vz_dn", vz_dn, 1.0);
-
     // Services
     server_generate_path_ = nh_.advertiseService("/uav_path_manager/generator/generate_path", &PathGenerator::pathCallback, this);
-
-    pub_marker_array = nh_.advertise<visualization_msgs::MarkerArray>("/uav_path_manager/visualization/marker_array", 1);
-
     // Client to get parameters from mavros and required default values
     get_param_client_ = nh_.serviceClient<mavros_msgs::ParamGet>("mavros/param/get");
     mavros_params_["MPC_XY_VEL_MAX"] = vxy;      // [m/s]   Default value
@@ -69,9 +65,8 @@ std::vector<double> PathGenerator::linealInterp1(std::vector<double> &_x, std::v
     return y_new;
 }
 
-void PathGenerator::pubMsgs() {
-    pub_marker_array.publish(marker_array);
-}
+// void PathGenerator::pubMsgs() {
+// }
 
 bool PathGenerator::pathCallback(uav_path_manager::GeneratePath::Request &_req_path,
                                  uav_path_manager::GeneratePath::Response &_res_path) {
@@ -116,20 +111,8 @@ bool PathGenerator::pathCallback(uav_path_manager::GeneratePath::Request &_req_p
                         v_percentage.data = max_vel_percentage[i];
                         _res_path.generated_max_vel_percentage.push_back(v_percentage);
                     }
-                    if (i > 0) {
-                        visualization_msgs::Marker marker;
-                        marker.id = i;
-                        marker.header.frame_id = "uav_1_home";
-                        marker.type = visualization_msgs::Marker::SPHERE;
-                        marker.pose = _res_path.generated_path_vel_percentage.poses.at(i * j).pose;
-                        marker.scale.x = marker.scale.y = marker.scale.z = 0.2;
-                        marker.color.a = 1;
-                        marker.color.r = 0.5;
-                        marker.color.g = 0.5;
-                        marker.color.b = 0.5;
-                        marker_array.markers.push_back(marker);
-                    }
                 }
+                // TODO: Why do we still need this?
                 while (_res_path.generated_path.poses.size() > _res_path.generated_max_vel_percentage.size()) {
                     std_msgs::Float32 v_percentage;
                     v_percentage.data = max_vel_percentage.back();

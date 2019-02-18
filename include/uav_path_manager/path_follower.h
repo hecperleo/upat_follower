@@ -30,7 +30,7 @@ class PathFollower {
     // Subscribers
     ros::Subscriber sub_pose_;
     // Publishers
-    ros::Publisher pub_output_velocity_, pub_v_on_path_;
+    ros::Publisher pub_output_velocity_;
     // Services
     ros::ServiceServer server_follow_path_;
     // Variables
@@ -45,5 +45,4 @@ class PathFollower {
     geometry_msgs::PoseStamped ual_pose_;
     geometry_msgs::TwistStamped out_velocity_;
     std::vector<double> generated_max_vel_percentage_;
-    geometry_msgs::PointStamped v_on_path_;
 };
