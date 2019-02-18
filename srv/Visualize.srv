@@ -1,0 +1,4 @@
+std_msgs/Int8 uav_id
+nav_msgs/Path init_path
+nav_msgs/Path generated_path
+---
