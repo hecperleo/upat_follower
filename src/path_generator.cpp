@@ -65,9 +65,6 @@ std::vector<double> PathGenerator::linealInterp1(std::vector<double> &_x, std::v
     return y_new;
 }
 
-// void PathGenerator::pubMsgs() {
-// }
-
 bool PathGenerator::pathCallback(uav_path_manager::GeneratePath::Request &_req_path,
                                  uav_path_manager::GeneratePath::Response &_res_path) {
     std::vector<double> list_pose_x, list_pose_y, list_pose_z;
@@ -219,13 +216,13 @@ nav_msgs::Path PathGenerator::createPathCubicSpline(std::vector<double> _list_x,
             t_set[i] = (double)i;
         }
         // Create a cubic spline per axis
-        // ecl::CubicSpline spline_x = ecl::CubicSpline::Natural(t_set, x_set);
-        // ecl::CubicSpline spline_y = ecl::CubicSpline::Natural(t_set, y_set);
-        // ecl::CubicSpline spline_z = ecl::CubicSpline::Natural(t_set, z_set);
-        double tension = 1.0;
-        ecl::TensionSpline spline_x = ecl::TensionSpline::Natural(t_set, x_set, tension);
-        ecl::TensionSpline spline_y = ecl::TensionSpline::Natural(t_set, y_set, tension);
-        ecl::TensionSpline spline_z = ecl::TensionSpline::Natural(t_set, z_set, tension);
+        ecl::CubicSpline spline_x = ecl::CubicSpline::Natural(t_set, x_set);
+        ecl::CubicSpline spline_y = ecl::CubicSpline::Natural(t_set, y_set);
+        ecl::CubicSpline spline_z = ecl::CubicSpline::Natural(t_set, z_set);
+        // double tension = 1.0;
+        // ecl::TensionSpline spline_x = ecl::TensionSpline::Natural(t_set, x_set, tension);
+        // ecl::TensionSpline spline_y = ecl::TensionSpline::Natural(t_set, y_set, tension);
+        // ecl::TensionSpline spline_z = ecl::TensionSpline::Natural(t_set, z_set, tension);
         // Change format: ecl::CubicSpline -> std::vector
         double sp_pts = total_distance;
         int _amount_of_points = (interp1_list_x.size() - 1) * sp_pts;
@@ -265,7 +262,7 @@ nav_msgs::Path PathGenerator::createTrajectory(std::vector<double> _list_x, std:
         int num_joints = _path_size;
         bool try_fit_spline = true;
         smallest_max_vel_ = checkSmallestMaxVel();
-        double tension = 1.0;
+        // double tension = 1.0;
         while (try_fit_spline) {
             // Lineal interpolation
             std::vector<double> interp1_list_x, interp1_list_y, interp1_list_z;
@@ -281,16 +278,16 @@ nav_msgs::Path PathGenerator::createTrajectory(std::vector<double> _list_x, std:
                 t_set[i] = (double)i;
             }
             // Create a cubic spline per axis
-            // ecl::CubicSpline spline_x = ecl::CubicSpline::Natural(t_set, x_set);
-            // ecl::CubicSpline spline_y = ecl::CubicSpline::Natural(t_set, y_set);
-            // ecl::CubicSpline spline_z = ecl::CubicSpline::Natural(t_set, z_set);
-            ecl::TensionSpline spline_x = ecl::TensionSpline::Natural(t_set, x_set, tension);
-            ecl::TensionSpline spline_y = ecl::TensionSpline::Natural(t_set, y_set, tension);
-            ecl::TensionSpline spline_z = ecl::TensionSpline::Natural(t_set, z_set, tension);
+            ecl::CubicSpline spline_x = ecl::CubicSpline::Natural(t_set, x_set);
+            ecl::CubicSpline spline_y = ecl::CubicSpline::Natural(t_set, y_set);
+            ecl::CubicSpline spline_z = ecl::CubicSpline::Natural(t_set, z_set);
+            // ecl::TensionSpline spline_x = ecl::TensionSpline::Natural(t_set, x_set, tension);
+            // ecl::TensionSpline spline_y = ecl::TensionSpline::Natural(t_set, y_set, tension);
+            // ecl::TensionSpline spline_z = ecl::TensionSpline::Natural(t_set, z_set, tension);
             // Change format: ecl::CubicSpline -> std::vector
             double sp_pts = total_distance;
             int _amount_of_points = (interp1_list_x.size() - 1) * sp_pts;
-            std::vector<double> spline_list_x(_amount_of_points), spline_list_y(_amount_of_points), spline_list_z(_amount_of_points) /* , vec_check_vel(_amount_of_points) */;
+            std::vector<double> spline_list_x(_amount_of_points), spline_list_y(_amount_of_points), spline_list_z(_amount_of_points);
             std::vector<double> vec_check_vel;
             for (int i = 0; i < _amount_of_points; i++) {
                 spline_list_x[i] = spline_x(i / sp_pts);

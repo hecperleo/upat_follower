@@ -30,8 +30,6 @@ class PathGenerator {
                   mode_idle_ };
     mode_t mode_ = mode_idle_;
 
-    // void pubMsgs();
-
    private:
     // Callbacks
     bool pathCallback(uav_path_manager::GeneratePath::Request &_req_path, uav_path_manager::GeneratePath::Response &_res_path);
