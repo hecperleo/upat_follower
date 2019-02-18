@@ -20,7 +20,7 @@ class PathManager {
     ~PathManager();
 
     void runMission();
-    void pubMsgs();
+    void callVisualization();
 
    private:
     // Callbacks
@@ -35,7 +35,7 @@ class PathManager {
     // Subscribers
     ros::Subscriber sub_pose_, sub_state_, sub_velocity_;
     // Publishers
-    ros::Publisher pub_generated_path_, pub_init_path_, pub_current_path_, pub_set_velocity_, pub_set_pose_;
+    ros::Publisher pub_set_velocity_, pub_set_pose_;
     // Services
     ros::ServiceClient client_take_off_, client_land_, client_generate_path_, client_follow_path_, client_visualize_;
     // Variables

@@ -23,12 +23,12 @@ class Visualization {
     // Subscribers
     ros::Subscriber sub_pose_;
     // Publishers
-    ros::Publisher pub_init_path_, pub_generated_path_;
+    ros::Publisher pub_init_path_, pub_generated_path_, pub_current_path_;
     // Services
     ros::ServiceServer server_visualize_;
     // Variables
     geometry_msgs::PoseStamped ual_pose_;
-    nav_msgs::Path init_path_, generated_path_;
+    nav_msgs::Path init_path_, generated_path_, current_path_;
     // Params
     int uav_id_;
 };
