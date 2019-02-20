@@ -45,6 +45,8 @@
   <build_depend>uav_abstraction_layer</build_depend>
   <build_depend>ecl_geometry</build_depend>
   <build_depend>message_generation</build_depend>
+  <build_depend>handy_tools</build_depend>
+  <build_depend>tf2</build_depend>
 
   <run_depend>geometry_msgs</run_depend>
   <run_depend>nav_msgs</run_depend>
@@ -53,6 +55,8 @@
   <run_depend>uav_abstraction_layer</run_depend>
   <run_depend>ecl_geometry</run_depend>
   <run_depend>message_runtime</run_depend>
+  <run_depend>handy_tools</run_depend>
+  <run_depend>tf2</run_depend>
 
   <test_depend>rostest</test_depend>
 
