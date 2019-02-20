@@ -19,6 +19,8 @@ class PathFollower {
     // Callbacks
     bool pathCallback(uav_path_manager::FollowPath::Request &_req_path, uav_path_manager::FollowPath::Response &_res_path);
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
+    float calculateYawDiff(float _desired_yaw, float _current_yaw);
+
     // Methods
     double changeLookAhead(int _pos_on_path);
     int calculatePosOnPath(Eigen::Vector3f _current_point, int _search_range, int _prev_normal_pos_on_path, nav_msgs::Path _path_search);
@@ -44,4 +46,5 @@ class PathFollower {
     geometry_msgs::PoseStamped ual_pose_;
     geometry_msgs::TwistStamped out_velocity_;
     std::vector<double> generated_max_vel_percentage_;
+    double current_yaw_;
 };

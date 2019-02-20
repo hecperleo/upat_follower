@@ -1,4 +1,8 @@
 #include <uav_path_manager/path_follower.h>
+#include <handy_tools/pid_controller.h>
+#include <tf2/utils.h>     // to convert quaternion to roll-pitch-yaw
+
+
 
 PathFollower::PathFollower() : nh_(), pnh_("~") {
     // Parameters
@@ -40,7 +44,23 @@ bool PathFollower::pathCallback(uav_path_manager::FollowPath::Request &_req_path
 
 void PathFollower::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose) {
     ual_pose_ = *_ual_pose;
+    // get yaw
+     tf2::Quaternion q3(_ual_pose->pose.orientation.x,
+                       _ual_pose->pose.orientation.y,
+                       _ual_pose->pose.orientation.z,
+                       _ual_pose->pose.orientation.w);
+    q3.normalize();     //Avoids a warning
+    current_yaw_ = tf2::getYaw(q3);
 }
+
+float PathFollower::calculateYawDiff(float _desired_yaw, float _current_yaw) {
+    float yaw_diff = _desired_yaw - _current_yaw;
+    while (yaw_diff < -M_PI) yaw_diff += 2*M_PI;
+    while (yaw_diff >  M_PI) yaw_diff -= 2*M_PI;
+
+    return yaw_diff;
+}
+
 
 int PathFollower::calculatePosOnPath(Eigen::Vector3f _current_point, int _search_range, int _prev_normal_pos_on_path, nav_msgs::Path _path_search) {
     std::vector<double> vec_distances;
@@ -88,6 +108,14 @@ geometry_msgs::TwistStamped PathFollower::calculateVelocity(Eigen::Vector3f _cur
     Eigen::Vector3f target_p, unit_vec, hypo_vec;
     target_p = Eigen::Vector3f(target_path_.poses.at(_pos_look_ahead).pose.position.x, target_path_.poses.at(_pos_look_ahead).pose.position.y, target_path_.poses.at(_pos_look_ahead).pose.position.z);
     double distance = (target_p - _current_point).norm();
+    float desired_yaw = atan2(out_vel.twist.linear.y, out_vel.twist.linear.x);
+    float yaw_diff = calculateYawDiff(desired_yaw, current_yaw_);
+    float yaw_pid_p = 0.4;
+    float yaw_pid_i = 0.02;
+    float yaw_pid_d = 0.0;
+    float sampling_period = 0.01;
+    grvc::utils::PidController yaw_pid("yaw", yaw_pid_p, yaw_pid_i, yaw_pid_d);
+    float commanded_yaw_rate = yaw_pid.control_signal(yaw_diff, sampling_period);
     switch (follower_mode_) {
         case 1:
             unit_vec = (target_p - _current_point) / distance;
@@ -95,12 +123,15 @@ geometry_msgs::TwistStamped PathFollower::calculateVelocity(Eigen::Vector3f _cur
             out_vel.twist.linear.x = unit_vec(0) * cruising_speed_;
             out_vel.twist.linear.y = unit_vec(1) * cruising_speed_;
             out_vel.twist.linear.z = unit_vec(2) * cruising_speed_;
+            out_vel.twist.angular.z = commanded_yaw_rate;
             break;
         case 2:
             hypo_vec = (target_p - _current_point);
             out_vel.twist.linear.x = hypo_vec(0);
             out_vel.twist.linear.y = hypo_vec(1);
             out_vel.twist.linear.z = hypo_vec(2);
+            out_vel.twist.angular.z = commanded_yaw_rate;
+
             // unit_vec = (target_p - _current_point) / distance;
             // unit_vec = unit_vec / unit_vec.norm();
             // out_vel.twist.linear.x = unit_vec(0) * cruising_speed_;

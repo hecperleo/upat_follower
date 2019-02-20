@@ -15,6 +15,8 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   uav_abstraction_layer
   ecl_geometry
+  handy_tools
+  tf2
 )
 find_package(Eigen3 REQUIRED)
 find_package(rostest REQUIRED)
