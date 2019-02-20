@@ -108,7 +108,7 @@ geometry_msgs::TwistStamped PathFollower::calculateVelocity(Eigen::Vector3f _cur
     Eigen::Vector3f target_p, unit_vec, hypo_vec;
     target_p = Eigen::Vector3f(target_path_.poses.at(_pos_look_ahead).pose.position.x, target_path_.poses.at(_pos_look_ahead).pose.position.y, target_path_.poses.at(_pos_look_ahead).pose.position.z);
     double distance = (target_p - _current_point).norm();
-    float desired_yaw = atan2(out_vel.twist.linear.y, out_vel.twist.linear.x);
+    float desired_yaw = atan2(target_path_.poses.at(_pos_look_ahead).pose.position.y-_current_point.y(), target_path_.poses.at(_pos_look_ahead).pose.position.x-_current_point.x());
     float yaw_diff = calculateYawDiff(desired_yaw, current_yaw_);
     float yaw_pid_p = 0.4;
     float yaw_pid_i = 0.02;
@@ -124,6 +124,7 @@ geometry_msgs::TwistStamped PathFollower::calculateVelocity(Eigen::Vector3f _cur
             out_vel.twist.linear.y = unit_vec(1) * cruising_speed_;
             out_vel.twist.linear.z = unit_vec(2) * cruising_speed_;
             out_vel.twist.angular.z = commanded_yaw_rate;
+
             break;
         case 2:
             hypo_vec = (target_p - _current_point);

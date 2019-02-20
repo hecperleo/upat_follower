@@ -5,7 +5,10 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Grid1
+        - /TF1
         - /TF1/Frames1
+        - /Odometry1
+        - /Odometry1/Shape1
       Splitter Ratio: 0.563169181
     Tree Height: 385
   - Class: rviz/Selection
@@ -67,10 +70,6 @@ Visualization Manager:
           Value: false
         uav_1_home:
           Value: true
-        uav_2:
-          Value: false
-        uav_2_home:
-          Value: true
       Marker Scale: 1
       Name: TF
       Show Arrows: false
@@ -80,9 +79,6 @@ Visualization Manager:
         map:
           uav_1_home:
             uav_1:
-              {}
-          uav_2_home:
-            uav_2:
               {}
       Update Interval: 0
       Value: true
@@ -255,7 +251,7 @@ Visualization Manager:
       Marker Topic: /uav_path_manager/visualization/uav_2/uav_model
       Name: /uav_2/model
       Namespaces:
-        "": true
+        {}
       Queue Size: 100
       Value: true
     - Alpha: 1
@@ -268,6 +264,40 @@ Visualization Manager:
       Topic: /uav_path_manager/follower/uav_2/v_on_path_
       Unreliable: false
       Value: false
+    - Angle Tolerance: 0.100000001
+      Class: rviz/Odometry
+      Covariance:
+        Orientation:
+          Alpha: 0.5
+          Color: 255; 255; 127
+          Color Style: Unique
+          Frame: Local
+          Offset: 1
+          Scale: 1
+          Value: true
+        Position:
+          Alpha: 0.300000012
+          Color: 204; 51; 204
+          Scale: 1
+          Value: true
+        Value: true
+      Enabled: true
+      Keep: 1
+      Name: Odometry
+      Position Tolerance: 0.100000001
+      Shape:
+        Alpha: 1
+        Axes Length: 1
+        Axes Radius: 0.100000001
+        Color: 170; 255; 255
+        Head Length: 0.300000012
+        Head Radius: 0.100000001
+        Shaft Length: 1
+        Shaft Radius: 0.0500000007
+        Value: Arrow
+      Topic: /uav_1/ual/odom
+      Unreliable: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -293,25 +323,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 43.0553741
+      Distance: 33.0722275
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 17.291996
-        Y: 3.93497825
-        Z: -3.05723071
+        X: 9.81305218
+        Y: -3.37515926
+        Z: -3.6992836
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.610397935
+      Pitch: 0.945397615
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.33178067
+      Yaw: 1.98177195
     Saved: ~
 Window Geometry:
   Displays:
@@ -329,5 +359,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 866
-  X: 60
+  X: 75
   Y: 31
