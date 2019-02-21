@@ -113,6 +113,38 @@ void PathManager::callVisualization() {
     client_visualize_.call(visualize);
 }
 
+nav_msgs::Path PathManager::csvToPath(std::string file_name) {
+    nav_msgs::Path out_path;
+    std::string pkg_name_path = ros::package::getPath("uav_path_manager");
+    // std::string folder_name =  pkg_name_path + "/tests/data" + file_name;
+    std::fstream read_csv;
+    read_csv.open(file_name);
+    std::vector<double> list_x, list_y, list_z;
+    if (read_csv.is_open()) {
+        while (read_csv.good()) {
+            std::string x, y, z;
+            double dx, dy, dz;
+            getline(read_csv, x, ',');
+            getline(read_csv, y, ',');
+            getline(read_csv, z, '\n');
+            std::stringstream sx(x);
+            std::stringstream sy(y);
+            std::stringstream sz(z);
+            sx >> dx;
+            sy >> dy;
+            sz >> dz;
+            list_x.push_back(dx);
+            list_y.push_back(dy);
+            list_z.push_back(dz);
+        }
+        list_x.pop_back();
+        list_y.pop_back();
+        list_z.pop_back();
+    }
+
+    return constructPath(list_x, list_y, list_z, "uav_" + std::to_string(uav_id_) + "_home");
+}
+
 void PathManager::runMission() {
     uav_abstraction_layer::TakeOff take_off;
     uav_abstraction_layer::Land land;
@@ -141,11 +173,14 @@ void PathManager::runMission() {
             follow_path.request.max_velocity = generate_path.response.max_velocity;
             client_follow_path_.call(follow_path);
         } else {
-            generator_mode.data = 3;
-            generate_path.request.generator_mode = generator_mode;
-            generate_path.request.init_path = init_path_;
-            client_generate_path_.call(generate_path);
-            path = generate_path.response.generated_path;
+            // generator_mode.data = 3;
+            // generate_path.request.generator_mode = generator_mode;
+            // generate_path.request.init_path = init_path_;
+            // client_generate_path_.call(generate_path);
+            // path = generate_path.response.generated_path;
+            
+            path = csvToPath("/home/grvc/pose.csv");
+            ROS_WARN("size: %zd", path.poses.size());
             follow_path.request.generated_path = path;
             cruising_speed.data = 1.0;
             look_ahead.data = 1.2;

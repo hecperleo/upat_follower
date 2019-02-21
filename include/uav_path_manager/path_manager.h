@@ -29,6 +29,7 @@ class PathManager {
     void velocityCallback(const geometry_msgs::TwistStamped &_velocity);
     // Methods
     nav_msgs::Path constructPath(std::vector<double> _wps_x, std::vector<double> _wps_y, std::vector<double> _wps_z, std::string frame_id);
+    nav_msgs::Path csvToPath(std::string file_name);
     void saveDataForTesting();
     // Node handlers
     ros::NodeHandle nh_, pnh_;
