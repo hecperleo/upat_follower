@@ -7,7 +7,7 @@ PathFollower::PathFollower() : nh_(), pnh_("~") {
     // Parameters
     pnh_.getParam("uav_id", uav_id_);
     // Subscriptions
-    sub_pose_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/pose", 0, &PathFollower::ualPoseCallback, this);
+    sub_pose_ = nh_.subscribe("/drone_" + std::to_string(uav_id_) + "/ual/pose", 0, &PathFollower::ualPoseCallback, this);
     // Publishers
     pub_output_velocity_ = nh_.advertise<geometry_msgs::TwistStamped>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/output_vel", 1000);
     // Services
@@ -145,7 +145,7 @@ geometry_msgs::TwistStamped PathFollower::calculateVelocity(Eigen::Vector3f _cur
     float sampling_period = 0.01;
     float commanded_yaw_rate = yaw_pid->control_signal(yaw_diff, sampling_period);
 
-    out_vel.header.frame_id = target_path_.header.frame_id;
+    out_vel.header.frame_id = "map";
 
     out_vel.twist.angular.z = commanded_yaw_rate;
 
@@ -175,6 +175,7 @@ void PathFollower::followPath() {
             }
             int pos_look_ahead = calculatePosLookAhead(normal_pos_on_path);
             out_velocity_ = calculateVelocity(current_point, pos_look_ahead);
+            std::cout << out_velocity_.header.frame_id << std::endl;
             prev_normal_pos_on_path_ = normal_pos_on_path;
         }
     }

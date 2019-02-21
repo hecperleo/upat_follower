@@ -28,8 +28,8 @@
         <arg name="id" value="1"/>
         <arg name="material" value="Orange"/>
         <arg name="mode" value="$(arg mode)"/>
-        <arg name="x" value="0"/>
-        <arg name="y" value="5"/>
+        <arg name="x" value="-30"/>
+        <arg name="y" value="-30"/>
         <arg name="z" value="0"/>
         <arg name="yaw" value="0"/>
     </include>
@@ -41,8 +41,8 @@
             <arg name="id" value="2"/>
             <arg name="material" value="Indigo"/>
             <arg name="mode" value="$(arg mode)"/>
-            <arg name="x" value="0"/>
-            <arg name="y" value="-5"/>
+            <arg name="x" value="-30"/>
+            <arg name="y" value="-30"/>
             <arg name="z" value="0"/>
             <arg name="yaw" value="0"/>
         </include>
@@ -58,7 +58,7 @@
         <param name="home_pose_parent_frame" value="map"/>
         <!-- default= map -->
         <!-- Define home pose relative to global map frame -->
-        <rosparam param="home_pose">[0, 5, 0]</rosparam>        <!-- [x,y,z] -->
+        <rosparam param="home_pose">[-30, -30, 0]</rosparam>        <!-- [x,y,z] -->
         <!-- Define the global map frame geo position and let the UAL estimate the relative home pose -->
         <!-- <rosparam param="map_origin_geo">[37.558542, -5.931074, 7.89]</rosparam> -->        <!-- [lat,lon,alt] -->
     </node>

@@ -6,7 +6,7 @@ Visualization::Visualization() : nh_(), pnh_("~") {
     std::string robot_model;
     pnh_.getParam("robot_model", robot_model);
     // Subscriptions
-    sub_pose_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/pose", 0, &Visualization::ualPoseCallback, this);
+    sub_pose_ = nh_.subscribe("/drone_" + std::to_string(uav_id_) + "/ual/pose", 0, &Visualization::ualPoseCallback, this);
     // Publishers
     pub_init_path_ = nh_.advertise<nav_msgs::Path>("/uav_path_manager/visualization/uav_" + std::to_string(uav_id_) + "/init_path", 1);
     pub_generated_path_ = nh_.advertise<nav_msgs::Path>("/uav_path_manager/visualization/uav_" + std::to_string(uav_id_) + "/generated_path", 1);

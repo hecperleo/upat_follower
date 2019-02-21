@@ -6,15 +6,15 @@ PathManager::PathManager() : nh_(), pnh_("~") {
     pnh_.getParam("save_csv", save_csv_);
     pnh_.getParam("trajectory", trajectory_);
     // Subscriptions
-    sub_pose_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/pose", 0, &PathManager::ualPoseCallback, this);
-    sub_state_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/state", 0, &PathManager::ualStateCallback, this);
+    sub_pose_ = nh_.subscribe("/drone_" + std::to_string(uav_id_) + "/ual/pose", 0, &PathManager::ualPoseCallback, this);
+    sub_state_ = nh_.subscribe("/drone_" + std::to_string(uav_id_) + "/ual/state", 0, &PathManager::ualStateCallback, this);
     sub_velocity_ = nh_.subscribe("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/output_vel", 0, &PathManager::velocityCallback, this);
     // Publishers
-    pub_set_pose_ = nh_.advertise<geometry_msgs::PoseStamped>("/uav_" + std::to_string(uav_id_) + "/ual/set_pose", 1000);
-    pub_set_velocity_ = nh_.advertise<geometry_msgs::TwistStamped>("/uav_" + std::to_string(uav_id_) + "/ual/set_velocity", 1000);
+    pub_set_pose_ = nh_.advertise<geometry_msgs::PoseStamped>("/drone_" + std::to_string(uav_id_) + "/ual/set_pose", 1000);
+    pub_set_velocity_ = nh_.advertise<geometry_msgs::TwistStamped>("/drone_" + std::to_string(uav_id_) + "/ual/set_velocity", 1000);
     // Services
-    client_take_off_ = nh_.serviceClient<uav_abstraction_layer::TakeOff>("/uav_" + std::to_string(uav_id_) + "/ual/take_off");
-    client_land_ = nh_.serviceClient<uav_abstraction_layer::Land>("/uav_" + std::to_string(uav_id_) + "/ual/land");
+    client_take_off_ = nh_.serviceClient<uav_abstraction_layer::TakeOff>("/drone_" + std::to_string(uav_id_) + "/ual/take_off");
+    client_land_ = nh_.serviceClient<uav_abstraction_layer::Land>("/drone_" + std::to_string(uav_id_) + "/ual/land");
     client_generate_path_ = nh_.serviceClient<uav_path_manager::GeneratePath>("/uav_path_manager/generator/generate_path");
     client_follow_path_ = nh_.serviceClient<uav_path_manager::FollowPath>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/follow_path");
     client_visualize_ = nh_.serviceClient<uav_path_manager::Visualize>("/uav_path_manager/visualization/uav_" + std::to_string(uav_id_) + "/visualize");
@@ -22,7 +22,7 @@ PathManager::PathManager() : nh_(), pnh_("~") {
     on_path_ = false;
     end_path_ = false;
     // Initialize path
-    init_path_ = constructPath(list_init_x_, list_init_y_, list_init_z_, "uav_" + std::to_string(uav_id_) + "_home");
+    init_path_ = constructPath(list_init_x_, list_init_y_, list_init_z_, "map");
     // Save data
     if (save_csv_) {
         std::string pkg_name_path = ros::package::getPath("uav_path_manager");
@@ -116,9 +116,9 @@ void PathManager::callVisualization() {
 nav_msgs::Path PathManager::csvToPath(std::string file_name) {
     nav_msgs::Path out_path;
     std::string pkg_name_path = ros::package::getPath("uav_path_manager");
-    // std::string folder_name =  pkg_name_path + "/tests/data" + file_name;
+    std::string folder_name =  pkg_name_path + "/tests/data" + file_name;
     std::fstream read_csv;
-    read_csv.open(file_name);
+    read_csv.open(folder_name);
     std::vector<double> list_x, list_y, list_z;
     if (read_csv.is_open()) {
         while (read_csv.good()) {
@@ -142,7 +142,7 @@ nav_msgs::Path PathManager::csvToPath(std::string file_name) {
         list_z.pop_back();
     }
 
-    return constructPath(list_x, list_y, list_z, "uav_" + std::to_string(uav_id_) + "_home");
+    return constructPath(list_x, list_y, list_z, "map");
 }
 
 void PathManager::runMission() {
@@ -179,8 +179,9 @@ void PathManager::runMission() {
             // client_generate_path_.call(generate_path);
             // path = generate_path.response.generated_path;
             
-            path = csvToPath("/home/grvc/pose.csv");
-            ROS_WARN("size: %zd", path.poses.size());
+            path = csvToPath("/pose.csv");
+            std::cout << path.header.frame_id << std::endl;
+            // ROS_WARN("id: %s", path.header.frame_id);
             follow_path.request.generated_path = path;
             cruising_speed.data = 1.0;
             look_ahead.data = 1.2;
@@ -196,6 +197,8 @@ void PathManager::runMission() {
     current_p = Eigen::Vector3f(ual_pose_.pose.position.x, ual_pose_.pose.position.y, ual_pose_.pose.position.z);
     path0_p = Eigen::Vector3f(path.poses.front().pose.position.x, path.poses.front().pose.position.y, path.poses.front().pose.position.z);
     path_end_p = Eigen::Vector3f(path.poses.back().pose.position.x, path.poses.back().pose.position.y, path.poses.back().pose.position.z);
+    geometry_msgs::PoseStamped wp;
+
     switch (ual_state_.state) {
         case 2:  // Landed armed
             if (!end_path_) {
@@ -210,25 +213,34 @@ void PathManager::runMission() {
             if (!end_path_) {
                 if (!on_path_) {
                     if ((current_p - path0_p).norm() > 0.2) {
-                        pub_set_pose_.publish(path.poses.at(0));
+                        wp = path.poses.back();
+                        wp.header.frame_id = "map";
+                        pub_set_pose_.publish(wp);
                     } else if (0.1 > (current_p - path0_p).norm()) {
-                        pub_set_pose_.publish(path.poses.front());
+                        wp = path.poses.back();
+                        wp.header.frame_id = "map";
+                        pub_set_pose_.publish(wp);
                         on_path_ = true;
                     }
                 } else {
                     if (0.2 > (current_p - path_end_p).norm()) {
-                        pub_set_pose_.publish(path.poses.back());
+                        
+                        wp = path.poses.back();
+                        wp.header.frame_id = "map";
+                        pub_set_pose_.publish(wp);
                         on_path_ = false;
                         end_path_ = true;
                     } else {
+                        std::cout<<velocity_.header.frame_id<<std::endl;
+                        
                         pub_set_velocity_.publish(velocity_);
-                        current_path_.header.frame_id = ual_pose_.header.frame_id;
-                        current_path_.poses.push_back(ual_pose_);
                     }
                 }
             } else {
                 if (0.2 > (current_p - path_end_p).norm() && (current_p - path_end_p).norm() > 0.1) {
-                    pub_set_pose_.publish(path.poses.back());
+                    wp = path.poses.back();
+                    wp.header.frame_id = "map";
+                    pub_set_pose_.publish(wp);
                 } else {
                     land.request.blocking = true;
                     client_land_.call(land);
