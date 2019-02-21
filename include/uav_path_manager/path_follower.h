@@ -6,6 +6,8 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/TwistStamped.h"
 #include "nav_msgs/Path.h"
+#include <handy_tools/pid_controller.h>
+
 
 class PathFollower {
    public:
@@ -47,4 +49,5 @@ class PathFollower {
     geometry_msgs::TwistStamped out_velocity_;
     std::vector<double> generated_max_vel_percentage_;
     double current_yaw_;
+    grvc::utils::PidController* yaw_pid;
 };

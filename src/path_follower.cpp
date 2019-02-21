@@ -1,5 +1,4 @@
 #include <uav_path_manager/path_follower.h>
-#include <handy_tools/pid_controller.h>
 #include <tf2/utils.h>     // to convert quaternion to roll-pitch-yaw
 
 
@@ -13,6 +12,13 @@ PathFollower::PathFollower() : nh_(), pnh_("~") {
     pub_output_velocity_ = nh_.advertise<geometry_msgs::TwistStamped>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/output_vel", 1000);
     // Services
     server_follow_path_ = nh_.advertiseService("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/follow_path", &PathFollower::pathCallback, this);
+
+    float yaw_pid_p = 0.4;
+    float yaw_pid_i = 0.02;
+    float yaw_pid_d = 0.0;
+    yaw_pid = new grvc::utils::PidController("yaw", yaw_pid_p, yaw_pid_i, yaw_pid_d);
+
+
 }
 
 PathFollower::~PathFollower() {
@@ -108,14 +114,7 @@ geometry_msgs::TwistStamped PathFollower::calculateVelocity(Eigen::Vector3f _cur
     Eigen::Vector3f target_p, unit_vec, hypo_vec;
     target_p = Eigen::Vector3f(target_path_.poses.at(_pos_look_ahead).pose.position.x, target_path_.poses.at(_pos_look_ahead).pose.position.y, target_path_.poses.at(_pos_look_ahead).pose.position.z);
     double distance = (target_p - _current_point).norm();
-    float desired_yaw = atan2(target_path_.poses.at(_pos_look_ahead).pose.position.y-_current_point.y(), target_path_.poses.at(_pos_look_ahead).pose.position.x-_current_point.x());
-    float yaw_diff = calculateYawDiff(desired_yaw, current_yaw_);
-    float yaw_pid_p = 0.4;
-    float yaw_pid_i = 0.02;
-    float yaw_pid_d = 0.0;
-    float sampling_period = 0.01;
-    grvc::utils::PidController yaw_pid("yaw", yaw_pid_p, yaw_pid_i, yaw_pid_d);
-    float commanded_yaw_rate = yaw_pid.control_signal(yaw_diff, sampling_period);
+
     switch (follower_mode_) {
         case 1:
             unit_vec = (target_p - _current_point) / distance;
@@ -123,7 +122,6 @@ geometry_msgs::TwistStamped PathFollower::calculateVelocity(Eigen::Vector3f _cur
             out_vel.twist.linear.x = unit_vec(0) * cruising_speed_;
             out_vel.twist.linear.y = unit_vec(1) * cruising_speed_;
             out_vel.twist.linear.z = unit_vec(2) * cruising_speed_;
-            out_vel.twist.angular.z = commanded_yaw_rate;
 
             break;
         case 2:
@@ -131,7 +129,7 @@ geometry_msgs::TwistStamped PathFollower::calculateVelocity(Eigen::Vector3f _cur
             out_vel.twist.linear.x = hypo_vec(0);
             out_vel.twist.linear.y = hypo_vec(1);
             out_vel.twist.linear.z = hypo_vec(2);
-            out_vel.twist.angular.z = commanded_yaw_rate;
+            
 
             // unit_vec = (target_p - _current_point) / distance;
             // unit_vec = unit_vec / unit_vec.norm();
@@ -140,7 +138,16 @@ geometry_msgs::TwistStamped PathFollower::calculateVelocity(Eigen::Vector3f _cur
             // out_vel.twist.linear.z = unit_vec(2) * cruising_speed_;
             break;
     }
+
+    //float desired_yaw = atan2(target_path_.poses.at(_pos_look_ahead).pose.position.y-_current_point.y(), target_path_.poses.at(_pos_look_ahead).pose.position.x-_current_point.x());
+    float desired_yaw = atan2(out_vel.twist.linear.y, out_vel.twist.linear.x);
+    float yaw_diff = calculateYawDiff(desired_yaw, current_yaw_);
+    float sampling_period = 0.01;
+    float commanded_yaw_rate = yaw_pid->control_signal(yaw_diff, sampling_period);
+
     out_vel.header.frame_id = target_path_.header.frame_id;
+
+    out_vel.twist.angular.z = commanded_yaw_rate;
 
     return out_vel;
 }
