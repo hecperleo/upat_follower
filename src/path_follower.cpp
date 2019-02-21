@@ -175,7 +175,6 @@ void PathFollower::followPath() {
             }
             int pos_look_ahead = calculatePosLookAhead(normal_pos_on_path);
             out_velocity_ = calculateVelocity(current_point, pos_look_ahead);
-            std::cout << out_velocity_.header.frame_id << std::endl;
             prev_normal_pos_on_path_ = normal_pos_on_path;
         }
     }

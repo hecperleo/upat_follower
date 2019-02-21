@@ -180,7 +180,6 @@ void PathManager::runMission() {
             // path = generate_path.response.generated_path;
             
             path = csvToPath("/pose.csv");
-            std::cout << path.header.frame_id << std::endl;
             // ROS_WARN("id: %s", path.header.frame_id);
             follow_path.request.generated_path = path;
             cruising_speed.data = 1.0;
@@ -213,11 +212,11 @@ void PathManager::runMission() {
             if (!end_path_) {
                 if (!on_path_) {
                     if ((current_p - path0_p).norm() > 0.2) {
-                        wp = path.poses.back();
+                        wp = path.poses.at(0);
                         wp.header.frame_id = "map";
                         pub_set_pose_.publish(wp);
                     } else if (0.1 > (current_p - path0_p).norm()) {
-                        wp = path.poses.back();
+                        wp = path.poses.front();
                         wp.header.frame_id = "map";
                         pub_set_pose_.publish(wp);
                         on_path_ = true;
@@ -231,7 +230,9 @@ void PathManager::runMission() {
                         on_path_ = false;
                         end_path_ = true;
                     } else {
-                        std::cout<<velocity_.header.frame_id<<std::endl;
+                        current_path_.header.frame_id = "map";
+                        current_path_.poses.push_back(ual_pose_);
+                        std::cout<<velocity_.twist.linear<<std::endl;
                         
                         pub_set_velocity_.publish(velocity_);
                     }
