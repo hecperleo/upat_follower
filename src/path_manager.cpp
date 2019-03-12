@@ -41,7 +41,8 @@ PathManager::PathManager() : nh_(), pnh_("~") {
     on_path_ = false;
     end_path_ = false;
     // Initialize path
-    init_path_ = constructPath(list_init_x_, list_init_y_, list_init_z_, "uav_" + std::to_string(uav_id_) + "_home");
+    // init_path_ = constructPath(list_init_x_, list_init_y_, list_init_z_, "uav_" + std::to_string(uav_id_) + "_home");
+    init_path_ = csvToPath("/figure1.csv");
     // Save data
     if (save_csv_) {
         std::string pkg_name_path = ros::package::getPath("uav_path_manager");
@@ -67,6 +68,38 @@ nav_msgs::Path PathManager::constructPath(std::vector<double> _wps_x, std::vecto
     }
     out_path.poses = poses;
     return out_path;
+}
+
+nav_msgs::Path PathManager::csvToPath(std::string _file_name) {
+    nav_msgs::Path out_path;
+    std::string pkg_name_path = ros::package::getPath("uav_path_manager");
+    std::string folder_name =  pkg_name_path + "/data" + _file_name;
+    std::fstream read_csv;
+    read_csv.open(folder_name);
+    std::vector<double> list_x, list_y, list_z;
+    if (read_csv.is_open()) {
+        while (read_csv.good()) {
+            std::string x, y, z;
+            double dx, dy, dz;
+            getline(read_csv, x, ',');
+            getline(read_csv, y, ',');
+            getline(read_csv, z, '\n');
+            std::stringstream sx(x);
+            std::stringstream sy(y);
+            std::stringstream sz(z);
+            sx >> dx;
+            sy >> dy;
+            sz >> dz;
+            list_x.push_back(dx);
+            list_y.push_back(dy);
+            list_z.push_back(dz);
+        }
+        list_x.pop_back();
+        list_y.pop_back();
+        list_z.pop_back();
+    }
+
+    return constructPath(list_x, list_y, list_z, "uav_" + std::to_string(uav_id_) + "_home");
 }
 
 void PathManager::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose) {
