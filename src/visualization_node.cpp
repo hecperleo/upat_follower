@@ -17,19 +17,16 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //----------------------------------------------------------------------------------------------------------------------
 
-#include <ros/ros.h>
-#include <uav_path_manager/path_follower.h>
+#include <uav_path_manager/visualization.h>
 
 int main(int _argc, char **_argv) {
-    ros::init(_argc, _argv, "path_follower_node");
+    ros::init(_argc, _argv, "visualization_node");
 
-    PathFollower path_follower;
-    int pub_rate_;
-    ros::param::param<int>("~pub_rate", pub_rate_, 30);
-    ros::Rate rate(pub_rate_);
+    Visualization visual;
+
+    ros::Rate rate(50);
     while (ros::ok()) {
-        path_follower.followPath();
-        path_follower.pubMsgs();
+        visual.pubMsgs();
         ros::spinOnce();
         rate.sleep();
     }
