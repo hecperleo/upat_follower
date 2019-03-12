@@ -17,6 +17,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <arg name="vz_up" default="3.0"/>
     <arg name="vz_dn" default="1.0"/>
     <arg name="ns_prefix" default="uav_"/>
+    <arg name="path" default="cubic"/>
 
     <arg name="pub_rate" default="50.0"/>
     <!-- Visualization -->
@@ -36,22 +37,23 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 <param name="vxy" value="$(arg vxy)"/>
                 <param name="vz_up" value="$(arg vz_up)"/>
                 <param name="vz_dn" value="$(arg vz_dn)"/>
-                 <param name="pub_rate" value="$(arg pub_rate)"/>
+                <param name="pub_rate" value="$(arg pub_rate)"/>
             </node>
             <node pkg="uav_path_manager" type="path_manager_node" name="manager" output="screen" required="true">
                 <param name="uav_id" value="1"/>
                 <param name="save_csv" value="$(arg save_data)"/>
                 <param name="trajectory" value="$(arg trajectory)"/>
-                 <param name="pub_rate" value="$(arg pub_rate)"/>
+                <param name="pub_rate" value="$(arg pub_rate)"/>
+                <param name="path" value="$(arg path)"/>
             </node>
             <node pkg="uav_path_manager" type="path_follower_node" name="follower" output="screen" required="true">
                 <param name="uav_id" value="1"/>
-                 <param name="pub_rate" value="$(arg pub_rate)"/>
+                <param name="pub_rate" value="$(arg pub_rate)"/>
             </node>
             <node pkg="uav_path_manager" type="visualization_node" name="visualization" required="true">
                 <param name="uav_id" value="1"/>
                 <param name="robot_model" value="$(arg robot_model)"/>
-                 <param name="pub_rate" value="$(arg pub_rate)"/>
+                <param name="pub_rate" value="$(arg pub_rate)"/>
             </node>
         </group>
 
@@ -60,15 +62,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             <node pkg="uav_path_manager" type="path_manager_node" name="manager" required="true" output="screen">
                 <param name="uav_id" value="2"/>
                 <param name="trajectory" value="$(arg trajectory)"/>
-                 <param name="pub_rate" value="$(arg pub_rate)"/>
+                <param name="pub_rate" value="$(arg pub_rate)"/>
+                <param name="path" value="$(arg path)"/>
             </node>
             <node pkg="uav_path_manager" type="path_follower_node" name="follower" required="true">
                 <param name="uav_id" value="2"/>
-                 <param name="pub_rate" value="$(arg pub_rate)"/>
+                <param name="pub_rate" value="$(arg pub_rate)"/>
             </node>
             <node pkg="uav_path_manager" type="visualization_node" name="visualization" required="true">
                 <param name="uav_id" value="2"/>
-                 <param name="pub_rate" value="$(arg pub_rate)"/>
+                <param name="pub_rate" value="$(arg pub_rate)"/>
                 <param name="robot_model" value="$(arg robot_model)"/>
             </node>
         </group>

@@ -24,6 +24,7 @@ PathManager::PathManager() : nh_(), pnh_("~") {
     pnh_.getParam("uav_id", uav_id_);
     pnh_.getParam("save_csv", save_csv_);
     pnh_.getParam("trajectory", trajectory_);
+    pnh_.getParam("path", init_path_name_);
     // Subscriptions
     sub_pose_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/pose", 0, &PathManager::ualPoseCallback, this);
     sub_state_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/state", 0, &PathManager::ualStateCallback, this);
@@ -42,7 +43,7 @@ PathManager::PathManager() : nh_(), pnh_("~") {
     end_path_ = false;
     // Initialize path
     // init_path_ = constructPath(list_init_x_, list_init_y_, list_init_z_, "uav_" + std::to_string(uav_id_) + "_home");
-    init_path_ = csvToPath("/figure1.csv");
+    init_path_ = csvToPath("/" + init_path_name_ + ".csv");
     // Save data
     if (save_csv_) {
         std::string pkg_name_path = ros::package::getPath("uav_path_manager");
