@@ -42,8 +42,8 @@ PathManager::PathManager() : nh_(), pnh_("~") {
     on_path_ = false;
     end_path_ = false;
     // Initialize path
-    // init_path_ = constructPath(list_init_x_, list_init_y_, list_init_z_, "uav_" + std::to_string(uav_id_) + "_home");
     init_path_ = csvToPath("/" + init_path_name_ + ".csv");
+    max_vel_percentage_ = csvToVector("/velocities.csv");
     // Save data
     if (save_csv_) {
         std::string pkg_name_path = ros::package::getPath("uav_path_manager");
@@ -74,7 +74,7 @@ nav_msgs::Path PathManager::constructPath(std::vector<double> _wps_x, std::vecto
 nav_msgs::Path PathManager::csvToPath(std::string _file_name) {
     nav_msgs::Path out_path;
     std::string pkg_name_path = ros::package::getPath("uav_path_manager");
-    std::string folder_name =  pkg_name_path + "/data" + _file_name;
+    std::string folder_name = pkg_name_path + "/data" + _file_name;
     std::fstream read_csv;
     read_csv.open(folder_name);
     std::vector<double> list_x, list_y, list_z;
@@ -95,12 +95,29 @@ nav_msgs::Path PathManager::csvToPath(std::string _file_name) {
             list_y.push_back(dy);
             list_z.push_back(dz);
         }
-        list_x.pop_back();
-        list_y.pop_back();
-        list_z.pop_back();
     }
 
     return constructPath(list_x, list_y, list_z, "uav_" + std::to_string(uav_id_) + "_home");
+}
+
+std::vector<double> PathManager::csvToVector(std::string _file_name) {
+    std::vector<double> out_vector;
+    std::string pkg_name_path = ros::package::getPath("uav_path_manager");
+    std::string folder_name = pkg_name_path + "/data" + _file_name;
+    std::fstream read_csv;
+    read_csv.open(folder_name);
+    if (read_csv.is_open()) {
+        while (read_csv.good()) {
+            std::string x;
+            double dx;
+            getline(read_csv, x, '\n');
+            std::stringstream sx(x);
+            sx >> dx;
+            out_vector.push_back(dx);
+        }
+    }
+
+    return out_vector;
 }
 
 void PathManager::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose) {
@@ -177,9 +194,9 @@ void PathManager::runMission() {
         if (save_csv_) saveDataForTesting();
         if (trajectory_) {
             generate_path.request.init_path = init_path_;
-            for (int i = 0; i < max_vel_percentage.size(); i++) {
+            for (int i = 0; i < max_vel_percentage_.size(); i++) {
                 std_msgs::Float32 v_percentage;
-                v_percentage.data = max_vel_percentage[i];
+                v_percentage.data = max_vel_percentage_[i];
                 generate_path.request.max_vel_percentage.push_back(v_percentage);
             }
             generator_mode.data = 4;

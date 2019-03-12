@@ -48,6 +48,7 @@ class PathManager {
     void velocityCallback(const geometry_msgs::TwistStamped &_velocity);
     // Methods
     nav_msgs::Path csvToPath(std::string _file_name);
+    std::vector<double> csvToVector(std::string _file_name);
     nav_msgs::Path constructPath(std::vector<double> _wps_x, std::vector<double> _wps_y, std::vector<double> _wps_z, std::string frame_id);
     void saveDataForTesting();
     // Node handlers
@@ -65,7 +66,7 @@ class PathManager {
     geometry_msgs::PoseStamped ual_pose_;
     geometry_msgs::TwistStamped velocity_;
     uav_abstraction_layer::State ual_state_;
-    std::vector<double> max_vel_percentage = {1.0, 0.8, 0.5, 0.8, 1, 0.8, 0.5, 0.8};
+    std::vector<double> max_vel_percentage_;
     // Params
     int uav_id_;
     bool save_csv_;
