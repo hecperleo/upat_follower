@@ -25,6 +25,7 @@ PathManager::PathManager() : nh_(), pnh_("~") {
     pnh_.getParam("save_csv", save_csv_);
     pnh_.getParam("trajectory", trajectory_);
     pnh_.getParam("path", init_path_name_);
+    pnh_.getParam("reach_tolerance", reach_tolerance_);
     // Subscriptions
     sub_pose_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/pose", 0, &PathManager::ualPoseCallback, this);
     sub_state_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/state", 0, &PathManager::ualStateCallback, this);
@@ -244,14 +245,14 @@ void PathManager::runMission() {
         case 4:  // Flying auto
             if (!end_path_) {
                 if (!on_path_) {
-                    if ((current_p - path0_p).norm() > 0.2) {
+                    if ((current_p - path0_p).norm() > reach_tolerance_ * 2) {
                         pub_set_pose_.publish(path.poses.at(0));
-                    } else if (0.1 > (current_p - path0_p).norm()) {
+                    } else if (reach_tolerance_ > (current_p - path0_p).norm()) {
                         pub_set_pose_.publish(path.poses.front());
                         on_path_ = true;
                     }
                 } else {
-                    if (0.2 > (current_p - path_end_p).norm()) {
+                    if (reach_tolerance_ * 2 > (current_p - path_end_p).norm()) {
                         pub_set_pose_.publish(path.poses.back());
                         on_path_ = false;
                         end_path_ = true;
@@ -262,7 +263,7 @@ void PathManager::runMission() {
                     }
                 }
             } else {
-                if (0.2 > (current_p - path_end_p).norm() && (current_p - path_end_p).norm() > 0.1) {
+                if (reach_tolerance_ * 2 > (current_p - path_end_p).norm() && (current_p - path_end_p).norm() > reach_tolerance_) {
                     pub_set_pose_.publish(path.poses.back());
                 } else {
                     land.request.blocking = true;

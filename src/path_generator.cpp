@@ -128,9 +128,17 @@ bool PathGenerator::pathCallback(uav_path_manager::GeneratePath::Request &_req_p
     list_pose_x.push_back(list_pose_x.back());
     list_pose_y.push_back(list_pose_y.back());
     list_pose_z.push_back(list_pose_z.back());
+    int total_distance = 0;
     switch (_req_path.generator_mode.data) {
         case 1:
             mode_ = mode_interp1_;
+            for (int i = 0; i < _req_path.init_path.poses.size() - 1; i++) {
+                Eigen::Vector3f point_1, point_2;
+                point_1 = Eigen::Vector3f(list_pose_x[i], list_pose_y[i], list_pose_z[i]);
+                point_2 = Eigen::Vector3f(list_pose_x[i + 1], list_pose_y[i + 1], list_pose_z[i + 1]);
+                total_distance = total_distance + (point_2 - point_1).norm();
+            }
+            interp1_final_size_ = total_distance / 0.02;
             _res_path.generated_path = pathManagement(list_pose_x, list_pose_y, list_pose_z);
             break;
         case 2:
