@@ -71,5 +71,6 @@ class PathManager {
     int uav_id_;
     bool save_csv_;
     bool trajectory_;
+    double reach_tolerance_;
     std::string init_path_name_;
 };

@@ -9,6 +9,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 -->
 <launch>
+    <!-- Arguments -->
     <arg name="save_data" default="false"/>
     <arg name="multi" default="true"/>
     <arg name="robot_model" default="iris"/>
@@ -18,8 +19,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <arg name="vz_dn" default="1.0"/>
     <arg name="ns_prefix" default="uav_"/>
     <arg name="path" default="cubic"/>
-
+    <arg name="reach_tolerance" default="0.1"/>
     <arg name="pub_rate" default="50.0"/>
+
     <!-- Visualization -->
     <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find uav_path_manager)/rviz/mision.rviz" required="true"/>
 
@@ -45,6 +47,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 <param name="trajectory" value="$(arg trajectory)"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
                 <param name="path" value="$(arg path)"/>
+                <param name="reach_tolerance" value="$(arg reach_tolerance)"/>
             </node>
             <node pkg="uav_path_manager" type="path_follower_node" name="follower" output="screen" required="true">
                 <param name="uav_id" value="1"/>
@@ -64,6 +67,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 <param name="trajectory" value="$(arg trajectory)"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
                 <param name="path" value="$(arg path)"/>
+                <param name="reach_tolerance" value="$(arg reach_tolerance)"/>
             </node>
             <node pkg="uav_path_manager" type="path_follower_node" name="follower" required="true">
                 <param name="uav_id" value="2"/>
