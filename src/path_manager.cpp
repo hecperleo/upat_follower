@@ -172,19 +172,21 @@ void PathManager::runMission() {
             follow_path.request.generated_max_vel_percentage = generate_path.response.generated_max_vel_percentage;
             follow_path.request.max_velocity = generate_path.response.max_velocity;
             client_follow_path_.call(follow_path);
-        } else {
-            // generator_mode.data = 3;
-            // generate_path.request.generator_mode = generator_mode;
-            // generate_path.request.init_path = init_path_;
-            // client_generate_path_.call(generate_path);
-            // path = generate_path.response.generated_path;
-            
-            path = csvToPath("/pose.csv");
+        } else { //
+             init_path_ = csvToPath("/experiment_path.csv");
+
+             generator_mode.data = 3; // spline
+             generate_path.request.generator_mode = generator_mode;
+             generate_path.request.init_path = init_path_;
+             client_generate_path_.call(generate_path);
+             path = generate_path.response.generated_path;
+
+            //path =svToPath("/experiment_path_1.csv");
             // ROS_WARN("id: %s", path.header.frame_id);
             follow_path.request.generated_path = path;
-            cruising_speed.data = 1.0;
-            look_ahead.data = 1.2;
-            follower_mode.data = 1;
+            cruising_speed.data = 1;
+            look_ahead.data = 2;
+            follower_mode.data = 1; // path follower
             follow_path.request.cruising_speed = cruising_speed;
             follow_path.request.look_ahead = look_ahead;
             follow_path.request.follower_mode = follower_mode;
@@ -210,42 +212,37 @@ void PathManager::runMission() {
             break;
         case 4:  // Flying auto
             if (!end_path_) {
-                if (!on_path_) {
-                    if ((current_p - path0_p).norm() > 0.2) {
+                if (!on_path_) { // if the uav is not on the path to follow
+                    if ((current_p - path0_p).norm() > 1) {
                         wp = path.poses.at(0);
                         wp.header.frame_id = "map";
                         pub_set_pose_.publish(wp);
-                    } else if (0.1 > (current_p - path0_p).norm()) {
-                        wp = path.poses.front();
-                        wp.header.frame_id = "map";
-                        pub_set_pose_.publish(wp);
-                        on_path_ = true;
-                    }
-                } else {
-                    if (0.2 > (current_p - path_end_p).norm()) {
-                        
+                    } else on_path_ = true;
+                } else { // if the uav is on the path
+                    if (1 > (current_p - path_end_p).norm()) { // if it is the end of the path
+                    
                         wp = path.poses.back();
                         wp.header.frame_id = "map";
                         pub_set_pose_.publish(wp);
                         on_path_ = false;
                         end_path_ = true;
-                    } else {
+                    } else { // if it's not the end of the path
+                        // main loop
                         current_path_.header.frame_id = "map";
-                        current_path_.poses.push_back(ual_pose_);
-                        std::cout<<velocity_.twist.linear<<std::endl;
-                        
+                        current_path_.poses.push_back(ual_pose_);                        
                         pub_set_velocity_.publish(velocity_);
                     }
                 }
             } else {
-                if (0.2 > (current_p - path_end_p).norm() && (current_p - path_end_p).norm() > 0.1) {
-                    wp = path.poses.back();
-                    wp.header.frame_id = "map";
-                    pub_set_pose_.publish(wp);
-                } else {
-                    land.request.blocking = true;
-                    client_land_.call(land);
-                }
+            geometry_msgs::PoseStamped land_wp;
+            ROS_INFO("going to the landing place");
+            land_wp.pose.position.x = 3.75;
+            land_wp.pose.position.y = -45.25;
+            land_wp.pose.position.z = 5.0;
+            sleep(3);
+            pub_set_pose_.publish(land_wp);
+            land.request.blocking = true;
+            client_land_.call(land);
             }
             break;
         case 5:  // Landing

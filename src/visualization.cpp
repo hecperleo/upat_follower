@@ -18,7 +18,7 @@ Visualization::Visualization() : nh_(), pnh_("~") {
     // Initialize path
     // Save data
 
-    uav_model_ = readModel(robot_model);
+    //uav_model_ = readModel(robot_model);
 }
 
 Visualization::~Visualization() {
@@ -42,7 +42,7 @@ visualization_msgs::Marker Visualization::readModel(std::string _model) {
     visualization_msgs::Marker model_;
     model_.id = uav_id_;
     model_.type = visualization_msgs::Marker::MESH_RESOURCE;
-    model_.mesh_resource = "package://robots_description/models/" + _model + "/meshes/multirotor.dae";
+    //model_.mesh_resource = "package://robots_description/models/mbzirc/meshes/multirotor.dae";
     model_.action = visualization_msgs::Marker::ADD;
     model_.color.a = 1;
     if (_model == "mbzirc") {
@@ -77,5 +77,5 @@ void Visualization::pubMsgs() {
     pub_generated_path_.publish(generated_path_);
     pub_current_path_.publish(current_path_);
     uav_model_.pose = ual_pose_.pose;
-    pub_uav_model_.publish(uav_model_);
+    //pub_uav_model_.publish(uav_model_);
 }

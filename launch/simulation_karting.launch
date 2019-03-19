@@ -10,9 +10,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 -->
 <launch>
     <arg name="save_data" default="false"/>
-    <arg name="multi" default="true"/>
-    <arg name="robot_model" default="iris"/>
-    <arg name="trajectory" default="true"/>
+    <arg name="multi" default="false"/>
+    <arg name="robot_model" default="mbzirc"/>
+    <arg name="trajectory" default="false"/>
     <arg name="vxy" default="2.0"/>
     <arg name="vz_up" default="3.0"/>
     <arg name="vz_dn" default="1.0"/>
