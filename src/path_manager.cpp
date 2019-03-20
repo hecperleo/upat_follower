@@ -5,6 +5,8 @@ PathManager::PathManager() : nh_(), pnh_("~") {
     pnh_.getParam("uav_id", uav_id_);
     pnh_.getParam("save_csv", save_csv_);
     pnh_.getParam("trajectory", trajectory_);
+    pnh_.getParam("csv_file", csv_file);
+
     // Subscriptions
     sub_pose_ = nh_.subscribe("/drone_" + std::to_string(uav_id_) + "/ual/pose", 0, &PathManager::ualPoseCallback, this);
     sub_state_ = nh_.subscribe("/drone_" + std::to_string(uav_id_) + "/ual/state", 0, &PathManager::ualStateCallback, this);
@@ -173,9 +175,9 @@ void PathManager::runMission() {
             follow_path.request.max_velocity = generate_path.response.max_velocity;
             client_follow_path_.call(follow_path);
         } else { //
-             init_path_ = csvToPath("/experiment_path.csv");
+             init_path_ = csvToPath("/"+csv_file +".csv");
 
-             generator_mode.data = 3; // spline
+             generator_mode.data = 1; // spline
              generate_path.request.generator_mode = generator_mode;
              generate_path.request.init_path = init_path_;
              client_generate_path_.call(generate_path);

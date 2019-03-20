@@ -13,6 +13,7 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "nav_msgs/Path.h"
 #include "std_msgs/Int8.h"
+#include "std_msgs/String.h"
 
 class PathManager {
    public:
@@ -57,4 +58,5 @@ class PathManager {
     int uav_id_;
     bool save_csv_;
     bool trajectory_;
+    std::string csv_file;
 };

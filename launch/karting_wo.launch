@@ -36,7 +36,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 <param name="save_csv" value="$(arg save_data)"/>
                 <param name="trajectory" value="$(arg trajectory)"/>
                  <param name="pub_rate" value="$(arg pub_rate)"/>
-                <param name="csv_file" value="obst"/>
+                <param name="csv_file" value="wo_obst"/>
 
             </node>
             <node pkg="uav_path_manager" type="path_follower_node" name="follower" output="screen" required="true">
