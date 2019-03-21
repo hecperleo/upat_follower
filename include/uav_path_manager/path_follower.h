@@ -50,4 +50,5 @@ class PathFollower {
     std::vector<double> generated_max_vel_percentage_;
     double current_yaw_;
     grvc::utils::PidController* yaw_pid;
+    bool yaw_on_ = false;
 };

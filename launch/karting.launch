@@ -42,6 +42,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             <node pkg="uav_path_manager" type="path_follower_node" name="follower" output="screen" required="true">
                 <param name="uav_id" value="1"/>
                  <param name="pub_rate" value="$(arg pub_rate)"/>
+                 <param name="yaw_on" value="false"/>
+
             </node>
         </group>
 

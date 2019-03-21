@@ -6,6 +6,7 @@
 PathFollower::PathFollower() : nh_(), pnh_("~") {
     // Parameters
     pnh_.getParam("uav_id", uav_id_);
+    pnh_.getParam("yaw_on", yaw_on_);
     // Subscriptions
     sub_pose_ = nh_.subscribe("/drone_" + std::to_string(uav_id_) + "/ual/pose", 0, &PathFollower::ualPoseCallback, this);
     // Publishers
@@ -146,8 +147,8 @@ geometry_msgs::TwistStamped PathFollower::calculateVelocity(Eigen::Vector3f _cur
     float commanded_yaw_rate = yaw_pid->control_signal(yaw_diff, sampling_period);
 
     out_vel.header.frame_id = "map";
+    if(yaw_on_) out_vel.twist.angular.z = commanded_yaw_rate;
 
-    out_vel.twist.angular.z = commanded_yaw_rate;
 
     return out_vel;
 }

@@ -1,0 +1,20 @@
+<launch>
+<!-- Visualization -->
+ <arg name="save_data" default="false"/>
+    <arg name="multi" default="false"/>
+    <arg name="robot_model" default="mbzirc"/>
+    <arg name="trajectory" default="false"/>
+    <arg name="vxy" default="2.0"/>
+    <arg name="vz_up" default="3.0"/>
+    <arg name="vz_dn" default="1.0"/>
+    <arg name="ns_prefix" default="uav_"/>
+
+    <arg name="pub_rate" default="50.0"/>
+    <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find uav_path_manager)/rviz/mision.rviz" required="true"/>
+
+<node pkg="uav_path_manager" type="visualization_node" name="visualization" required="true">
+                <param name="uav_id" value="1"/>
+                <param name="robot_model" value="$(arg robot_model)"/>
+                 <param name="pub_rate" value="$(arg pub_rate)"/>
+            </node>
+</launch>
