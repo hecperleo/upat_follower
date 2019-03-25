@@ -59,4 +59,5 @@ class PathManager {
     bool save_csv_;
     bool trajectory_;
     std::string csv_file;
+    float hovering_radius = 1.0;
 };

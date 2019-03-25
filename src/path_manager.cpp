@@ -6,6 +6,7 @@ PathManager::PathManager() : nh_(), pnh_("~") {
     pnh_.getParam("save_csv", save_csv_);
     pnh_.getParam("trajectory", trajectory_);
     pnh_.getParam("csv_file", csv_file);
+    pnh_.getParam("hovering",hovering_radius);
 
     // Subscriptions
     sub_pose_ = nh_.subscribe("/drone_" + std::to_string(uav_id_) + "/ual/pose", 0, &PathManager::ualPoseCallback, this);
@@ -211,18 +212,20 @@ void PathManager::runMission() {
             }
             break;
         case 3:  // Taking of
+            ROS_INFO("The uav is taking off");
             break;
         case 4:  // Flying auto
             if (!end_path_) {
                 if (!on_path_) { // if the uav is not on the path to follow
-                    if ((current_p - path0_p).norm() > 1) {
+                    if ((current_p - path0_p).norm() > hovering_radius) {
+                        ROS_INFO("The uav is going to the first init");
                         wp = path.poses.at(0);
                         wp.header.frame_id = "map";
                         pub_set_pose_.publish(wp);
                     } else on_path_ = true;
                 } else { // if the uav is on the path
-                    if (1 > (current_p - path_end_p).norm()) { // if it is the end of the path
-                    
+                    if (hovering_radius > (current_p - path_end_p).norm()) { // if it is the end of the path
+                        ROS_INFO("trajectory finished");
                         wp = path.poses.back();
                         wp.header.frame_id = "map";
                         pub_set_pose_.publish(wp);
@@ -230,6 +233,7 @@ void PathManager::runMission() {
                         end_path_ = true;
                     } else { // if it's not the end of the path
                         // main loop
+                        ROS_INFO("navigating along the path");
                         current_path_.header.frame_id = "map";
                         current_path_.poses.push_back(ual_pose_);                        
                         pub_set_velocity_.publish(velocity_);
@@ -248,6 +252,7 @@ void PathManager::runMission() {
             }
             break;
         case 5:  // Landing
+            ROS_INFO("the uav is landing");
             break;
     }
 }
