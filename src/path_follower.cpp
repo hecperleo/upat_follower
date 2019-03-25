@@ -52,7 +52,7 @@ bool PathFollower::pathCallback(uav_path_manager::FollowPath::Request &_req_path
             break;
     }
     _res_path.ok.data = true;
-    flag_run_ = false;
+    // flag_run_ = false;
 
     return true;
 }

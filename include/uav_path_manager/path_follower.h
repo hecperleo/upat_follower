@@ -53,7 +53,7 @@ class PathFollower {
     ros::ServiceServer server_follow_path_;
     // Variables
     int uav_id_, follower_mode_;
-    bool flag_run_;
+    bool flag_run_ = false;
     double look_ahead_ = 1.0;
     double cruising_speed_ = 1.0;
     double max_vel_ = 1.0;
