@@ -22,10 +22,15 @@
 PathFollower::PathFollower() : nh_(), pnh_("~") {
     // Parameters
     pnh_.getParam("uav_id", uav_id_);
+    pnh_.getParam("debug", debug_);
     // Subscriptions
     sub_pose_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/pose", 0, &PathFollower::ualPoseCallback, this);
     // Publishers
     pub_output_velocity_ = nh_.advertise<geometry_msgs::TwistStamped>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/output_vel", 1000);
+    if (debug_) {
+        pub_point_look_ahead_ = nh_.advertise<geometry_msgs::PointStamped>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "debug_point_look_ahead", 1000);
+        pub_point_normal_ = nh_.advertise<geometry_msgs::PointStamped>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "debug_point_normal", 1000);
+    }
     // Services
     server_follow_path_ = nh_.advertiseService("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/follow_path", &PathFollower::pathCallback, this);
 }
@@ -134,6 +139,10 @@ geometry_msgs::TwistStamped PathFollower::calculateVelocity(Eigen::Vector3f _cur
 
 void PathFollower::pubMsgs() {
     pub_output_velocity_.publish(out_velocity_);
+    if (debug_) {
+        pub_point_look_ahead_.publish(point_look_ahead_);
+        pub_point_normal_.publish(point_normal_);
+    }
 }
 
 void PathFollower::followPath() {
@@ -156,6 +165,11 @@ void PathFollower::followPath() {
             int pos_look_ahead = calculatePosLookAhead(normal_pos_on_path);
             out_velocity_ = calculateVelocity(current_point, pos_look_ahead);
             prev_normal_pos_on_path_ = normal_pos_on_path;
+            if (debug_) {
+                point_normal_.header.frame_id = point_look_ahead_.header.frame_id = target_path_.header.frame_id;
+                point_normal_.point = target_path_.poses.at(normal_pos_on_path).pose.position;
+                point_look_ahead_.point = target_path_.poses.at(pos_look_ahead).pose.position;
+            }
         }
     }
 }

@@ -48,11 +48,11 @@ class PathFollower {
     // Subscribers
     ros::Subscriber sub_pose_;
     // Publishers
-    ros::Publisher pub_output_velocity_;
+    ros::Publisher pub_output_velocity_, pub_point_look_ahead_, pub_point_normal_;
     // Services
     ros::ServiceServer server_follow_path_;
     // Variables
-    int uav_id_, follower_mode_;
+    int follower_mode_;
     bool flag_run_ = false;
     double look_ahead_ = 1.0;
     double cruising_speed_ = 1.0;
@@ -63,4 +63,9 @@ class PathFollower {
     geometry_msgs::PoseStamped ual_pose_;
     geometry_msgs::TwistStamped out_velocity_;
     std::vector<double> generated_max_vel_percentage_;
+    // Params
+    int uav_id_;
+    bool debug_;
+    // Debug
+    geometry_msgs::PointStamped point_look_ahead_, point_normal_;
 };
