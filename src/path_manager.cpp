@@ -206,7 +206,7 @@ void PathManager::runMission() {
     switch (ual_state_.state) {
         case 2:  // Landed armed
             if (!end_path_) {
-                take_off.request.height = 5.0;
+                take_off.request.height = 4.0;
                 take_off.request.blocking = true;
                 client_take_off_.call(take_off);
             }
