@@ -40,9 +40,10 @@ class PathFollower {
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
     // Methods
     double changeLookAhead(int _pos_on_path);
-    void prepareDebug(int _search_range_pos, int _normal_pos_on_path, int _pos_look_ahead);
-    int calculatePosOnPath(Eigen::Vector3f _current_point, int _search_range, int _prev_normal_pos_on_path, nav_msgs::Path _path_search);
     int calculatePosLookAhead(int _pos_on_path);
+    int calculateDistanceOnPath(int _prev_normal_pos_on_path, double _meters);
+    int calculatePosOnPath(Eigen::Vector3f _current_point, double _search_range, int _prev_normal_pos_on_path, nav_msgs::Path _path_search);
+    void prepareDebug(double _search_range, int _normal_pos_on_path, int _pos_look_ahead);
     geometry_msgs::TwistStamped calculateVelocity(Eigen::Vector3f _current_p, int _pos_la);
     // Node handlers
     ros::NodeHandle nh_, pnh_;
@@ -54,15 +55,15 @@ class PathFollower {
     ros::ServiceServer server_follow_path_;
     // Variables
     int follower_mode_;
+    int prev_normal_pos_on_path_ = 0;
+    int prev_normal_vel_on_path_ = 0;
     bool flag_run_ = false;
     double look_ahead_ = 1.0;
     double cruising_speed_ = 1.0;
     double max_vel_ = 1.0;
-    int prev_normal_pos_on_path_ = 0;
-    int prev_normal_vel_on_path_ = 0;
-    nav_msgs::Path target_path_, target_vel_path_;
     geometry_msgs::PoseStamped ual_pose_;
     geometry_msgs::TwistStamped out_velocity_;
+    nav_msgs::Path target_path_, target_vel_path_;
     std::vector<double> generated_max_vel_percentage_;
     // Params
     int uav_id_;
