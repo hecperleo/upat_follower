@@ -71,13 +71,8 @@ void PathFollower::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_
 
 int PathFollower::calculatePosOnPath(Eigen::Vector3f _current_point, double _search_range, int _prev_normal_pos_on_path, nav_msgs::Path _path_search) {
     std::vector<double> vec_distances;
-    // const int search_range = 10;  // Find UAV position on path in a range, do not search in all path.
-    // int start_search_pos_on_path = _prev_normal_pos_on_path - _search_range;
-    // int end_search_pos_on_path = _prev_normal_pos_on_path + _search_range;
     int start_search_pos_on_path = calculateDistanceOnPath(_prev_normal_pos_on_path, -_search_range);
     int end_search_pos_on_path = calculateDistanceOnPath(_prev_normal_pos_on_path, _search_range);
-    // if (start_search_pos_on_path <= 0) start_search_pos_on_path = 0;
-    // if (end_search_pos_on_path >= target_path_.poses.size()) end_search_pos_on_path = target_path_.poses.size() - 1;
     for (int i = start_search_pos_on_path; i < end_search_pos_on_path; i++) {
         Eigen::Vector3f target_path_point;
         target_path_point = Eigen::Vector3f(target_path_.poses.at(i).pose.position.x, target_path_.poses.at(i).pose.position.y, target_path_.poses.at(i).pose.position.z);
@@ -174,7 +169,7 @@ int PathFollower::calculateDistanceOnPath(int _prev_normal_pos_on_path, double _
                 Eigen::Vector3f p1 = Eigen::Vector3f(target_path_.poses.at(i).pose.position.x, target_path_.poses.at(i).pose.position.y, target_path_.poses.at(i).pose.position.z);
                 Eigen::Vector3f p0 = Eigen::Vector3f(target_path_.poses.at(i - 1).pose.position.x, target_path_.poses.at(i - 1).pose.position.y, target_path_.poses.at(i - 1).pose.position.z);
                 temp_dist = temp_dist + (p1 - p0).norm();
-                if (temp_dist < fabs(_meters/2)) {
+                if (temp_dist < fabs(_meters / 2)) {
                     pos_equals_dist = i;
                 } else {
                     i = 0;
@@ -219,10 +214,10 @@ void PathFollower::followPath() {
             flag_run_ = true;
         }
         if (flag_run_) {
-            double search_range_normal_pos = look_ahead_*1.5;
+            double search_range_normal_pos = look_ahead_ * 1.5;
             int normal_pos_on_path = calculatePosOnPath(current_point, search_range_normal_pos, prev_normal_pos_on_path_, target_path_);
             if (follower_mode_ == 2) {
-                int const search_range_vel = target_vel_path_.poses.size() * 0.4;
+                double search_range_vel = look_ahead_ * 1.5;
                 int normal_vel_on_path = calculatePosOnPath(current_point, search_range_vel, prev_normal_vel_on_path_, target_vel_path_);
                 prev_normal_vel_on_path_ = normal_vel_on_path;
                 look_ahead_ = changeLookAhead(normal_vel_on_path);
