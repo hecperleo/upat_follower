@@ -166,7 +166,7 @@ void PathFollower::followPath() {
             flag_run_ = true;
         }
         if (flag_run_) {
-            int const search_range_pos = 10;
+            int const search_range_pos = 300;
             int normal_pos_on_path = calculatePosOnPath(current_point, search_range_pos, prev_normal_pos_on_path_, target_path_);
             if (follower_mode_ == 2) {
                 int const search_range_vel = target_vel_path_.poses.size() * 0.4;
