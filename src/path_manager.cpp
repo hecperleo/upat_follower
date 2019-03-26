@@ -204,7 +204,7 @@ void PathManager::runMission() {
     geometry_msgs::PoseStamped wp;
 
     switch (ual_state_.state) {
-        case 2:  // Landed armed
+        case 1:  // Landed disarmed
             if (!end_path_) {
                 take_off.request.height = 4.0;
                 take_off.request.blocking = true;
