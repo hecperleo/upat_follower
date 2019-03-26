@@ -28,8 +28,11 @@ PathFollower::PathFollower() : nh_(), pnh_("~") {
     // Publishers
     pub_output_velocity_ = nh_.advertise<geometry_msgs::TwistStamped>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/output_vel", 1000);
     if (debug_) {
-        pub_point_look_ahead_ = nh_.advertise<geometry_msgs::PointStamped>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "debug_point_look_ahead", 1000);
-        pub_point_normal_ = nh_.advertise<geometry_msgs::PointStamped>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "debug_point_normal", 1000);
+        std::cout << "Debug true!" << std::endl;
+        pub_point_look_ahead_ = nh_.advertise<geometry_msgs::PointStamped>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/debug_point_look_ahead", 1000);
+        pub_point_normal_ = nh_.advertise<geometry_msgs::PointStamped>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/debug_point_normal", 1000);
+        pub_point_search_normal_begin_ = nh_.advertise<geometry_msgs::PointStamped>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/debug_point_search_begin", 1000);
+        pub_point_search_normal_end_ = nh_.advertise<geometry_msgs::PointStamped>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/debug_point_search_end", 1000);
     }
     // Services
     server_follow_path_ = nh_.advertiseService("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/follow_path", &PathFollower::pathCallback, this);
@@ -137,11 +140,27 @@ geometry_msgs::TwistStamped PathFollower::calculateVelocity(Eigen::Vector3f _cur
     return out_vel;
 }
 
+void PathFollower::prepareDebug(int _search_range_pos, int _normal_pos_on_path, int _pos_look_ahead) {
+    point_normal_.header.frame_id = point_look_ahead_.header.frame_id =
+        point_search_normal_begin_.header.frame_id = point_search_normal_end_.header.frame_id =
+            target_path_.header.frame_id;
+    point_normal_.point = target_path_.poses.at(_normal_pos_on_path).pose.position;
+    point_look_ahead_.point = target_path_.poses.at(_pos_look_ahead).pose.position;
+    int start_search_pos_on_path = prev_normal_pos_on_path_ - _search_range_pos;
+    int end_search_pos_on_path = prev_normal_pos_on_path_ + _search_range_pos;
+    if (start_search_pos_on_path <= 0) start_search_pos_on_path = 0;
+    if (end_search_pos_on_path >= target_path_.poses.size()) end_search_pos_on_path = target_path_.poses.size() - 1;
+    point_search_normal_begin_.point = target_path_.poses.at(start_search_pos_on_path).pose.position;
+    point_search_normal_end_.point = target_path_.poses.at(end_search_pos_on_path).pose.position;
+}
+
 void PathFollower::pubMsgs() {
     pub_output_velocity_.publish(out_velocity_);
     if (debug_) {
         pub_point_look_ahead_.publish(point_look_ahead_);
         pub_point_normal_.publish(point_normal_);
+        pub_point_search_normal_begin_.publish(point_search_normal_begin_);
+        pub_point_search_normal_end_.publish(point_search_normal_end_);
     }
 }
 
@@ -154,7 +173,7 @@ void PathFollower::followPath() {
             flag_run_ = true;
         }
         if (flag_run_) {
-            int const search_range_pos = 10;
+            int const search_range_pos = target_path_.poses.size() * 0.1;
             int normal_pos_on_path = calculatePosOnPath(current_point, search_range_pos, prev_normal_pos_on_path_, target_path_);
             if (follower_mode_ == 2) {
                 int const search_range_vel = target_vel_path_.poses.size() * 0.4;
@@ -166,9 +185,7 @@ void PathFollower::followPath() {
             out_velocity_ = calculateVelocity(current_point, pos_look_ahead);
             prev_normal_pos_on_path_ = normal_pos_on_path;
             if (debug_) {
-                point_normal_.header.frame_id = point_look_ahead_.header.frame_id = target_path_.header.frame_id;
-                point_normal_.point = target_path_.poses.at(normal_pos_on_path).pose.position;
-                point_look_ahead_.point = target_path_.poses.at(pos_look_ahead).pose.position;
+                prepareDebug(search_range_pos, normal_pos_on_path, pos_look_ahead);
             }
         }
     }

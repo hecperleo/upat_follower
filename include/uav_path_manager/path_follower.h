@@ -40,6 +40,7 @@ class PathFollower {
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
     // Methods
     double changeLookAhead(int _pos_on_path);
+    void prepareDebug(int _search_range_pos, int _normal_pos_on_path, int _pos_look_ahead);
     int calculatePosOnPath(Eigen::Vector3f _current_point, int _search_range, int _prev_normal_pos_on_path, nav_msgs::Path _path_search);
     int calculatePosLookAhead(int _pos_on_path);
     geometry_msgs::TwistStamped calculateVelocity(Eigen::Vector3f _current_p, int _pos_la);
@@ -48,7 +49,7 @@ class PathFollower {
     // Subscribers
     ros::Subscriber sub_pose_;
     // Publishers
-    ros::Publisher pub_output_velocity_, pub_point_look_ahead_, pub_point_normal_;
+    ros::Publisher pub_output_velocity_, pub_point_look_ahead_, pub_point_normal_, pub_point_search_normal_begin_, pub_point_search_normal_end_;
     // Services
     ros::ServiceServer server_follow_path_;
     // Variables
@@ -67,5 +68,5 @@ class PathFollower {
     int uav_id_;
     bool debug_;
     // Debug
-    geometry_msgs::PointStamped point_look_ahead_, point_normal_;
+    geometry_msgs::PointStamped point_look_ahead_, point_normal_, point_search_normal_begin_, point_search_normal_end_;
 };
