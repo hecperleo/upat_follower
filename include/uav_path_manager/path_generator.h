@@ -36,8 +36,13 @@
 class PathGenerator {
    public:
     PathGenerator();
+
+    PathGenerator(double vxy, double vz_up, double vz_dn);
+
     ~PathGenerator();
 
+    bool pathCallback(uav_path_manager::GeneratePath::Request &_req_path, uav_path_manager::GeneratePath::Response &_res_path);
+    
     nav_msgs::Path createPathInterp1(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size, int _new_path_size);
     nav_msgs::Path createPathCubicSpline(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size);
     nav_msgs::Path createTrajectory(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size, std::vector<double> _max_vel_percentage);
@@ -50,7 +55,6 @@ class PathGenerator {
 
    private:
     // Callbacks
-    bool pathCallback(uav_path_manager::GeneratePath::Request &_req_path, uav_path_manager::GeneratePath::Response &_res_path);
     // Methods
     int nearestNeighbourIndex(std::vector<double> &_x, double &_value);
     std::vector<double> linealInterp1(std::vector<double> &_x, std::vector<double> &_y, std::vector<double> &_x_new);

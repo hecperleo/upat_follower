@@ -29,14 +29,18 @@
 class PathFollower {
    public:
     PathFollower();
+    PathFollower(int _uav_id, bool _debug);
     ~PathFollower();
 
+    void updatePose(const geometry_msgs::PoseStamped &_ual_pose);
+    bool pathCallback(uav_path_manager::FollowPath::Request &_req_path, uav_path_manager::FollowPath::Response &_res_path);
+    geometry_msgs::TwistStamped out_velocity_;
+    
     void pubMsgs();
     void followPath();
 
    private:
     // Callbacks
-    bool pathCallback(uav_path_manager::FollowPath::Request &_req_path, uav_path_manager::FollowPath::Response &_res_path);
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
     // Methods
     double changeLookAhead(int _pos_on_path);
@@ -62,7 +66,6 @@ class PathFollower {
     double cruising_speed_ = 1.0;
     double max_vel_ = 1.0;
     geometry_msgs::PoseStamped ual_pose_;
-    geometry_msgs::TwistStamped out_velocity_;
     nav_msgs::Path target_path_, target_vel_path_;
     std::vector<double> generated_max_vel_percentage_;
     // Params

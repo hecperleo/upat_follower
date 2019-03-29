@@ -37,12 +37,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <!-- UAV Path Manager nodes -->
     <group ns="uav_path_manager">
         <group ns="$(arg ns_prefix)1">
-            <node pkg="uav_path_manager" type="path_generator_node" name="generator" output="screen" required="true">
+            <!-- <node pkg="uav_path_manager" type="path_generator_node" name="generator" output="screen" required="true">
                 <param name="vxy" value="$(arg vxy)"/>
                 <param name="vz_up" value="$(arg vz_up)"/>
                 <param name="vz_dn" value="$(arg vz_dn)"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
-            </node>
+            </node> -->
             <node pkg="uav_path_manager" type="path_manager_node" name="manager" output="screen" required="true">
                 <param name="uav_id" value="1"/>
                 <param name="save_csv" value="$(arg save_data)"/>
@@ -51,11 +51,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 <param name="path" value="$(arg path)"/>
                 <param name="reach_tolerance" value="$(arg reach_tolerance)"/>
             </node>
-            <node pkg="uav_path_manager" type="path_follower_node" name="follower" output="screen" required="true">
+            <!-- <node pkg="uav_path_manager" type="path_follower_node" name="follower" output="screen" required="true">
                 <param name="uav_id" value="1"/>
                 <param name="debug" value="$(arg debug)"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
-            </node>
+            </node> -->
             <node pkg="uav_path_manager" type="visualization_node" name="visualization" required="true">
                 <param name="uav_id" value="1"/>
                 <param name="robot_model" value="$(arg robot_model)"/>
@@ -72,10 +72,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 <param name="path" value="$(arg path)"/>
                 <param name="reach_tolerance" value="$(arg reach_tolerance)"/>
             </node>
-            <node pkg="uav_path_manager" type="path_follower_node" name="follower" required="true">
+            <!-- <node pkg="uav_path_manager" type="path_follower_node" name="follower" required="true">
                 <param name="uav_id" value="2"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
-            </node>
+            </node> -->
             <node pkg="uav_path_manager" type="visualization_node" name="visualization" required="true">
                 <param name="uav_id" value="2"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>

@@ -19,7 +19,7 @@
 
 #include <uav_path_manager/path_manager.h>
 
-PathManager::PathManager() : nh_(), pnh_("~") {
+PathManager::PathManager() : nh_(), pnh_("~"), generator_(vxy_, vz_up_, vz_dn_){
     // Parameters
     pnh_.getParam("uav_id", uav_id_);
     pnh_.getParam("save_csv", save_csv_);
@@ -36,8 +36,8 @@ PathManager::PathManager() : nh_(), pnh_("~") {
     // Services
     client_take_off_ = nh_.serviceClient<uav_abstraction_layer::TakeOff>("/uav_" + std::to_string(uav_id_) + "/ual/take_off");
     client_land_ = nh_.serviceClient<uav_abstraction_layer::Land>("/uav_" + std::to_string(uav_id_) + "/ual/land");
-    client_generate_path_ = nh_.serviceClient<uav_path_manager::GeneratePath>("/uav_path_manager/generator/generate_path");
-    client_follow_path_ = nh_.serviceClient<uav_path_manager::FollowPath>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/follow_path");
+    // client_generate_path_ = nh_.serviceClient<uav_path_manager::GeneratePath>("/uav_path_manager/generator/generate_path");
+    // client_follow_path_ = nh_.serviceClient<uav_path_manager::FollowPath>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/follow_path");
     client_visualize_ = nh_.serviceClient<uav_path_manager::Visualize>("/uav_path_manager/visualization/uav_" + std::to_string(uav_id_) + "/visualize");
     // Flags
     on_path_ = false;
@@ -146,7 +146,8 @@ void PathManager::saveDataForTesting() {
     generator_mode.data = 1;
     generate_path.request.generator_mode = generator_mode;
     generate_path.request.init_path = init_path_;
-    client_generate_path_.call(generate_path);
+    // client_generate_path_.call(generate_path);
+    generator_.pathCallback(generate_path.request, generate_path.response);
     path = generate_path.response.generated_path;
     csv_interp1.open(folder_data_name_ + "/interp1.csv");
     csv_interp1 << std::fixed << std::setprecision(5);
@@ -156,7 +157,8 @@ void PathManager::saveDataForTesting() {
     csv_interp1.close();
     generator_mode.data = 2;
     generate_path.request.generator_mode = generator_mode;
-    client_generate_path_.call(generate_path);
+    // client_generate_path_.call(generate_path);
+    generator_.pathCallback(generate_path.request, generate_path.response);
     path = generate_path.response.generated_path;
     csv_cubic_loyal.open(folder_data_name_ + "/cubic_spline_loyal.csv");
     csv_cubic_loyal << std::fixed << std::setprecision(5);
@@ -166,7 +168,8 @@ void PathManager::saveDataForTesting() {
     csv_cubic_loyal.close();
     generator_mode.data = 3;
     generate_path.request.generator_mode = generator_mode;
-    client_generate_path_.call(generate_path);
+    // client_generate_path_.call(generate_path);
+    generator_.pathCallback(generate_path.request, generate_path.response);
     path = generate_path.response.generated_path;
     csv_cubic.open(folder_data_name_ + "/cubic_spline.csv");
     csv_cubic << std::fixed << std::setprecision(5);
@@ -185,6 +188,8 @@ void PathManager::callVisualization() {
 }
 
 void PathManager::runMission() {
+    static PathFollower follower_(uav_id_, false);
+
     uav_abstraction_layer::TakeOff take_off;
     uav_abstraction_layer::Land land;
     uav_path_manager::GeneratePath generate_path;
@@ -202,7 +207,8 @@ void PathManager::runMission() {
             }
             generator_mode.data = 4;
             generate_path.request.generator_mode = generator_mode;
-            client_generate_path_.call(generate_path);
+            // client_generate_path_.call(generate_path);
+            generator_.pathCallback(generate_path.request, generate_path.response);
             path = generate_path.response.generated_path;
             follower_mode.data = 2;
             follow_path.request.follower_mode = follower_mode;
@@ -210,12 +216,14 @@ void PathManager::runMission() {
             follow_path.request.generated_path_vel_percentage = generate_path.response.generated_path_vel_percentage;
             follow_path.request.generated_max_vel_percentage = generate_path.response.generated_max_vel_percentage;
             follow_path.request.max_velocity = generate_path.response.max_velocity;
-            client_follow_path_.call(follow_path);
+            // client_follow_path_.call(follow_path);
+            follower_.pathCallback(follow_path.request, follow_path.response);
         } else {
             generator_mode.data = 3;
             generate_path.request.generator_mode = generator_mode;
             generate_path.request.init_path = init_path_;
-            client_generate_path_.call(generate_path);
+            // client_generate_path_.call(generate_path);
+            generator_.pathCallback(generate_path.request, generate_path.response);
             path = generate_path.response.generated_path;
             follow_path.request.generated_path = path;
             cruising_speed.data = 1.0;
@@ -224,7 +232,8 @@ void PathManager::runMission() {
             follow_path.request.cruising_speed = cruising_speed;
             follow_path.request.look_ahead = look_ahead;
             follow_path.request.follower_mode = follower_mode;
-            client_follow_path_.call(follow_path);
+            // client_follow_path_.call(follow_path);
+            follower_.pathCallback(follow_path.request, follow_path.response);
         }
     }
 
@@ -257,6 +266,9 @@ void PathManager::runMission() {
                         on_path_ = false;
                         end_path_ = true;
                     } else {
+                        follower_.updatePose(ual_pose_);
+                        follower_.followPath();
+                        velocity_ = follower_.out_velocity_;
                         pub_set_velocity_.publish(velocity_);
                         current_path_.header.frame_id = ual_pose_.header.frame_id;
                         current_path_.poses.push_back(ual_pose_);

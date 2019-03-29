@@ -37,6 +37,15 @@ PathGenerator::PathGenerator() : nh_(), pnh_("~") {
     // Updating here is non-sense as service seems to be slow in waking up
 }
 
+PathGenerator::PathGenerator(double vxy, double vz_up, double vz_dn) {
+    // Client to get parameters from mavros and required default values
+    get_param_client_ = nh_.serviceClient<mavros_msgs::ParamGet>("mavros/param/get");
+    mavros_params_["MPC_XY_VEL_MAX"] = vxy;      // [m/s]   Default value
+    mavros_params_["MPC_Z_VEL_MAX_UP"] = vz_up;  // [m/s]   Default value
+    mavros_params_["MPC_Z_VEL_MAX_DN"] = vz_dn;  // [m/s]   Default value
+    // Updating here is non-sense as service seems to be slow in waking up
+}
+
 PathGenerator::~PathGenerator() {
 }
 

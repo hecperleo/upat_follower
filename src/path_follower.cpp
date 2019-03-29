@@ -38,6 +38,11 @@ PathFollower::PathFollower() : nh_(), pnh_("~") {
     server_follow_path_ = nh_.advertiseService("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/follow_path", &PathFollower::pathCallback, this);
 }
 
+PathFollower::PathFollower(int _uav_id, bool _debug) {
+    uav_id_ = _uav_id;
+    debug_ = _debug;
+}
+
 PathFollower::~PathFollower() {
 }
 
@@ -67,6 +72,10 @@ bool PathFollower::pathCallback(uav_path_manager::FollowPath::Request &_req_path
 
 void PathFollower::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose) {
     ual_pose_ = *_ual_pose;
+}
+
+void PathFollower::updatePose(const geometry_msgs::PoseStamped &_ual_pose){
+    ual_pose_ = _ual_pose;
 }
 
 int PathFollower::calculatePosOnPath(Eigen::Vector3f _current_point, double _search_range, int _prev_normal_pos_on_path, nav_msgs::Path _path_search) {
