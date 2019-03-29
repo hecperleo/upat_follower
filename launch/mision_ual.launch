@@ -21,9 +21,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <arg name="path" default="cubic"/>
     <arg name="reach_tolerance" default="0.1"/>
     <arg name="pub_rate" default="50.0"/>
+    <arg name="debug" default="false"/>
 
     <!-- Visualization -->
-    <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find uav_path_manager)/rviz/mision.rviz" required="true"/>
+    <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find uav_path_manager)/rviz/mision.rviz" required="true" unless="$(arg debug)"/>
+    <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find uav_path_manager)/rviz/debug.rviz" required="true" if="$(arg debug)"/>
 
     <!-- UAL Server -->
     <include file="$(find uav_path_manager)/launch/server_ual.launch">
@@ -51,6 +53,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             </node>
             <node pkg="uav_path_manager" type="path_follower_node" name="follower" output="screen" required="true">
                 <param name="uav_id" value="1"/>
+                <param name="debug" value="$(arg debug)"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
             </node>
             <node pkg="uav_path_manager" type="visualization_node" name="visualization" required="true">
