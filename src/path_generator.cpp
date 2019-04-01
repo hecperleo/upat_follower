@@ -139,7 +139,7 @@ bool PathGenerator::pathCallback(uav_path_manager::GeneratePath::Request &_req_p
     list_pose_z.push_back(list_pose_z.back());
     int total_distance = 0;
     switch (_req_path.generator_mode.data) {
-        case 1:
+        case 0:
             mode_ = mode_interp1_;
             for (int i = 0; i < _req_path.init_path.poses.size() - 1; i++) {
                 Eigen::Vector3f point_1, point_2;
@@ -150,15 +150,15 @@ bool PathGenerator::pathCallback(uav_path_manager::GeneratePath::Request &_req_p
             interp1_final_size_ = total_distance / 0.02;
             _res_path.generated_path = pathManagement(list_pose_x, list_pose_y, list_pose_z);
             break;
-        case 2:
+        case 1:
             mode_ = mode_cubic_spline_loyal_;
             _res_path.generated_path = pathManagement(list_pose_x, list_pose_y, list_pose_z);
             break;
-        case 3:
+        case 2:
             mode_ = mode_cubic_spline_;
             _res_path.generated_path = pathManagement(list_pose_x, list_pose_y, list_pose_z);
             break;
-        case 4:
+        case 3:
             if (_req_path.init_path.poses.size() - 1 == _req_path.max_vel_percentage.size()) {
                 mode_ = mode_trajectory_;
                 std::vector<double> max_vel_percentage;

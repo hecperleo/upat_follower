@@ -16,6 +16,8 @@
 // OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //----------------------------------------------------------------------------------------------------------------------
+#ifndef PATHGENERATOR_H
+#define PATHGENERATOR_H
 
 #include <mavros_msgs/ParamGet.h>
 #include <ros/ros.h>
@@ -32,6 +34,7 @@
 #include <iostream>
 #include <limits>
 #include <vector>
+
 
 class PathGenerator {
    public:
@@ -76,3 +79,5 @@ class PathGenerator {
     int size_vec_percentage_ = 0;
     int interp1_final_size_ = 10000;
 };
+
+#endif /* PATHGENERATOR_H */
