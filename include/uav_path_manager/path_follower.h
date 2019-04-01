@@ -17,9 +17,14 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //----------------------------------------------------------------------------------------------------------------------
 
+#ifndef PATHFOLLOWER_H
+#define PATHFOLLOWER_H
+
 #include <ros/ros.h>
 #include <uav_abstraction_layer/ual.h>
 #include <uav_path_manager/FollowPath.h>
+#include <uav_path_manager/GeneratePath.h>
+#include <uav_path_manager/path_generator.h>
 #include <Eigen/Eigen>
 #include "geometry_msgs/PointStamped.h"
 #include "geometry_msgs/PoseStamped.h"
@@ -29,14 +34,23 @@
 class PathFollower {
    public:
     PathFollower();
+    PathFollower(int _uav_id, bool _debug);
     ~PathFollower();
+
+    void updatePose(const geometry_msgs::PoseStamped &_ual_pose);
+    bool pathCallback(uav_path_manager::FollowPath::Request &_req_path, uav_path_manager::FollowPath::Response &_res_path);
+    geometry_msgs::TwistStamped out_velocity_;
 
     void pubMsgs();
     void followPath();
 
    private:
+    double vxy_ = 2.0;
+    double vz_up_ = 3.0;
+    double vz_dn_ = 1.0;
+    // Must be here, if it miss -> compilate error -> #include <uav_path_manager/path_generator.h
+    PathGenerator generator_;
     // Callbacks
-    bool pathCallback(uav_path_manager::FollowPath::Request &_req_path, uav_path_manager::FollowPath::Response &_res_path);
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
     // Methods
     double changeLookAhead(int _pos_on_path);
@@ -62,7 +76,6 @@ class PathFollower {
     double cruising_speed_ = 1.0;
     double max_vel_ = 1.0;
     geometry_msgs::PoseStamped ual_pose_;
-    geometry_msgs::TwistStamped out_velocity_;
     nav_msgs::Path target_path_, target_vel_path_;
     std::vector<double> generated_max_vel_percentage_;
     // Params
@@ -71,3 +84,5 @@ class PathFollower {
     // Debug
     geometry_msgs::PointStamped point_look_ahead_, point_normal_, point_search_normal_begin_, point_search_normal_end_;
 };
+
+#endif /* PATHFOLLOWER_H */

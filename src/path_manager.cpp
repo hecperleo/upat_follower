@@ -19,13 +19,14 @@
 
 #include <uav_path_manager/path_manager.h>
 
-PathManager::PathManager() : nh_(), pnh_("~") {
+PathManager::PathManager() : nh_(), pnh_("~") /* , generator_(vxy_, vz_up_, vz_dn_) */ {
     // Parameters
     pnh_.getParam("uav_id", uav_id_);
     pnh_.getParam("save_csv", save_csv_);
     pnh_.getParam("trajectory", trajectory_);
     pnh_.getParam("path", init_path_name_);
     pnh_.getParam("reach_tolerance", reach_tolerance_);
+    pnh_.getParam("use_class", use_class_);
     // Subscriptions
     sub_pose_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/pose", 0, &PathManager::ualPoseCallback, this);
     sub_state_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/state", 0, &PathManager::ualStateCallback, this);
@@ -36,7 +37,6 @@ PathManager::PathManager() : nh_(), pnh_("~") {
     // Services
     client_take_off_ = nh_.serviceClient<uav_abstraction_layer::TakeOff>("/uav_" + std::to_string(uav_id_) + "/ual/take_off");
     client_land_ = nh_.serviceClient<uav_abstraction_layer::Land>("/uav_" + std::to_string(uav_id_) + "/ual/land");
-    client_generate_path_ = nh_.serviceClient<uav_path_manager::GeneratePath>("/uav_path_manager/generator/generate_path");
     client_follow_path_ = nh_.serviceClient<uav_path_manager::FollowPath>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/follow_path");
     client_visualize_ = nh_.serviceClient<uav_path_manager::Visualize>("/uav_path_manager/visualization/uav_" + std::to_string(uav_id_) + "/visualize");
     // Flags
@@ -134,7 +134,8 @@ void PathManager::velocityCallback(const geometry_msgs::TwistStamped &_velocity)
 }
 
 void PathManager::saveDataForTesting() {
-    uav_path_manager::GeneratePath generate_path;
+    static PathFollower follower_save_data(uav_id_, false);
+    uav_path_manager::FollowPath generate_path;
     std_msgs::Int8 generator_mode;
     std::ofstream csv_cubic_loyal, csv_cubic, csv_interp1, csv_init;
     csv_init.open(folder_data_name_ + "/init.csv");
@@ -143,10 +144,10 @@ void PathManager::saveDataForTesting() {
         csv_init << init_path_.poses.at(i).pose.position.x << ", " << init_path_.poses.at(i).pose.position.y << ", " << init_path_.poses.at(i).pose.position.z << std::endl;
     }
     csv_init.close();
-    generator_mode.data = 1;
-    generate_path.request.generator_mode = generator_mode;
+    generate_path.request.generator_mode.data = 1;
     generate_path.request.init_path = init_path_;
-    client_generate_path_.call(generate_path);
+    if (!use_class_) client_generate_path_.call(generate_path);
+    if (use_class_) follower_save_data.pathCallback(generate_path.request, generate_path.response);
     path = generate_path.response.generated_path;
     csv_interp1.open(folder_data_name_ + "/interp1.csv");
     csv_interp1 << std::fixed << std::setprecision(5);
@@ -154,9 +155,9 @@ void PathManager::saveDataForTesting() {
         csv_interp1 << path.poses.at(i).pose.position.x << ", " << path.poses.at(i).pose.position.y << ", " << path.poses.at(i).pose.position.z << std::endl;
     }
     csv_interp1.close();
-    generator_mode.data = 2;
-    generate_path.request.generator_mode = generator_mode;
-    client_generate_path_.call(generate_path);
+    generate_path.request.generator_mode.data = 2;
+    if (!use_class_) client_generate_path_.call(generate_path);
+    if (use_class_) follower_save_data.pathCallback(generate_path.request, generate_path.response);
     path = generate_path.response.generated_path;
     csv_cubic_loyal.open(folder_data_name_ + "/cubic_spline_loyal.csv");
     csv_cubic_loyal << std::fixed << std::setprecision(5);
@@ -164,9 +165,9 @@ void PathManager::saveDataForTesting() {
         csv_cubic_loyal << path.poses.at(i).pose.position.x << ", " << path.poses.at(i).pose.position.y << ", " << path.poses.at(i).pose.position.z << std::endl;
     }
     csv_cubic_loyal.close();
-    generator_mode.data = 3;
-    generate_path.request.generator_mode = generator_mode;
-    client_generate_path_.call(generate_path);
+    generate_path.request.generator_mode.data = 3;
+    if (!use_class_) client_generate_path_.call(generate_path);
+    if (use_class_) follower_save_data.pathCallback(generate_path.request, generate_path.response);
     path = generate_path.response.generated_path;
     csv_cubic.open(folder_data_name_ + "/cubic_spline.csv");
     csv_cubic << std::fixed << std::setprecision(5);
@@ -185,12 +186,12 @@ void PathManager::callVisualization() {
 }
 
 void PathManager::runMission() {
+    static PathFollower follower_(uav_id_, false);
+
     uav_abstraction_layer::TakeOff take_off;
     uav_abstraction_layer::Land land;
     uav_path_manager::GeneratePath generate_path;
     uav_path_manager::FollowPath follow_path;
-    std_msgs::Float32 cruising_speed, look_ahead;
-    std_msgs::Int8 generator_mode, follower_mode;
     if (path.poses.size() < 1) {
         if (save_csv_) saveDataForTesting();
         if (trajectory_) {
@@ -198,33 +199,23 @@ void PathManager::runMission() {
             for (int i = 0; i < max_vel_percentage_.size(); i++) {
                 std_msgs::Float32 v_percentage;
                 v_percentage.data = max_vel_percentage_[i];
-                generate_path.request.max_vel_percentage.push_back(v_percentage);
+                follow_path.request.max_vel_percentage.push_back(v_percentage);
             }
-            generator_mode.data = 4;
-            generate_path.request.generator_mode = generator_mode;
-            client_generate_path_.call(generate_path);
-            path = generate_path.response.generated_path;
-            follower_mode.data = 2;
-            follow_path.request.follower_mode = follower_mode;
-            follow_path.request.generated_path = path;
-            follow_path.request.generated_path_vel_percentage = generate_path.response.generated_path_vel_percentage;
-            follow_path.request.generated_max_vel_percentage = generate_path.response.generated_max_vel_percentage;
-            follow_path.request.max_velocity = generate_path.response.max_velocity;
-            client_follow_path_.call(follow_path);
+            follow_path.request.init_path = init_path_;
+            follow_path.request.generator_mode.data = 3;
+            follow_path.request.follower_mode.data = 1;
+            if (!use_class_) client_follow_path_.call(follow_path);
+            if (use_class_) follower_.pathCallback(follow_path.request, follow_path.response);
+            path = follow_path.response.generated_path;
         } else {
-            generator_mode.data = 3;
-            generate_path.request.generator_mode = generator_mode;
-            generate_path.request.init_path = init_path_;
-            client_generate_path_.call(generate_path);
-            path = generate_path.response.generated_path;
-            follow_path.request.generated_path = path;
-            cruising_speed.data = 1.0;
-            look_ahead.data = 1.2;
-            follower_mode.data = 1;
-            follow_path.request.cruising_speed = cruising_speed;
-            follow_path.request.look_ahead = look_ahead;
-            follow_path.request.follower_mode = follower_mode;
-            client_follow_path_.call(follow_path);
+            follow_path.request.init_path = init_path_;
+            follow_path.request.generator_mode.data = 2;
+            follow_path.request.follower_mode.data = 0;
+            follow_path.request.look_ahead.data = 1.2;
+            follow_path.request.cruising_speed.data = 1.0;
+            if (!use_class_) client_follow_path_.call(follow_path);
+            if (use_class_) follower_.pathCallback(follow_path.request, follow_path.response);
+            path = follow_path.response.generated_path;
         }
     }
 
@@ -257,6 +248,11 @@ void PathManager::runMission() {
                         on_path_ = false;
                         end_path_ = true;
                     } else {
+                        if (use_class_) {
+                            follower_.updatePose(ual_pose_);
+                            follower_.followPath();
+                            velocity_ = follower_.out_velocity_;
+                        }
                         pub_set_velocity_.publish(velocity_);
                         current_path_.header.frame_id = ual_pose_.header.frame_id;
                         current_path_.poses.push_back(ual_pose_);

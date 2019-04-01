@@ -16,6 +16,8 @@
 // OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //----------------------------------------------------------------------------------------------------------------------
+#ifndef PATHGENERATOR_H
+#define PATHGENERATOR_H
 
 #include <mavros_msgs/ParamGet.h>
 #include <ros/ros.h>
@@ -33,11 +35,17 @@
 #include <limits>
 #include <vector>
 
+
 class PathGenerator {
    public:
     PathGenerator();
+
+    PathGenerator(double vxy, double vz_up, double vz_dn);
+
     ~PathGenerator();
 
+    bool pathCallback(uav_path_manager::GeneratePath::Request &_req_path, uav_path_manager::GeneratePath::Response &_res_path);
+    
     nav_msgs::Path createPathInterp1(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size, int _new_path_size);
     nav_msgs::Path createPathCubicSpline(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size);
     nav_msgs::Path createTrajectory(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size, std::vector<double> _max_vel_percentage);
@@ -50,7 +58,6 @@ class PathGenerator {
 
    private:
     // Callbacks
-    bool pathCallback(uav_path_manager::GeneratePath::Request &_req_path, uav_path_manager::GeneratePath::Response &_res_path);
     // Methods
     int nearestNeighbourIndex(std::vector<double> &_x, double &_value);
     std::vector<double> linealInterp1(std::vector<double> &_x, std::vector<double> &_y, std::vector<double> &_x_new);
@@ -72,3 +79,5 @@ class PathGenerator {
     int size_vec_percentage_ = 0;
     int interp1_final_size_ = 10000;
 };
+
+#endif /* PATHGENERATOR_H */
