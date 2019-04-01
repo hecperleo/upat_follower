@@ -1,9 +1,8 @@
-nav_msgs/Path generated_path
-nav_msgs/Path generated_path_vel_percentage
+nav_msgs/Path init_path                 # Generator
+std_msgs/Int8 generator_mode            # Generator
+std_msgs/Float32[] max_vel_percentage   # Generator
 std_msgs/Int8 follower_mode
 std_msgs/Float32 look_ahead
 std_msgs/Float32 cruising_speed
-std_msgs/Float32 max_velocity
-std_msgs/Float32[] generated_max_vel_percentage
 ---
-std_msgs/Bool ok
+nav_msgs/Path generated_path

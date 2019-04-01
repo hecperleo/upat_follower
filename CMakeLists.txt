@@ -172,6 +172,7 @@ add_dependencies(path_generator_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catki
 
 
 add_library(path_follower src/path_follower.cpp)
+target_link_libraries(path_follower path_generator ${catkin_LIBRARIES})
 add_dependencies(path_follower ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 add_executable(path_follower_node src/path_follower_node.cpp)

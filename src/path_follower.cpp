@@ -19,7 +19,7 @@
 
 #include <uav_path_manager/path_follower.h>
 
-PathFollower::PathFollower() : nh_(), pnh_("~") {
+PathFollower::PathFollower() : nh_(), pnh_("~"), generator_(vxy_, vz_up_, vz_dn_) {
     // Parameters
     pnh_.getParam("uav_id", uav_id_);
     pnh_.getParam("debug", debug_);
@@ -48,24 +48,28 @@ PathFollower::~PathFollower() {
 
 bool PathFollower::pathCallback(uav_path_manager::FollowPath::Request &_req_path,
                                 uav_path_manager::FollowPath::Response &_res_path) {
-    target_path_ = _req_path.generated_path;
-    target_vel_path_ = _req_path.generated_path_vel_percentage;
-    target_vel_path_.header.frame_id = _req_path.generated_path.header.frame_id;
+    uav_path_manager::GeneratePath client_generator;
+    client_generator.request.init_path = _req_path.init_path;
+    client_generator.request.generator_mode = _req_path.generator_mode;
+    if (_req_path.generator_mode.data == 3) client_generator.request.max_vel_percentage = _req_path.max_vel_percentage;
+    generator_.pathCallback(client_generator.request, client_generator.response);
     follower_mode_ = _req_path.follower_mode.data;
     switch (follower_mode_) {
-        case 1:  // Path
+        case 0:  // Path
             look_ahead_ = _req_path.look_ahead.data;
             cruising_speed_ = _req_path.cruising_speed.data;
             break;
-        case 2:  // Trajectory
-            for (int i = 0; i < _req_path.generated_max_vel_percentage.size(); i++) {
-                generated_max_vel_percentage_.push_back(_req_path.generated_max_vel_percentage.at(i).data);
+        case 1:  // Trajectory
+            target_vel_path_ = client_generator.response.generated_path_vel_percentage;
+            target_vel_path_.header.frame_id = client_generator.response.generated_path.header.frame_id;
+            for (int i = 0; i < client_generator.response.generated_max_vel_percentage.size(); i++) {
+                generated_max_vel_percentage_.push_back(client_generator.response.generated_max_vel_percentage.at(i).data);
             }
-            max_vel_ = _req_path.max_velocity.data;
+            max_vel_ = client_generator.response.max_velocity.data;
             break;
     }
-    _res_path.ok.data = true;
-    // flag_run_ = false;
+    _res_path.generated_path = client_generator.response.generated_path;
+    target_path_ = client_generator.response.generated_path;
 
     return true;
 }
@@ -74,7 +78,7 @@ void PathFollower::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_
     ual_pose_ = *_ual_pose;
 }
 
-void PathFollower::updatePose(const geometry_msgs::PoseStamped &_ual_pose){
+void PathFollower::updatePose(const geometry_msgs::PoseStamped &_ual_pose) {
     ual_pose_ = _ual_pose;
 }
 
@@ -122,14 +126,14 @@ geometry_msgs::TwistStamped PathFollower::calculateVelocity(Eigen::Vector3f _cur
     target_p = Eigen::Vector3f(target_path_.poses.at(_pos_look_ahead).pose.position.x, target_path_.poses.at(_pos_look_ahead).pose.position.y, target_path_.poses.at(_pos_look_ahead).pose.position.z);
     double distance = (target_p - _current_point).norm();
     switch (follower_mode_) {
-        case 1:
+        case 0:
             unit_vec = (target_p - _current_point) / distance;
             unit_vec = unit_vec / unit_vec.norm();
             out_vel.twist.linear.x = unit_vec(0) * cruising_speed_;
             out_vel.twist.linear.y = unit_vec(1) * cruising_speed_;
             out_vel.twist.linear.z = unit_vec(2) * cruising_speed_;
             break;
-        case 2:
+        case 1:
             hypo_vec = (target_p - _current_point);
             out_vel.twist.linear.x = hypo_vec(0);
             out_vel.twist.linear.y = hypo_vec(1);
@@ -225,7 +229,7 @@ void PathFollower::followPath() {
         if (flag_run_) {
             double search_range_normal_pos = look_ahead_ * 1.5;
             int normal_pos_on_path = calculatePosOnPath(current_point, search_range_normal_pos, prev_normal_pos_on_path_, target_path_);
-            if (follower_mode_ == 2) {
+            if (follower_mode_ == 1) {
                 double search_range_vel = look_ahead_ * 1.5;
                 int normal_vel_on_path = calculatePosOnPath(current_point, search_range_vel, prev_normal_vel_on_path_, target_vel_path_);
                 prev_normal_vel_on_path_ = normal_vel_on_path;

@@ -47,7 +47,7 @@ class PathManager {
     double vxy_ = 2.0;
     double vz_up_ = 3.0;
     double vz_dn_ = 1.0;
-    PathGenerator generator_;
+    // PathGenerator generator_;
     // Callbacks
     void ualStateCallback(const uav_abstraction_layer::State &_ual_state);
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
@@ -75,8 +75,7 @@ class PathManager {
     std::vector<double> max_vel_percentage_;
     // Params
     int uav_id_;
-    bool save_csv_;
-    bool trajectory_;
+    bool save_csv_, trajectory_, use_class_;
     double reach_tolerance_;
     std::string init_path_name_;
 };
