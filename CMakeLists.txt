@@ -62,7 +62,8 @@ find_package(rostest REQUIRED)
 add_service_files(
   FILES
   GeneratePath.srv
-  FollowPath.srv
+  PreparePath.srv
+  PrepareTrajectory.srv
   Visualize.srv
 )
 

@@ -37,7 +37,8 @@ PathManager::PathManager() : nh_(), pnh_("~") {
     // Services
     client_take_off_ = nh_.serviceClient<uav_abstraction_layer::TakeOff>("/uav_" + std::to_string(uav_id_) + "/ual/take_off");
     client_land_ = nh_.serviceClient<uav_abstraction_layer::Land>("/uav_" + std::to_string(uav_id_) + "/ual/land");
-    client_follow_path_ = nh_.serviceClient<uav_path_manager::FollowPath>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/follow_path");
+    client_prepare_path_ = nh_.serviceClient<uav_path_manager::PreparePath>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/prepare_path");
+    client_prepare_trajectory_ = nh_.serviceClient<uav_path_manager::PrepareTrajectory>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/prepare_trajectory");
     client_visualize_ = nh_.serviceClient<uav_path_manager::Visualize>("/uav_path_manager/visualization/uav_" + std::to_string(uav_id_) + "/visualize");
     // Flags
     on_path_ = false;
@@ -178,34 +179,30 @@ void PathManager::runMission() {
 
     uav_abstraction_layer::TakeOff take_off;
     uav_abstraction_layer::Land land;
-    uav_path_manager::GeneratePath generate_path;
-    uav_path_manager::FollowPath follow_path;
+    uav_path_manager::PreparePath prepare_path;
+    uav_path_manager::PrepareTrajectory prepare_trajectory;
     if (path.poses.size() < 1) {
         if (save_csv_) saveDataForTesting();
         if (trajectory_) {
-            generate_path.request.init_path = init_path_;
             for (int i = 0; i < max_vel_percentage_.size(); i++) {
                 std_msgs::Float32 v_percentage;
                 v_percentage.data = max_vel_percentage_[i];
-                follow_path.request.max_vel_percentage.push_back(v_percentage);
+                prepare_trajectory.request.max_vel_percentage.push_back(v_percentage);
             }
-            follow_path.request.init_path = init_path_;
-            follow_path.request.generator_mode.data = 3;
-            follow_path.request.follower_mode.data = 1;
+            prepare_trajectory.request.init_path = init_path_;
             if (!use_class_) {
-                client_follow_path_.call(follow_path);
-                path = follow_path.response.generated_path;
+                client_prepare_trajectory_.call(prepare_trajectory);
+                path = prepare_trajectory.response.generated_path;
             }
             if (use_class_) path = follower_.prepareTrajectory(init_path_, max_vel_percentage_);
         } else {
-            follow_path.request.init_path = init_path_;
-            follow_path.request.generator_mode.data = 2;
-            follow_path.request.follower_mode.data = 0;
-            follow_path.request.look_ahead.data = 1.2;
-            follow_path.request.cruising_speed.data = 1.0;
+            prepare_path.request.init_path = init_path_;
+            prepare_path.request.generator_mode.data = 2;
+            prepare_path.request.look_ahead.data = 1.2;
+            prepare_path.request.cruising_speed.data = 1.0;
             if (!use_class_) {
-                client_follow_path_.call(follow_path);
-                path = follow_path.response.generated_path;
+                client_prepare_path_.call(prepare_path);
+                path = prepare_path.response.generated_path;
             }
             if (use_class_) path = follower_.preparePath(init_path_, 2, 1.2, 1.0);
         }
@@ -243,7 +240,6 @@ void PathManager::runMission() {
                         if (use_class_) {
                             follower_.updatePose(ual_pose_);
                             velocity_ = follower_.getVelocity();
-                            // velocity_ = follower_.out_velocity_;
                         }
                         pub_set_velocity_.publish(velocity_);
                         current_path_.header.frame_id = ual_pose_.header.frame_id;

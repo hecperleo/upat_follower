@@ -22,8 +22,10 @@
 
 #include <ros/ros.h>
 #include <uav_abstraction_layer/ual.h>
-#include <uav_path_manager/FollowPath.h>
+#include <uav_path_manager/PreparePath.h>
+#include <uav_path_manager/PrepareTrajectory.h>
 #include <uav_path_manager/GeneratePath.h>
+// #include <uav_path_manager/GenerateTrajectory.h>
 #include <uav_path_manager/path_generator.h>
 #include <Eigen/Eigen>
 #include "geometry_msgs/PointStamped.h"
@@ -47,7 +49,8 @@ class PathFollower {
    private:
     // Callbacks
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
-    bool pathCallback(uav_path_manager::FollowPath::Request &_req_path, uav_path_manager::FollowPath::Response &_res_path);
+    bool preparePathCb(uav_path_manager::PreparePath::Request &_req_path, uav_path_manager::PreparePath::Response &_res_path);
+    bool prepareTrajectoryCb(uav_path_manager::PrepareTrajectory::Request &_req_trajectory, uav_path_manager::PrepareTrajectory::Response &_res_trajectory);
     // Methods
     double changeLookAhead(int _pos_on_path);
     int calculatePosLookAhead(int _pos_on_path);
@@ -62,7 +65,7 @@ class PathFollower {
     // Publishers
     ros::Publisher pub_output_velocity_, pub_point_look_ahead_, pub_point_normal_, pub_point_search_normal_begin_, pub_point_search_normal_end_;
     // Services
-    ros::ServiceServer server_follow_path_;
+    ros::ServiceServer server_prepare_path_, server_prepare_trajectory_;
     // Variables
     int follower_mode_;
     int prev_normal_pos_on_path_ = 0;
