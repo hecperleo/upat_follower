@@ -28,7 +28,8 @@ PathGenerator::PathGenerator() : nh_(), pnh_("~") {
     pnh_.param<double>("vz_up", vz_up, 3.0);
     pnh_.param<double>("vz_dn", vz_dn, 1.0);
     // Services
-    server_generate_path_ = nh_.advertiseService("/uav_path_manager/generator/generate_path", &PathGenerator::pathCallback, this);
+    server_generate_path_ = nh_.advertiseService("/uav_path_manager/generator/generate_path", &PathGenerator::generatePathCb, this);
+    server_generate_trajectory_ = nh_.advertiseService("/uav_path_manager/generator/generate_trajectory", &PathGenerator::generateTrajectoryCb, this);
     // Client to get parameters from mavros and required default values
     get_param_client_ = nh_.serviceClient<mavros_msgs::ParamGet>("mavros/param/get");
     mavros_params_["MPC_XY_VEL_MAX"] = vxy;      // [m/s]   Default value
@@ -37,12 +38,13 @@ PathGenerator::PathGenerator() : nh_(), pnh_("~") {
     // Updating here is non-sense as service seems to be slow in waking up
 }
 
-PathGenerator::PathGenerator(double vxy, double vz_up, double vz_dn) {
+PathGenerator::PathGenerator(double _vxy, double _vz_up, double _vz_dn, bool _debug) {
+    debug_ = _debug;
     // Client to get parameters from mavros and required default values
     get_param_client_ = nh_.serviceClient<mavros_msgs::ParamGet>("mavros/param/get");
-    mavros_params_["MPC_XY_VEL_MAX"] = vxy;      // [m/s]   Default value
-    mavros_params_["MPC_Z_VEL_MAX_UP"] = vz_up;  // [m/s]   Default value
-    mavros_params_["MPC_Z_VEL_MAX_DN"] = vz_dn;  // [m/s]   Default value
+    mavros_params_["MPC_XY_VEL_MAX"] = _vxy;      // [m/s]   Default value
+    mavros_params_["MPC_Z_VEL_MAX_UP"] = _vz_up;  // [m/s]   Default value
+    mavros_params_["MPC_Z_VEL_MAX_DN"] = _vz_dn;  // [m/s]   Default value
     // Updating here is non-sense as service seems to be slow in waking up
 }
 
@@ -60,7 +62,7 @@ double PathGenerator::checkSmallestMaxVel() {
     velocities.push_back(mpc_z_vel_max_up);
     velocities.push_back(mpc_z_vel_max_dn);
     min_max_vel = *std::min_element(velocities.begin(), velocities.end());
-    ROS_INFO("PathGenerator -> Smallest max velocity: %f", min_max_vel);
+    ROS_WARN_COND(debug_, "PathGenerator -> Smallest max velocity: %f", min_max_vel);
 
     return min_max_vel;
 }
@@ -70,7 +72,7 @@ double PathGenerator::updateParam(const std::string &_param_id) {
     get_param_service.request.param_id = _param_id;
     if (get_param_client_.call(get_param_service) && get_param_service.response.success) {
         mavros_params_[_param_id] = get_param_service.response.value.integer ? get_param_service.response.value.integer : get_param_service.response.value.real;
-        ROS_INFO("Parameter [%s] value is [%f]", get_param_service.request.param_id.c_str(), mavros_params_[_param_id]);
+        ROS_WARN_COND(debug_, "Parameter [%s] value is [%f]", get_param_service.request.param_id.c_str(), mavros_params_[_param_id]);
     } else if (mavros_params_.count(_param_id)) {
         ROS_WARN("Error in get param [%s] service calling, leaving current value [%f]",
                  get_param_service.request.param_id.c_str(), mavros_params_[_param_id]);
@@ -126,8 +128,82 @@ std::vector<double> PathGenerator::linealInterp1(std::vector<double> &_x, std::v
     return y_new;
 }
 
-bool PathGenerator::pathCallback(uav_path_manager::GeneratePath::Request &_req_path,
-                                 uav_path_manager::GeneratePath::Response &_res_path) {
+nav_msgs::Path PathGenerator::generateTrajectory(nav_msgs::Path _init_path, std::vector<double> _max_vel_percentage) {
+    std::vector<double> list_pose_x, list_pose_y, list_pose_z;
+    for (int i = 0; i < _init_path.poses.size(); i++) {
+        list_pose_x.push_back(_init_path.poses.at(i).pose.position.x);
+        list_pose_y.push_back(_init_path.poses.at(i).pose.position.y);
+        list_pose_z.push_back(_init_path.poses.at(i).pose.position.z);
+    }
+    list_pose_x.push_back(list_pose_x.back());
+    list_pose_y.push_back(list_pose_y.back());
+    list_pose_z.push_back(list_pose_z.back());
+    if (_init_path.poses.size() - 1 == _max_vel_percentage.size()) {
+        mode_ = mode_trajectory_;
+        size_vec_percentage_ = _max_vel_percentage.size();
+        out_path_ = createTrajectory(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), _max_vel_percentage);
+        mode_ = mode_interp1_;
+        interp1_final_size_ = out_path_.poses.size();
+        generated_path_vel_percentage_ = pathManagement(list_pose_x, list_pose_y, list_pose_z);
+        for (int i = 0; i < _max_vel_percentage.size(); i++) {
+            int j = 0;
+            for (j = 0; j < generated_path_vel_percentage_.poses.size() / (_max_vel_percentage.size() + 1); j++) {
+                generated_max_vel_percentage_.push_back(_max_vel_percentage[i]);
+            }
+        }
+        // TODO: Why do we still need this?
+        while (out_path_.poses.size() > generated_max_vel_percentage_.size()) {
+            generated_max_vel_percentage_.push_back(_max_vel_percentage.back());
+        }
+        ROS_WARN_COND(debug_, "PathGenerator -> Path sizes -> spline: %zd, maxVel: %zd, init: %zd", out_path_.poses.size(), generated_max_vel_percentage_.size(), _init_path.poses.size());
+        max_velocity_ = abs(smallest_max_vel_);
+    } else {
+        ROS_ERROR("Time intervals size (%zd) should has one less element than init path size (%zd)", _max_vel_percentage.size(), _init_path.poses.size());
+    }
+    out_path_.header.frame_id = _init_path.header.frame_id;
+
+    return out_path_;
+}
+
+nav_msgs::Path PathGenerator::generatePath(nav_msgs::Path _init_path, int _generator_mode) {
+    std::vector<double> list_pose_x, list_pose_y, list_pose_z;
+    for (int i = 0; i < _init_path.poses.size(); i++) {
+        list_pose_x.push_back(_init_path.poses.at(i).pose.position.x);
+        list_pose_y.push_back(_init_path.poses.at(i).pose.position.y);
+        list_pose_z.push_back(_init_path.poses.at(i).pose.position.z);
+    }
+    list_pose_x.push_back(list_pose_x.back());
+    list_pose_y.push_back(list_pose_y.back());
+    list_pose_z.push_back(list_pose_z.back());
+    int total_distance = 0;
+    switch (_generator_mode) {
+        case 0:
+            mode_ = mode_interp1_;
+            for (int i = 0; i < _init_path.poses.size() - 1; i++) {
+                Eigen::Vector3f point_1, point_2;
+                point_1 = Eigen::Vector3f(list_pose_x[i], list_pose_y[i], list_pose_z[i]);
+                point_2 = Eigen::Vector3f(list_pose_x[i + 1], list_pose_y[i + 1], list_pose_z[i + 1]);
+                total_distance = total_distance + (point_2 - point_1).norm();
+            }
+            interp1_final_size_ = total_distance / 0.02;
+            out_path_ = pathManagement(list_pose_x, list_pose_y, list_pose_z);
+            break;
+        case 1:
+            mode_ = mode_cubic_spline_loyal_;
+            out_path_ = pathManagement(list_pose_x, list_pose_y, list_pose_z);
+            break;
+        case 2:
+            mode_ = mode_cubic_spline_;
+            out_path_ = pathManagement(list_pose_x, list_pose_y, list_pose_z);
+            break;
+    }
+    out_path_.header.frame_id = _init_path.header.frame_id;
+
+    return out_path_;
+}
+
+bool PathGenerator::generatePathCb(uav_path_manager::GeneratePath::Request &_req_path,
+                                   uav_path_manager::GeneratePath::Response &_res_path) {
     std::vector<double> list_pose_x, list_pose_y, list_pose_z;
     for (int i = 0; i < _req_path.init_path.poses.size(); i++) {
         list_pose_x.push_back(_req_path.init_path.poses.at(i).pose.position.x);
@@ -158,42 +234,58 @@ bool PathGenerator::pathCallback(uav_path_manager::GeneratePath::Request &_req_p
             mode_ = mode_cubic_spline_;
             _res_path.generated_path = pathManagement(list_pose_x, list_pose_y, list_pose_z);
             break;
-        case 3:
-            if (_req_path.init_path.poses.size() - 1 == _req_path.max_vel_percentage.size()) {
-                mode_ = mode_trajectory_;
-                std::vector<double> max_vel_percentage;
-                for (int i = 0; i < _req_path.max_vel_percentage.size(); i++) {
-                    max_vel_percentage.push_back(_req_path.max_vel_percentage.at(i).data);
-                }
-                size_vec_percentage_ = _req_path.max_vel_percentage.size();
-                _res_path.generated_path = createTrajectory(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), max_vel_percentage);
-                mode_ = mode_interp1_;
-                interp1_final_size_ = _res_path.generated_path.poses.size();
-                _res_path.generated_path_vel_percentage = pathManagement(list_pose_x, list_pose_y, list_pose_z);
-                for (int i = 0; i < _req_path.max_vel_percentage.size(); i++) {
-                    int j = 0;
-                    for (j = 0; j < _res_path.generated_path_vel_percentage.poses.size() / (_req_path.max_vel_percentage.size() + 1); j++) {
-                        std_msgs::Float32 v_percentage;
-                        v_percentage.data = max_vel_percentage[i];
-                        _res_path.generated_max_vel_percentage.push_back(v_percentage);
-                    }
-                }
-                // TODO: Why do we still need this?
-                while (_res_path.generated_path.poses.size() > _res_path.generated_max_vel_percentage.size()) {
-                    std_msgs::Float32 v_percentage;
-                    v_percentage.data = max_vel_percentage.back();
-                    _res_path.generated_max_vel_percentage.push_back(v_percentage);
-                }
-                ROS_INFO("PathGenerator -> Path sizes -> spline: %zd, maxVel: %zd, init: %zd", _res_path.generated_path.poses.size(), _res_path.generated_max_vel_percentage.size(), _req_path.init_path.poses.size());
-                _res_path.max_velocity.data = abs(smallest_max_vel_);
-            } else {
-                // Instead of using the %d type specifier, you should use an unsigned specifier like %ud, or the dedicated specifier for size_t: %zd to avoid warning while compiling
-                ROS_ERROR("Time intervals size (%zd) should has one less element than init path size (%zd)", _req_path.max_vel_percentage.size(), _req_path.init_path.poses.size());
-                return false;
-            }
-            break;
     }
     _res_path.generated_path.header.frame_id = _req_path.init_path.header.frame_id;
+
+    return true;
+}
+
+bool PathGenerator::generateTrajectoryCb(uav_path_manager::PrepareTrajectory::Request &_req_trajectory,
+                                         uav_path_manager::PrepareTrajectory::Response &_res_trajectory) {
+    std::vector<double> list_pose_x, list_pose_y, list_pose_z;
+    for (int i = 0; i < _req_trajectory.init_path.poses.size(); i++) {
+        list_pose_x.push_back(_req_trajectory.init_path.poses.at(i).pose.position.x);
+        list_pose_y.push_back(_req_trajectory.init_path.poses.at(i).pose.position.y);
+        list_pose_z.push_back(_req_trajectory.init_path.poses.at(i).pose.position.z);
+    }
+    list_pose_x.push_back(list_pose_x.back());
+    list_pose_y.push_back(list_pose_y.back());
+    list_pose_z.push_back(list_pose_z.back());
+
+    if (_req_trajectory.init_path.poses.size() - 1 == _req_trajectory.max_vel_percentage.size()) {
+        mode_ = mode_trajectory_;
+        std::vector<double> max_vel_percentage;
+        for (int i = 0; i < _req_trajectory.max_vel_percentage.size(); i++) {
+            max_vel_percentage.push_back(_req_trajectory.max_vel_percentage.at(i).data);
+        }
+        size_vec_percentage_ = _req_trajectory.max_vel_percentage.size();
+        _res_trajectory.generated_path = createTrajectory(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), max_vel_percentage);
+        mode_ = mode_interp1_;
+        interp1_final_size_ = _res_trajectory.generated_path.poses.size();
+        _res_trajectory.generated_path_vel_percentage = pathManagement(list_pose_x, list_pose_y, list_pose_z);
+        for (int i = 0; i < _req_trajectory.max_vel_percentage.size(); i++) {
+            int j = 0;
+            for (j = 0; j < _res_trajectory.generated_path_vel_percentage.poses.size() / (_req_trajectory.max_vel_percentage.size() + 1); j++) {
+                std_msgs::Float32 v_percentage;
+                v_percentage.data = max_vel_percentage[i];
+                _res_trajectory.generated_max_vel_percentage.push_back(v_percentage);
+            }
+        }
+        // TODO: Why do we still need this?
+        while (_res_trajectory.generated_path.poses.size() > _res_trajectory.generated_max_vel_percentage.size()) {
+            std_msgs::Float32 v_percentage;
+            v_percentage.data = max_vel_percentage.back();
+            _res_trajectory.generated_max_vel_percentage.push_back(v_percentage);
+        }
+        ROS_WARN_COND(debug_, "PathGenerator -> Path sizes -> spline: %zd, maxVel: %zd, init: %zd", _res_trajectory.generated_path.poses.size(), _res_trajectory.generated_max_vel_percentage.size(), _req_trajectory.init_path.poses.size());
+        _res_trajectory.max_velocity.data = abs(smallest_max_vel_);
+    } else {
+        // Instead of using the %d type specifier, you should use an unsigned specifier like %ud, or the dedicated specifier for size_t: %zd to avoid warning while compiling
+        ROS_ERROR("Time intervals size (%zd) should has one less element than init path size (%zd)", _req_trajectory.max_vel_percentage.size(), _req_trajectory.init_path.poses.size());
+        return false;
+    }
+
+    _res_trajectory.generated_path.header.frame_id = _req_trajectory.init_path.header.frame_id;
 
     return true;
 }
@@ -355,7 +447,7 @@ nav_msgs::Path PathGenerator::createTrajectory(std::vector<double> _list_x, std:
             if (spline_max_vel > smallest_max_vel_ || fabs(spline_min_vel) > smallest_max_vel_ || temp_div.rem != 0) {
                 num_joints++;
             } else {
-                ROS_INFO("PathGenerator -> Spline done in %d iterations! Spline max velocities: %f and %f", num_joints - _path_size, spline_max_vel, spline_min_vel);
+                ROS_WARN_COND(debug_, "PathGenerator -> Spline done in %d iterations! Spline max velocities: %f and %f", num_joints - _path_size, spline_max_vel, spline_min_vel);
                 cubic_spline_path = constructPath(spline_list_x, spline_list_y, spline_list_z);
                 try_fit_spline = false;
             }

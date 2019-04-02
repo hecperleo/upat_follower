@@ -23,6 +23,7 @@
 #include <ros/ros.h>
 #include <uav_abstraction_layer/ual.h>
 #include <uav_path_manager/GeneratePath.h>
+#include <uav_path_manager/PrepareTrajectory.h>
 #include <Eigen/Eigen>
 #include "ecl/geometry.hpp"
 #include "geometry_msgs/PoseStamped.h"
@@ -35,17 +36,19 @@
 #include <limits>
 #include <vector>
 
-
 class PathGenerator {
    public:
     PathGenerator();
-
-    PathGenerator(double vxy, double vz_up, double vz_dn);
-
+    PathGenerator(double _vxy, double _vz_up, double _vz_dn, bool _debug = false);
     ~PathGenerator();
 
-    bool pathCallback(uav_path_manager::GeneratePath::Request &_req_path, uav_path_manager::GeneratePath::Response &_res_path);
-    
+    double max_velocity_;
+    nav_msgs::Path out_path_;
+    nav_msgs::Path generated_path_vel_percentage_;
+    std::vector<double> generated_max_vel_percentage_;
+    nav_msgs::Path generateTrajectory(nav_msgs::Path _init_path, std::vector<double> _max_vel_percentage);
+    nav_msgs::Path generatePath(nav_msgs::Path _init_path, int _generator_mode = 0);
+    // For tests (should be private)
     nav_msgs::Path createPathInterp1(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size, int _new_path_size);
     nav_msgs::Path createPathCubicSpline(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size);
     nav_msgs::Path createTrajectory(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size, std::vector<double> _max_vel_percentage);
@@ -58,6 +61,8 @@ class PathGenerator {
 
    private:
     // Callbacks
+    bool generatePathCb(uav_path_manager::GeneratePath::Request &_req_path, uav_path_manager::GeneratePath::Response &_res_path);
+    bool generateTrajectoryCb(uav_path_manager::PrepareTrajectory::Request &_req_trajectory, uav_path_manager::PrepareTrajectory::Response &_res_trajectory);
     // Methods
     int nearestNeighbourIndex(std::vector<double> &_x, double &_value);
     std::vector<double> linealInterp1(std::vector<double> &_x, std::vector<double> &_y, std::vector<double> &_x_new);
@@ -70,14 +75,15 @@ class PathGenerator {
     ros::NodeHandle nh_;
     ros::NodeHandle pnh_;
     // Services
-    ros::ServiceServer server_generate_path_, srv_generate_trajectory_;
+    ros::ServiceServer server_generate_path_, server_generate_trajectory_;
     ros::ServiceClient get_param_client_;
     std::map<std::string, double> mavros_params_;
-    // Publisher
     // Variables
     double smallest_max_vel_ = 1.0;
     int size_vec_percentage_ = 0;
     int interp1_final_size_ = 10000;
+    // Params
+    bool debug_;
 };
 
 #endif /* PATHGENERATOR_H */

@@ -19,58 +19,91 @@
 
 #include <uav_path_manager/path_follower.h>
 
-PathFollower::PathFollower() : nh_(), pnh_("~"), generator_(vxy_, vz_up_, vz_dn_) {
+PathFollower::PathFollower() : nh_(), pnh_("~") {
     // Parameters
     pnh_.getParam("uav_id", uav_id_);
     pnh_.getParam("debug", debug_);
+    pnh_.getParam("vxy", vxy_);
+    pnh_.getParam("vz_up", vz_up_);
+    pnh_.getParam("vz_dn", vz_dn_);
     // Subscriptions
     sub_pose_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/pose", 0, &PathFollower::ualPoseCallback, this);
     // Publishers
     pub_output_velocity_ = nh_.advertise<geometry_msgs::TwistStamped>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/output_vel", 1000);
+    // Services
+    server_prepare_path_ = nh_.advertiseService("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/prepare_path", &PathFollower::preparePathCb, this);
+    server_prepare_trajectory_ = nh_.advertiseService("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/prepare_trajectory", &PathFollower::prepareTrajectoryCb, this);
+    // Debug follower
     if (debug_) {
-        std::cout << "Debug true!" << std::endl;
         pub_point_look_ahead_ = nh_.advertise<geometry_msgs::PointStamped>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/debug_point_look_ahead", 1000);
         pub_point_normal_ = nh_.advertise<geometry_msgs::PointStamped>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/debug_point_normal", 1000);
         pub_point_search_normal_begin_ = nh_.advertise<geometry_msgs::PointStamped>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/debug_point_search_begin", 1000);
         pub_point_search_normal_end_ = nh_.advertise<geometry_msgs::PointStamped>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/debug_point_search_end", 1000);
     }
-    // Services
-    server_follow_path_ = nh_.advertiseService("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/follow_path", &PathFollower::pathCallback, this);
 }
 
-PathFollower::PathFollower(int _uav_id, bool _debug) {
-    uav_id_ = _uav_id;
+PathFollower::PathFollower(int _uav_id, double _vxy, double _vz_up, double _vz_dn, bool _debug) {
     debug_ = _debug;
+    uav_id_ = _uav_id;
+    vxy_ = _vxy;
+    vz_up_ = _vz_up;
+    vz_dn_ = _vz_dn;
 }
 
 PathFollower::~PathFollower() {
 }
 
-bool PathFollower::pathCallback(uav_path_manager::FollowPath::Request &_req_path,
-                                uav_path_manager::FollowPath::Response &_res_path) {
-    uav_path_manager::GeneratePath client_generator;
-    client_generator.request.init_path = _req_path.init_path;
-    client_generator.request.generator_mode = _req_path.generator_mode;
-    if (_req_path.generator_mode.data == 3) client_generator.request.max_vel_percentage = _req_path.max_vel_percentage;
-    generator_.pathCallback(client_generator.request, client_generator.response);
-    follower_mode_ = _req_path.follower_mode.data;
-    switch (follower_mode_) {
-        case 0:  // Path
-            look_ahead_ = _req_path.look_ahead.data;
-            cruising_speed_ = _req_path.cruising_speed.data;
-            break;
-        case 1:  // Trajectory
-            target_vel_path_ = client_generator.response.generated_path_vel_percentage;
-            target_vel_path_.header.frame_id = client_generator.response.generated_path.header.frame_id;
-            for (int i = 0; i < client_generator.response.generated_max_vel_percentage.size(); i++) {
-                generated_max_vel_percentage_.push_back(client_generator.response.generated_max_vel_percentage.at(i).data);
-            }
-            max_vel_ = client_generator.response.max_velocity.data;
-            break;
-    }
-    _res_path.generated_path = client_generator.response.generated_path;
-    target_path_ = client_generator.response.generated_path;
+nav_msgs::Path PathFollower::preparePath(nav_msgs::Path _init_path, int _generator_mode, double _look_ahead, double _cruising_speed) {
+    follower_mode_ = 0;
+    PathGenerator generator(vxy_, vz_up_, vz_dn_, debug_);
+    generator.generatePath(_init_path, _generator_mode);
+    look_ahead_ = _look_ahead;
+    cruising_speed_ = _cruising_speed;
+    target_path_ = generator.out_path_;
+    return generator.out_path_;
+}
 
+nav_msgs::Path PathFollower::prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _max_vel_percentage) {
+    follower_mode_ = 1;
+    PathGenerator generator(vxy_, vz_up_, vz_dn_, debug_);
+    generator.generateTrajectory(_init_path, _max_vel_percentage);
+    target_vel_path_ = generator.generated_path_vel_percentage_;
+    target_vel_path_.header.frame_id = generator.out_path_.header.frame_id;
+    for (int i = 0; i < generator.generated_max_vel_percentage_.size(); i++) {
+        generated_max_vel_percentage_.push_back(generator.generated_max_vel_percentage_.at(i));
+    }
+    max_vel_ = generator.max_velocity_;
+    target_path_ = generator.out_path_;
+    return generator.out_path_;
+}
+
+bool PathFollower::preparePathCb(uav_path_manager::PreparePath::Request &_req_path, uav_path_manager::PreparePath::Response &_res_path) {
+    follower_mode_ = 0;
+    PathGenerator generator(vxy_, vz_up_, vz_dn_, debug_);
+    generator.generatePath(_req_path.init_path, _req_path.generator_mode.data);
+    look_ahead_ = _req_path.look_ahead.data;
+    cruising_speed_ = _req_path.cruising_speed.data;
+    target_path_ = generator.out_path_;
+    _res_path.generated_path = generator.out_path_;
+    return true;
+}
+
+bool PathFollower::prepareTrajectoryCb(uav_path_manager::PrepareTrajectory::Request &_req_trajectory, uav_path_manager::PrepareTrajectory::Response &_res_trajectory) {
+    follower_mode_ = 1;
+    PathGenerator generator(vxy_, vz_up_, vz_dn_, debug_);
+    std::vector<double> vec_max_vel_percentage;
+    for (int i = 0; i < _req_trajectory.max_vel_percentage.size(); i++) {
+        vec_max_vel_percentage.push_back(_req_trajectory.max_vel_percentage.at(i).data);
+    }
+    generator.generateTrajectory(_req_trajectory.init_path, vec_max_vel_percentage);
+    target_vel_path_ = generator.generated_path_vel_percentage_;
+    target_vel_path_.header.frame_id = generator.out_path_.header.frame_id;
+    for (int i = 0; i < generator.generated_max_vel_percentage_.size(); i++) {
+        generated_max_vel_percentage_.push_back(generator.generated_max_vel_percentage_.at(i));
+    }
+    max_vel_ = generator.max_velocity_;
+    target_path_ = generator.out_path_;
+    _res_trajectory.generated_path = generator.out_path_;
     return true;
 }
 
@@ -218,7 +251,7 @@ void PathFollower::pubMsgs() {
     }
 }
 
-void PathFollower::followPath() {
+geometry_msgs::TwistStamped PathFollower::getVelocity() {
     if (target_path_.poses.size() > 1) {
         Eigen::Vector3f current_point, target_path0_point;
         current_point = Eigen::Vector3f(ual_pose_.pose.position.x, ual_pose_.pose.position.y, ual_pose_.pose.position.z);
@@ -243,4 +276,5 @@ void PathFollower::followPath() {
             prev_normal_pos_on_path_ = normal_pos_on_path;
         }
     }
+    return out_velocity_;
 }

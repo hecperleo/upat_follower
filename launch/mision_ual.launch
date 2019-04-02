@@ -10,19 +10,23 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 -->
 <launch>
     <!-- Arguments -->
-    <arg name="save_data" default="false"/>
-    <arg name="multi" default="true"/>
+    <arg name="ns_prefix" default="uav_"/>
     <arg name="robot_model" default="iris"/>
+    <arg name="pub_rate" default="50.0"/>
+    <arg name="debug" default="false"/>
+    <arg name="save_data" default="false"/>
     <arg name="trajectory" default="true"/>
     <arg name="vxy" default="2.0"/>
     <arg name="vz_up" default="3.0"/>
     <arg name="vz_dn" default="1.0"/>
-    <arg name="ns_prefix" default="uav_"/>
-    <arg name="path" default="cubic"/>
     <arg name="reach_tolerance" default="0.1"/>
-    <arg name="pub_rate" default="50.0"/>
-    <arg name="debug" default="false"/>
-    <arg name="use_class" default="false"/>
+    <arg name="path" default="cubic"/>
+    <arg name="use_class" default="true" unless="$(arg debug)"/>
+    <arg name="use_class" default="false" if="$(arg debug)"/>
+    <arg name="multi" default="true" unless="$(arg debug)"/>
+    <arg name="multi" default="false" if="$(arg debug)"/>
+
+
 
     <!-- Visualization -->
     <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find uav_path_manager)/rviz/mision.rviz" required="true" unless="$(arg debug)"/>
@@ -38,12 +42,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <!-- UAV Path Manager nodes -->
     <group ns="uav_path_manager">
         <group ns="$(arg ns_prefix)1">
-            <!-- <node pkg="uav_path_manager" type="path_generator_node" name="generator" output="screen" required="true" unless="$(arg use_class)">
-                <param name="vxy" value="$(arg vxy)"/>
-                <param name="vz_up" value="$(arg vz_up)"/>
-                <param name="vz_dn" value="$(arg vz_dn)"/>
-                <param name="pub_rate" value="$(arg pub_rate)"/>
-            </node> -->
             <node pkg="uav_path_manager" type="path_manager_node" name="manager" output="screen" required="true">
                 <param name="uav_id" value="1"/>
                 <param name="save_csv" value="$(arg save_data)"/>
@@ -57,6 +55,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 <param name="uav_id" value="1"/>
                 <param name="debug" value="$(arg debug)"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
+                <param name="vxy" value="$(arg vxy)"/>
+                <param name="vz_up" value="$(arg vz_up)"/>
+                <param name="vz_dn" value="$(arg vz_dn)"/>
             </node>
             <node pkg="uav_path_manager" type="visualization_node" name="visualization" required="true">
                 <param name="uav_id" value="1"/>
@@ -66,6 +67,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         </group>
 
         <!-- Add one more UAV and nodes to manage it -->
+        <!-- <group unless="$(arg debug)"> -->
         <group if="$(arg multi)" ns="$(arg ns_prefix)2">
             <node pkg="uav_path_manager" type="path_manager_node" name="manager" required="true" output="screen">
                 <param name="uav_id" value="2"/>
@@ -78,6 +80,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             <node pkg="uav_path_manager" type="path_follower_node" name="follower" required="true" unless="$(arg use_class)">
                 <param name="uav_id" value="2"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
+                <param name="vxy" value="$(arg vxy)"/>
+                <param name="vz_up" value="$(arg vz_up)"/>
+                <param name="vz_dn" value="$(arg vz_dn)"/>
             </node>
             <node pkg="uav_path_manager" type="visualization_node" name="visualization" required="true">
                 <param name="uav_id" value="2"/>
@@ -85,6 +90,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 <param name="robot_model" value="$(arg robot_model)"/>
             </node>
         </group>
+        <!-- </group> -->
     </group>
 
 </launch>

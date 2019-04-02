@@ -23,7 +23,8 @@
 #include <uav_abstraction_layer/State.h>
 #include <uav_abstraction_layer/TakeOff.h>
 #include <uav_abstraction_layer/ual.h>
-#include <uav_path_manager/FollowPath.h>
+#include <uav_path_manager/PreparePath.h>
+#include <uav_path_manager/PrepareTrajectory.h>
 #include <uav_path_manager/GeneratePath.h>
 #include <uav_path_manager/Visualize.h>
 #include <uav_path_manager/path_generator.h>
@@ -64,7 +65,7 @@ class PathManager {
     // Publishers
     ros::Publisher pub_set_velocity_, pub_set_pose_;
     // Services
-    ros::ServiceClient client_take_off_, client_land_, client_generate_path_, client_follow_path_, client_visualize_;
+    ros::ServiceClient client_take_off_, client_land_, client_generate_path_, client_prepare_path_, client_prepare_trajectory_, client_visualize_;
     // Variables
     std::string folder_data_name_;
     bool on_path_, end_path_;
