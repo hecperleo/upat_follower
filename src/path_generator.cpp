@@ -28,7 +28,8 @@ PathGenerator::PathGenerator() : nh_(), pnh_("~") {
     pnh_.param<double>("vz_up", vz_up, 3.0);
     pnh_.param<double>("vz_dn", vz_dn, 1.0);
     // Services
-    // server_generate_path_ = nh_.advertiseService("/uav_path_manager/generator/generate_path", &PathGenerator::pathCallback, this);
+    server_generate_path_ = nh_.advertiseService("/uav_path_manager/generator/generate_path", &PathGenerator::generatePathCb, this);
+    server_generate_trajectory_ = nh_.advertiseService("/uav_path_manager/generator/generate_trajectory", &PathGenerator::generateTrajectoryCb, this);
     // Client to get parameters from mavros and required default values
     get_param_client_ = nh_.serviceClient<mavros_msgs::ParamGet>("mavros/param/get");
     mavros_params_["MPC_XY_VEL_MAX"] = vxy;      // [m/s]   Default value
@@ -37,7 +38,8 @@ PathGenerator::PathGenerator() : nh_(), pnh_("~") {
     // Updating here is non-sense as service seems to be slow in waking up
 }
 
-PathGenerator::PathGenerator(double _vxy, double _vz_up, double _vz_dn) {
+PathGenerator::PathGenerator(double _vxy, double _vz_up, double _vz_dn, bool _debug) {
+    debug_ = _debug;
     // Client to get parameters from mavros and required default values
     get_param_client_ = nh_.serviceClient<mavros_msgs::ParamGet>("mavros/param/get");
     mavros_params_["MPC_XY_VEL_MAX"] = _vxy;      // [m/s]   Default value
@@ -60,7 +62,7 @@ double PathGenerator::checkSmallestMaxVel() {
     velocities.push_back(mpc_z_vel_max_up);
     velocities.push_back(mpc_z_vel_max_dn);
     min_max_vel = *std::min_element(velocities.begin(), velocities.end());
-    ROS_INFO("PathGenerator -> Smallest max velocity: %f", min_max_vel);
+    ROS_WARN_COND(debug_, "PathGenerator -> Smallest max velocity: %f", min_max_vel);
 
     return min_max_vel;
 }
@@ -70,7 +72,7 @@ double PathGenerator::updateParam(const std::string &_param_id) {
     get_param_service.request.param_id = _param_id;
     if (get_param_client_.call(get_param_service) && get_param_service.response.success) {
         mavros_params_[_param_id] = get_param_service.response.value.integer ? get_param_service.response.value.integer : get_param_service.response.value.real;
-        ROS_INFO("Parameter [%s] value is [%f]", get_param_service.request.param_id.c_str(), mavros_params_[_param_id]);
+        ROS_WARN_COND(debug_, "Parameter [%s] value is [%f]", get_param_service.request.param_id.c_str(), mavros_params_[_param_id]);
     } else if (mavros_params_.count(_param_id)) {
         ROS_WARN("Error in get param [%s] service calling, leaving current value [%f]",
                  get_param_service.request.param_id.c_str(), mavros_params_[_param_id]);
@@ -153,7 +155,7 @@ nav_msgs::Path PathGenerator::generateTrajectory(nav_msgs::Path _init_path, std:
         while (out_path_.poses.size() > generated_max_vel_percentage_.size()) {
             generated_max_vel_percentage_.push_back(_max_vel_percentage.back());
         }
-        ROS_INFO("PathGenerator -> Path sizes -> spline: %zd, maxVel: %zd, init: %zd", out_path_.poses.size(), generated_max_vel_percentage_.size(), _init_path.poses.size());
+        ROS_WARN_COND(debug_, "PathGenerator -> Path sizes -> spline: %zd, maxVel: %zd, init: %zd", out_path_.poses.size(), generated_max_vel_percentage_.size(), _init_path.poses.size());
         max_velocity_ = abs(smallest_max_vel_);
     } else {
         ROS_ERROR("Time intervals size (%zd) should has one less element than init path size (%zd)", _max_vel_percentage.size(), _init_path.poses.size());
@@ -275,7 +277,7 @@ bool PathGenerator::generateTrajectoryCb(uav_path_manager::PrepareTrajectory::Re
             v_percentage.data = max_vel_percentage.back();
             _res_trajectory.generated_max_vel_percentage.push_back(v_percentage);
         }
-        ROS_INFO("PathGenerator -> Path sizes -> spline: %zd, maxVel: %zd, init: %zd", _res_trajectory.generated_path.poses.size(), _res_trajectory.generated_max_vel_percentage.size(), _req_trajectory.init_path.poses.size());
+        ROS_WARN_COND(debug_, "PathGenerator -> Path sizes -> spline: %zd, maxVel: %zd, init: %zd", _res_trajectory.generated_path.poses.size(), _res_trajectory.generated_max_vel_percentage.size(), _req_trajectory.init_path.poses.size());
         _res_trajectory.max_velocity.data = abs(smallest_max_vel_);
     } else {
         // Instead of using the %d type specifier, you should use an unsigned specifier like %ud, or the dedicated specifier for size_t: %zd to avoid warning while compiling
@@ -445,7 +447,7 @@ nav_msgs::Path PathGenerator::createTrajectory(std::vector<double> _list_x, std:
             if (spline_max_vel > smallest_max_vel_ || fabs(spline_min_vel) > smallest_max_vel_ || temp_div.rem != 0) {
                 num_joints++;
             } else {
-                ROS_INFO("PathGenerator -> Spline done in %d iterations! Spline max velocities: %f and %f", num_joints - _path_size, spline_max_vel, spline_min_vel);
+                ROS_WARN_COND(debug_, "PathGenerator -> Spline done in %d iterations! Spline max velocities: %f and %f", num_joints - _path_size, spline_max_vel, spline_min_vel);
                 cubic_spline_path = constructPath(spline_list_x, spline_list_y, spline_list_z);
                 try_fit_spline = false;
             }

@@ -175,7 +175,7 @@ void PathManager::callVisualization() {
 }
 
 void PathManager::runMission() {
-    static PathFollower follower_(uav_id_);
+    static PathFollower follower_(uav_id_, 2.0, 3.0, 1.0, true);
 
     uav_abstraction_layer::TakeOff take_off;
     uav_abstraction_layer::Land land;

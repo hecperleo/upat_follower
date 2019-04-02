@@ -36,13 +36,10 @@
 #include <limits>
 #include <vector>
 
-
 class PathGenerator {
    public:
     PathGenerator();
-
-    PathGenerator(double _vxy, double _vz_up, double _vz_dn);
-
+    PathGenerator(double _vxy, double _vz_up, double _vz_dn, bool _debug = false);
     ~PathGenerator();
 
     double max_velocity_;
@@ -78,14 +75,15 @@ class PathGenerator {
     ros::NodeHandle nh_;
     ros::NodeHandle pnh_;
     // Services
-    ros::ServiceServer server_generate_path_, srv_generate_trajectory_;
+    ros::ServiceServer server_generate_path_, server_generate_trajectory_;
     ros::ServiceClient get_param_client_;
     std::map<std::string, double> mavros_params_;
-    // Publisher
     // Variables
     double smallest_max_vel_ = 1.0;
     int size_vec_percentage_ = 0;
     int interp1_final_size_ = 10000;
+    // Params
+    bool debug_;
 };
 
 #endif /* PATHGENERATOR_H */

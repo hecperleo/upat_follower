@@ -36,7 +36,7 @@
 class PathFollower {
    public:
     PathFollower();
-    PathFollower(int _uav_id, double _vxy = 2.0, double _vz_up = 3.0, double _vz_dn = 1.0);
+    PathFollower(int _uav_id, double _vxy = 2.0, double _vz_up = 3.0, double _vz_dn = 1.0, bool _debug = false);
     ~PathFollower();
 
     void pubMsgs();
@@ -79,7 +79,7 @@ class PathFollower {
     std::vector<double> generated_max_vel_percentage_;
     // Params
     int uav_id_;
-    bool debug_;
+    bool debug_ = false;
     double vxy_ = 2.0;
     double vz_up_ = 3.0;
     double vz_dn_ = 1.0;

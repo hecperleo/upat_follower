@@ -35,7 +35,6 @@ PathFollower::PathFollower() : nh_(), pnh_("~") {
     server_prepare_trajectory_ = nh_.advertiseService("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/prepare_trajectory", &PathFollower::prepareTrajectoryCb, this);
     // Debug follower
     if (debug_) {
-        ROS_WARN("[DEBUG MODE]");
         pub_point_look_ahead_ = nh_.advertise<geometry_msgs::PointStamped>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/debug_point_look_ahead", 1000);
         pub_point_normal_ = nh_.advertise<geometry_msgs::PointStamped>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/debug_point_normal", 1000);
         pub_point_search_normal_begin_ = nh_.advertise<geometry_msgs::PointStamped>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/debug_point_search_begin", 1000);
@@ -43,7 +42,8 @@ PathFollower::PathFollower() : nh_(), pnh_("~") {
     }
 }
 
-PathFollower::PathFollower(int _uav_id, double _vxy, double _vz_up, double _vz_dn) {
+PathFollower::PathFollower(int _uav_id, double _vxy, double _vz_up, double _vz_dn, bool _debug) {
+    debug_ = _debug;
     uav_id_ = _uav_id;
     vxy_ = _vxy;
     vz_up_ = _vz_up;
@@ -55,7 +55,7 @@ PathFollower::~PathFollower() {
 
 nav_msgs::Path PathFollower::preparePath(nav_msgs::Path _init_path, int _generator_mode, double _look_ahead, double _cruising_speed) {
     follower_mode_ = 0;
-    PathGenerator generator(vxy_, vz_up_, vz_dn_);
+    PathGenerator generator(vxy_, vz_up_, vz_dn_, debug_);
     generator.generatePath(_init_path, _generator_mode);
     look_ahead_ = _look_ahead;
     cruising_speed_ = _cruising_speed;
@@ -65,7 +65,7 @@ nav_msgs::Path PathFollower::preparePath(nav_msgs::Path _init_path, int _generat
 
 nav_msgs::Path PathFollower::prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _max_vel_percentage) {
     follower_mode_ = 1;
-    PathGenerator generator(vxy_, vz_up_, vz_dn_);
+    PathGenerator generator(vxy_, vz_up_, vz_dn_, debug_);
     generator.generateTrajectory(_init_path, _max_vel_percentage);
     target_vel_path_ = generator.generated_path_vel_percentage_;
     target_vel_path_.header.frame_id = generator.out_path_.header.frame_id;
@@ -79,7 +79,7 @@ nav_msgs::Path PathFollower::prepareTrajectory(nav_msgs::Path _init_path, std::v
 
 bool PathFollower::preparePathCb(uav_path_manager::PreparePath::Request &_req_path, uav_path_manager::PreparePath::Response &_res_path) {
     follower_mode_ = 0;
-    PathGenerator generator(vxy_, vz_up_, vz_dn_);
+    PathGenerator generator(vxy_, vz_up_, vz_dn_, debug_);
     generator.generatePath(_req_path.init_path, _req_path.generator_mode.data);
     look_ahead_ = _req_path.look_ahead.data;
     cruising_speed_ = _req_path.cruising_speed.data;
@@ -90,9 +90,9 @@ bool PathFollower::preparePathCb(uav_path_manager::PreparePath::Request &_req_pa
 
 bool PathFollower::prepareTrajectoryCb(uav_path_manager::PrepareTrajectory::Request &_req_trajectory, uav_path_manager::PrepareTrajectory::Response &_res_trajectory) {
     follower_mode_ = 1;
-    PathGenerator generator(vxy_, vz_up_, vz_dn_);
+    PathGenerator generator(vxy_, vz_up_, vz_dn_, debug_);
     std::vector<double> vec_max_vel_percentage;
-    for (int i = 0; i < _req_trajectory.max_vel_percentage.size(); i++){
+    for (int i = 0; i < _req_trajectory.max_vel_percentage.size(); i++) {
         vec_max_vel_percentage.push_back(_req_trajectory.max_vel_percentage.at(i).data);
     }
     generator.generateTrajectory(_req_trajectory.init_path, vec_max_vel_percentage);
