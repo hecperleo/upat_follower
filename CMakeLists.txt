@@ -181,7 +181,7 @@ add_dependencies(path_follower_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin
 
 
 add_library(path_manager src/path_manager.cpp)
-target_link_libraries(path_manager path_generator path_follower ${catkin_LIBRARIES})
+target_link_libraries(path_manager path_follower ${catkin_LIBRARIES})
 add_dependencies(path_manager ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 add_executable(path_manager_node src/path_manager_node.cpp)

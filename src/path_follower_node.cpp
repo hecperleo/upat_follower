@@ -28,7 +28,7 @@ int main(int _argc, char **_argv) {
     ros::param::param<int>("~pub_rate", pub_rate_, 30);
     ros::Rate rate(pub_rate_);
     while (ros::ok()) {
-        path_follower.followPath();
+        path_follower.getVelocity();
         path_follower.pubMsgs();
         ros::spinOnce();
         rate.sleep();

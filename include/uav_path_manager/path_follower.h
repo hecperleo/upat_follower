@@ -34,24 +34,20 @@
 class PathFollower {
    public:
     PathFollower();
-    PathFollower(int _uav_id, bool _debug);
+    PathFollower(int _uav_id, double _vxy = 2.0, double _vz_up = 3.0, double _vz_dn = 1.0);
     ~PathFollower();
 
-    void updatePose(const geometry_msgs::PoseStamped &_ual_pose);
-    bool pathCallback(uav_path_manager::FollowPath::Request &_req_path, uav_path_manager::FollowPath::Response &_res_path);
-    geometry_msgs::TwistStamped out_velocity_;
-
     void pubMsgs();
-    void followPath();
+    geometry_msgs::TwistStamped out_velocity_;
+    geometry_msgs::TwistStamped getVelocity();
+    void updatePose(const geometry_msgs::PoseStamped &_ual_pose);
+    nav_msgs::Path preparePath(nav_msgs::Path _init_path, double _look_ahead = 1.2, double _cruising_speed = 1.0, int _follower_mode = 0,
+                               int _generator_mode = 0, std::vector<double> _max_vel_percentage = std::vector<double>());
 
    private:
-    double vxy_ = 2.0;
-    double vz_up_ = 3.0;
-    double vz_dn_ = 1.0;
-    // Must be here, if it miss -> compilate error -> #include <uav_path_manager/path_generator.h
-    PathGenerator generator_;
     // Callbacks
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
+    bool pathCallback(uav_path_manager::FollowPath::Request &_req_path, uav_path_manager::FollowPath::Response &_res_path);
     // Methods
     double changeLookAhead(int _pos_on_path);
     int calculatePosLookAhead(int _pos_on_path);
@@ -81,6 +77,9 @@ class PathFollower {
     // Params
     int uav_id_;
     bool debug_;
+    double vxy_ = 2.0;
+    double vz_up_ = 3.0;
+    double vz_dn_ = 1.0;
     // Debug
     geometry_msgs::PointStamped point_look_ahead_, point_normal_, point_search_normal_begin_, point_search_normal_end_;
 };

@@ -57,6 +57,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 <param name="uav_id" value="1"/>
                 <param name="debug" value="$(arg debug)"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
+                <param name="vxy" value="$(arg vxy)"/>
+                <param name="vz_up" value="$(arg vz_up)"/>
+                <param name="vz_dn" value="$(arg vz_dn)"/>
             </node>
             <node pkg="uav_path_manager" type="visualization_node" name="visualization" required="true">
                 <param name="uav_id" value="1"/>
@@ -78,6 +81,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             <node pkg="uav_path_manager" type="path_follower_node" name="follower" required="true" unless="$(arg use_class)">
                 <param name="uav_id" value="2"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
+                <param name="vxy" value="$(arg vxy)"/>
+                <param name="vz_up" value="$(arg vz_up)"/>
+                <param name="vz_dn" value="$(arg vz_dn)"/>
             </node>
             <node pkg="uav_path_manager" type="visualization_node" name="visualization" required="true">
                 <param name="uav_id" value="2"/>
