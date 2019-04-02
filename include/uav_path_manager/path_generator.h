@@ -44,12 +44,13 @@ class PathGenerator {
 
     ~PathGenerator();
 
-    nav_msgs::Path generatePath(nav_msgs::Path _init_path, int _generator_mode = 0, std::vector<double> _max_vel_percentage = std::vector<double>());
+    double max_velocity_;
     nav_msgs::Path out_path_;
     nav_msgs::Path generated_path_vel_percentage_;
-    double max_velocity_;
     std::vector<double> generated_max_vel_percentage_;
-    
+    nav_msgs::Path generateTrajectory(nav_msgs::Path _init_path, std::vector<double> _max_vel_percentage);
+    nav_msgs::Path generatePath(nav_msgs::Path _init_path, int _generator_mode = 0);
+    // For tests
     nav_msgs::Path createPathInterp1(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size, int _new_path_size);
     nav_msgs::Path createPathCubicSpline(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size);
     nav_msgs::Path createTrajectory(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size, std::vector<double> _max_vel_percentage);

@@ -52,29 +52,26 @@ PathFollower::PathFollower(int _uav_id, double _vxy, double _vz_up, double _vz_d
 PathFollower::~PathFollower() {
 }
 
-nav_msgs::Path PathFollower::preparePath(nav_msgs::Path _init_path, double _look_ahead, double _cruising_speed, int _follower_mode,
-                                         int _generator_mode, std::vector<double> _max_vel_percentage) {
+nav_msgs::Path PathFollower::preparePath(nav_msgs::Path _init_path, int _generator_mode, double _look_ahead, double _cruising_speed) {
+    follower_mode_ = 0;
     PathGenerator generator(vxy_, vz_up_, vz_dn_);
-    if (_generator_mode == 3) {
-        generator.generatePath(_init_path, _generator_mode, _max_vel_percentage);
-    } else {
-        generator.generatePath(_init_path, _generator_mode);
+    generator.generatePath(_init_path, _generator_mode);
+    look_ahead_ = _look_ahead;
+    cruising_speed_ = _cruising_speed;
+    target_path_ = generator.out_path_;
+    return generator.out_path_;
+}
+
+nav_msgs::Path PathFollower::prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _max_vel_percentage) {
+    follower_mode_ = 1;
+    PathGenerator generator(vxy_, vz_up_, vz_dn_);
+    generator.generateTrajectory(_init_path, _max_vel_percentage);
+    target_vel_path_ = generator.generated_path_vel_percentage_;
+    target_vel_path_.header.frame_id = generator.out_path_.header.frame_id;
+    for (int i = 0; i < generator.generated_max_vel_percentage_.size(); i++) {
+        generated_max_vel_percentage_.push_back(generator.generated_max_vel_percentage_.at(i));
     }
-    follower_mode_ = _follower_mode;
-    switch (follower_mode_) {
-        case 0:  // Path
-            look_ahead_ = _look_ahead;
-            cruising_speed_ = _cruising_speed;
-            break;
-        case 1:  // Trajectory
-            target_vel_path_ = generator.generated_path_vel_percentage_;
-            target_vel_path_.header.frame_id = generator.out_path_.header.frame_id;
-            for (int i = 0; i < generator.generated_max_vel_percentage_.size(); i++) {
-                generated_max_vel_percentage_.push_back(generator.generated_max_vel_percentage_.at(i));
-            }
-            max_vel_ = generator.max_velocity_;
-            break;
-    }
+    max_vel_ = generator.max_velocity_;
     target_path_ = generator.out_path_;
     return generator.out_path_;
 }
@@ -87,7 +84,7 @@ bool PathFollower::pathCallback(uav_path_manager::FollowPath::Request &_req_path
         for (int i = 0; i < _req_path.max_vel_percentage.size(); i++) {
             vec_max_vel_percentage.push_back(_req_path.max_vel_percentage.at(i).data);
         }
-        generator.generatePath(_req_path.init_path, _req_path.generator_mode.data, vec_max_vel_percentage);
+        generator.generateTrajectory(_req_path.init_path, vec_max_vel_percentage);
     } else {
         generator.generatePath(_req_path.init_path, _req_path.generator_mode.data);
     }

@@ -19,7 +19,7 @@
 
 #include <uav_path_manager/path_manager.h>
 
-PathManager::PathManager() : nh_(), pnh_("~"){
+PathManager::PathManager() : nh_(), pnh_("~") {
     // Parameters
     pnh_.getParam("uav_id", uav_id_);
     pnh_.getParam("save_csv", save_csv_);
@@ -135,8 +135,6 @@ void PathManager::velocityCallback(const geometry_msgs::TwistStamped &_velocity)
 
 void PathManager::saveDataForTesting() {
     static PathFollower follower_save_data(uav_id_);
-    uav_path_manager::FollowPath generate_path;
-    std_msgs::Int8 generator_mode;
     std::ofstream csv_cubic_loyal, csv_cubic, csv_interp1, csv_init;
     csv_init.open(folder_data_name_ + "/init.csv");
     csv_init << std::fixed << std::setprecision(5);
@@ -144,37 +142,21 @@ void PathManager::saveDataForTesting() {
         csv_init << init_path_.poses.at(i).pose.position.x << ", " << init_path_.poses.at(i).pose.position.y << ", " << init_path_.poses.at(i).pose.position.z << std::endl;
     }
     csv_init.close();
-    generate_path.request.generator_mode.data = 0;
-    generate_path.request.init_path = init_path_;
-    if (!use_class_) {
-        client_generate_path_.call(generate_path);
-        path = generate_path.response.generated_path;
-    }
-    if (use_class_) follower_save_data.preparePath(init_path_, 1.2, 1.0, 0, 0);
+    follower_save_data.preparePath(init_path_, 0);
     csv_interp1.open(folder_data_name_ + "/interp1.csv");
     csv_interp1 << std::fixed << std::setprecision(5);
     for (int i = 0; i < path.poses.size(); i++) {
         csv_interp1 << path.poses.at(i).pose.position.x << ", " << path.poses.at(i).pose.position.y << ", " << path.poses.at(i).pose.position.z << std::endl;
     }
     csv_interp1.close();
-    generate_path.request.generator_mode.data = 1;
-    if (!use_class_) {
-        client_generate_path_.call(generate_path);
-        path = generate_path.response.generated_path;
-    }
-    if (use_class_) follower_save_data.preparePath(init_path_, 1.2, 1.0, 0, 1);
+    follower_save_data.preparePath(init_path_, 1);
     csv_cubic_loyal.open(folder_data_name_ + "/cubic_spline_loyal.csv");
     csv_cubic_loyal << std::fixed << std::setprecision(5);
     for (int i = 0; i < path.poses.size(); i++) {
         csv_cubic_loyal << path.poses.at(i).pose.position.x << ", " << path.poses.at(i).pose.position.y << ", " << path.poses.at(i).pose.position.z << std::endl;
     }
     csv_cubic_loyal.close();
-    generate_path.request.generator_mode.data = 2;
-    if (!use_class_) {
-        client_generate_path_.call(generate_path);
-        path = generate_path.response.generated_path;
-    }
-    if (use_class_) follower_save_data.preparePath(init_path_, 1.2, 1.0, 0, 2);
+    follower_save_data.preparePath(init_path_, 2);
     csv_cubic.open(folder_data_name_ + "/cubic_spline.csv");
     csv_cubic << std::fixed << std::setprecision(5);
     for (int i = 0; i < path.poses.size(); i++) {
@@ -214,18 +196,18 @@ void PathManager::runMission() {
                 client_follow_path_.call(follow_path);
                 path = follow_path.response.generated_path;
             }
-            if (use_class_) path = follower_.preparePath(init_path_, 1.2, 1.0, 1, 3, max_vel_percentage_);
+            if (use_class_) path = follower_.prepareTrajectory(init_path_, max_vel_percentage_);
         } else {
             follow_path.request.init_path = init_path_;
             follow_path.request.generator_mode.data = 2;
             follow_path.request.follower_mode.data = 0;
             follow_path.request.look_ahead.data = 1.2;
-            follow_path.request.cruising_speed.data = 1.0;         
+            follow_path.request.cruising_speed.data = 1.0;
             if (!use_class_) {
                 client_follow_path_.call(follow_path);
                 path = follow_path.response.generated_path;
             }
-            if (use_class_) path = follower_.preparePath(init_path_, 1.2, 1.0, 0, 2);
+            if (use_class_) path = follower_.preparePath(init_path_, 2, 1.2, 1.0);
         }
     }
 
