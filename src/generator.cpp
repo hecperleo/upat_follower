@@ -17,9 +17,9 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //----------------------------------------------------------------------------------------------------------------------
 
-#include <uav_path_manager/generator.h>
+#include <upat_follower/generator.h>
 
-namespace uav_path_manager {
+namespace upat_follower {
 
 Generator::Generator() : nh_(), pnh_("~") {
     double vxy, vz_up, vz_dn;
@@ -28,8 +28,8 @@ Generator::Generator() : nh_(), pnh_("~") {
     pnh_.param<double>("vz_up", vz_up, 3.0);
     pnh_.param<double>("vz_dn", vz_dn, 1.0);
     // Services
-    server_generate_path_ = nh_.advertiseService("/uav_path_manager/generator/generate_path", &Generator::generatePathCb, this);
-    server_generate_trajectory_ = nh_.advertiseService("/uav_path_manager/generator/generate_trajectory", &Generator::generateTrajectoryCb, this);
+    server_generate_path_ = nh_.advertiseService("/upat_follower/generator/generate_path", &Generator::generatePathCb, this);
+    server_generate_trajectory_ = nh_.advertiseService("/upat_follower/generator/generate_trajectory", &Generator::generateTrajectoryCb, this);
     // Client to get parameters from mavros and required default values
     get_param_client_ = nh_.serviceClient<mavros_msgs::ParamGet>("mavros/param/get");
     mavros_params_["MPC_XY_VEL_MAX"] = vxy;      // [m/s]   Default value
@@ -202,8 +202,8 @@ nav_msgs::Path Generator::generatePath(nav_msgs::Path _init_path, int _generator
     return out_path_;
 }
 
-bool Generator::generatePathCb(uav_path_manager::GeneratePath::Request &_req_path,
-                                   uav_path_manager::GeneratePath::Response &_res_path) {
+bool Generator::generatePathCb(upat_follower::GeneratePath::Request &_req_path,
+                                   upat_follower::GeneratePath::Response &_res_path) {
     std::vector<double> list_pose_x, list_pose_y, list_pose_z;
     for (int i = 0; i < _req_path.init_path.poses.size(); i++) {
         list_pose_x.push_back(_req_path.init_path.poses.at(i).pose.position.x);
@@ -240,8 +240,8 @@ bool Generator::generatePathCb(uav_path_manager::GeneratePath::Request &_req_pat
     return true;
 }
 
-bool Generator::generateTrajectoryCb(uav_path_manager::PrepareTrajectory::Request &_req_trajectory,
-                                         uav_path_manager::PrepareTrajectory::Response &_res_trajectory) {
+bool Generator::generateTrajectoryCb(upat_follower::PrepareTrajectory::Request &_req_trajectory,
+                                         upat_follower::PrepareTrajectory::Response &_res_trajectory) {
     std::vector<double> list_pose_x, list_pose_y, list_pose_z;
     for (int i = 0; i < _req_trajectory.init_path.poses.size(); i++) {
         list_pose_x.push_back(_req_trajectory.init_path.poses.at(i).pose.position.x);
@@ -468,4 +468,4 @@ nav_msgs::Path Generator::pathManagement(std::vector<double> _list_pose_x, std::
     }
 }
 
-}  // namespace uav_path_manager
+}  // namespace upat_follower

@@ -2,7 +2,7 @@
 #include <math.h>
 #include <ros/package.h>
 #include <ros/ros.h>
-#include <uav_path_manager/generator.h>
+#include <upat_follower/generator.h>
 #include <fstream>
 #include <string>
 #include <thread>
@@ -35,7 +35,7 @@ nav_msgs::Path constructPath(std::vector<double> wps_x, std::vector<double> wps_
 
 nav_msgs::Path csvToPath(std::string file_name) {
     nav_msgs::Path out_path;
-    std::string pkg_name_path = ros::package::getPath("uav_path_manager");
+    std::string pkg_name_path = ros::package::getPath("upat_follower");
     std::string folder_name = pkg_name_path + "/tests/data" + file_name;
     std::fstream read_csv;
     read_csv.open(folder_name);
@@ -66,7 +66,7 @@ nav_msgs::Path csvToPath(std::string file_name) {
 }
 
 TEST_F(MyTestSuite, interp1) {
-    uav_path_manager::Generator generator_(2.0, 3.0, 1.0);
+    upat_follower::Generator generator_(2.0, 3.0, 1.0);
     nav_msgs::Path init_path = csvToPath("/init.csv");
     nav_msgs::Path ref_path = csvToPath("/interp1.csv");
     nav_msgs::Path act_path = generator_.generatePath(init_path, 0);
@@ -79,7 +79,7 @@ TEST_F(MyTestSuite, interp1) {
 }
 
 TEST_F(MyTestSuite, cubicSplineLoyal) {
-    uav_path_manager::Generator generator_(2.0, 3.0, 1.0);
+    upat_follower::Generator generator_(2.0, 3.0, 1.0);
     nav_msgs::Path init_path = csvToPath("/init.csv");
     nav_msgs::Path ref_path = csvToPath("/cubic_spline_loyal.csv");
     nav_msgs::Path act_path = generator_.generatePath(init_path, 1);
@@ -92,7 +92,7 @@ TEST_F(MyTestSuite, cubicSplineLoyal) {
 }
 
 TEST_F(MyTestSuite, cubicSpline) {
-    uav_path_manager::Generator generator_(2.0, 3.0, 1.0);
+    upat_follower::Generator generator_(2.0, 3.0, 1.0);
     nav_msgs::Path init_path = csvToPath("/init.csv");
     nav_msgs::Path ref_path = csvToPath("/cubic_spline.csv");
     nav_msgs::Path act_path = generator_.generatePath(init_path, 2);

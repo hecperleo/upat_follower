@@ -20,7 +20,7 @@
 #include <ros/package.h>
 #include <ros/ros.h>
 #include <uav_abstraction_layer/ual.h>
-#include <uav_path_manager/Visualize.h>
+#include <upat_follower/Visualize.h>
 #include <visualization_msgs/Marker.h>
 #include "geometry_msgs/PoseStamped.h"
 #include "nav_msgs/Path.h"
@@ -35,7 +35,7 @@ class Visualization {
    private:
     // Callbacks
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
-    bool visualCallback(uav_path_manager::Visualize::Request &_req_visual, uav_path_manager::Visualize::Response &_res_visual);
+    bool visualCallback(upat_follower::Visualize::Request &_req_visual, upat_follower::Visualize::Response &_res_visual);
     // Methods
     visualization_msgs::Marker readModel(std::string _model_type);
     // Node handlers

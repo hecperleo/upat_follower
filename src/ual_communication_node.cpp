@@ -18,7 +18,7 @@
 //----------------------------------------------------------------------------------------------------------------------
 
 #include <ros/ros.h>
-#include <uav_path_manager/ual_communication.h>
+#include <upat_follower/ual_communication.h>
 
 int main(int _argc, char **_argv) {
     ros::init(_argc, _argv, "ual_communication_node");

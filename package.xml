@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>uav_path_manager</name>
+  <name>upat_follower</name>
   <version>0.0.0</version>
-  <description>The uav_path_manager package</description>
+  <description>The upat_follower package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->

@@ -18,12 +18,12 @@
 //----------------------------------------------------------------------------------------------------------------------
 
 #include <ros/ros.h>
-#include <uav_path_manager/follower.h>
+#include <upat_follower/follower.h>
 
 int main(int _argc, char **_argv) {
     ros::init(_argc, _argv, "follower_node");
 
-    uav_path_manager::Follower follower;
+    upat_follower::Follower follower;
     int pub_rate_;
     ros::param::param<int>("~pub_rate", pub_rate_, 30);
     ros::Rate rate(pub_rate_);

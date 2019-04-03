@@ -22,8 +22,8 @@
 #include <mavros_msgs/ParamGet.h>
 #include <ros/ros.h>
 #include <uav_abstraction_layer/ual.h>
-#include <uav_path_manager/GeneratePath.h>
-#include <uav_path_manager/PrepareTrajectory.h>
+#include <upat_follower/GeneratePath.h>
+#include <upat_follower/PrepareTrajectory.h>
 #include <Eigen/Eigen>
 #include "ecl/geometry.hpp"
 #include "geometry_msgs/PoseStamped.h"
@@ -36,7 +36,7 @@
 #include <limits>
 #include <vector>
 
-namespace uav_path_manager {
+namespace upat_follower {
 
 class Generator {
    public:
@@ -63,8 +63,8 @@ class Generator {
 
    private:
     // Callbacks
-    bool generatePathCb(uav_path_manager::GeneratePath::Request &_req_path, uav_path_manager::GeneratePath::Response &_res_path);
-    bool generateTrajectoryCb(uav_path_manager::PrepareTrajectory::Request &_req_trajectory, uav_path_manager::PrepareTrajectory::Response &_res_trajectory);
+    bool generatePathCb(upat_follower::GeneratePath::Request &_req_path, upat_follower::GeneratePath::Response &_res_path);
+    bool generateTrajectoryCb(upat_follower::PrepareTrajectory::Request &_req_trajectory, upat_follower::PrepareTrajectory::Response &_res_trajectory);
     // Methods
     int nearestNeighbourIndex(std::vector<double> &_x, double &_value);
     std::vector<double> linealInterp1(std::vector<double> &_x, std::vector<double> &_y, std::vector<double> &_x_new);
@@ -88,6 +88,6 @@ class Generator {
     bool debug_;
 };
 
-}  // namespace uav_path_manager
+}  // namespace upat_follower
 
 #endif /* GENERATOR_H */

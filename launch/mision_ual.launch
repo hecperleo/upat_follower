@@ -29,20 +29,20 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 
     <!-- Visualization -->
-    <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find uav_path_manager)/rviz/mision.rviz" required="true" unless="$(arg debug)"/>
-    <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find uav_path_manager)/rviz/debug.rviz" required="true" if="$(arg debug)"/>
+    <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find upat_follower)/rviz/mision.rviz" required="true" unless="$(arg debug)"/>
+    <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find upat_follower)/rviz/debug.rviz" required="true" if="$(arg debug)"/>
 
     <!-- UAL Server -->
-    <include file="$(find uav_path_manager)/launch/server_ual.launch">
+    <include file="$(find upat_follower)/launch/server_ual.launch">
         <arg name="multi" value="$(arg multi)"/>
         <arg name="robot_model" value="$(arg robot_model)"/>
         <arg name="ual_pub_rate" value="$(arg pub_rate)"/>
     </include>
 
     <!-- UAV Path Manager nodes -->
-    <group ns="uav_path_manager">
+    <group ns="upat_follower">
         <group ns="$(arg ns_prefix)1">
-            <node pkg="uav_path_manager" type="ual_communication_node" name="ual_communication" output="screen" required="true">
+            <node pkg="upat_follower" type="ual_communication_node" name="ual_communication" output="screen" required="true">
                 <param name="uav_id" value="1"/>
                 <param name="save_csv" value="$(arg save_data)"/>
                 <param name="trajectory" value="$(arg trajectory)"/>
@@ -51,7 +51,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 <param name="reach_tolerance" value="$(arg reach_tolerance)"/>
                 <param name="use_class" value="$(arg use_class)"/>
             </node>
-            <node pkg="uav_path_manager" type="follower_node" name="follower" output="screen" required="true" unless="$(arg use_class)">
+            <node pkg="upat_follower" type="follower_node" name="follower" output="screen" required="true" unless="$(arg use_class)">
                 <param name="uav_id" value="1"/>
                 <param name="debug" value="$(arg debug)"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
@@ -59,7 +59,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 <param name="vz_up" value="$(arg vz_up)"/>
                 <param name="vz_dn" value="$(arg vz_dn)"/>
             </node>
-            <node pkg="uav_path_manager" type="visualization_node" name="visualization" required="true">
+            <node pkg="upat_follower" type="visualization_node" name="visualization" required="true">
                 <param name="uav_id" value="1"/>
                 <param name="robot_model" value="$(arg robot_model)"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
@@ -68,7 +68,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
         <!-- Add one more UAV and nodes to manage it -->
         <group if="$(arg multi)" ns="$(arg ns_prefix)2">
-            <node pkg="uav_path_manager" type="ual_communication_node" name="ual_communication" required="true" output="screen">
+            <node pkg="upat_follower" type="ual_communication_node" name="ual_communication" required="true" output="screen">
                 <param name="uav_id" value="2"/>
                 <param name="trajectory" value="$(arg trajectory)"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
@@ -76,14 +76,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 <param name="reach_tolerance" value="$(arg reach_tolerance)"/>
                 <param name="use_class" value="$(arg use_class)"/>
             </node>
-            <node pkg="uav_path_manager" type="follower_node" name="follower" required="true" unless="$(arg use_class)">
+            <node pkg="upat_follower" type="follower_node" name="follower" required="true" unless="$(arg use_class)">
                 <param name="uav_id" value="2"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
                 <param name="vxy" value="$(arg vxy)"/>
                 <param name="vz_up" value="$(arg vz_up)"/>
                 <param name="vz_dn" value="$(arg vz_dn)"/>
             </node>
-            <node pkg="uav_path_manager" type="visualization_node" name="visualization" required="true">
+            <node pkg="upat_follower" type="visualization_node" name="visualization" required="true">
                 <param name="uav_id" value="2"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
                 <param name="robot_model" value="$(arg robot_model)"/>

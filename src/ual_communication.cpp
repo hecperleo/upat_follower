@@ -17,7 +17,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //----------------------------------------------------------------------------------------------------------------------
 
-#include <uav_path_manager/ual_communication.h>
+#include <upat_follower/ual_communication.h>
 
 Manager::Manager() : nh_(), pnh_("~") {
     // Parameters
@@ -30,16 +30,16 @@ Manager::Manager() : nh_(), pnh_("~") {
     // Subscriptions
     sub_pose_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/pose", 0, &Manager::ualPoseCallback, this);
     sub_state_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/state", 0, &Manager::ualStateCallback, this);
-    sub_velocity_ = nh_.subscribe("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/output_vel", 0, &Manager::velocityCallback, this);
+    sub_velocity_ = nh_.subscribe("/upat_follower/follower/uav_" + std::to_string(uav_id_) + "/output_vel", 0, &Manager::velocityCallback, this);
     // Publishers
     pub_set_pose_ = nh_.advertise<geometry_msgs::PoseStamped>("/uav_" + std::to_string(uav_id_) + "/ual/set_pose", 1000);
     pub_set_velocity_ = nh_.advertise<geometry_msgs::TwistStamped>("/uav_" + std::to_string(uav_id_) + "/ual/set_velocity", 1000);
     // Services
     client_take_off_ = nh_.serviceClient<uav_abstraction_layer::TakeOff>("/uav_" + std::to_string(uav_id_) + "/ual/take_off");
     client_land_ = nh_.serviceClient<uav_abstraction_layer::Land>("/uav_" + std::to_string(uav_id_) + "/ual/land");
-    client_prepare_path_ = nh_.serviceClient<uav_path_manager::PreparePath>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/prepare_path");
-    client_prepare_trajectory_ = nh_.serviceClient<uav_path_manager::PrepareTrajectory>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/prepare_trajectory");
-    client_visualize_ = nh_.serviceClient<uav_path_manager::Visualize>("/uav_path_manager/visualization/uav_" + std::to_string(uav_id_) + "/visualize");
+    client_prepare_path_ = nh_.serviceClient<upat_follower::PreparePath>("/upat_follower/follower/uav_" + std::to_string(uav_id_) + "/prepare_path");
+    client_prepare_trajectory_ = nh_.serviceClient<upat_follower::PrepareTrajectory>("/upat_follower/follower/uav_" + std::to_string(uav_id_) + "/prepare_trajectory");
+    client_visualize_ = nh_.serviceClient<upat_follower::Visualize>("/upat_follower/visualization/uav_" + std::to_string(uav_id_) + "/visualize");
     // Flags
     on_path_ = false;
     end_path_ = false;
@@ -48,7 +48,7 @@ Manager::Manager() : nh_(), pnh_("~") {
     max_vel_percentage_ = csvToVector("/velocities.csv");
     // Save data
     if (save_csv_) {
-        std::string pkg_name_path = ros::package::getPath("uav_path_manager");
+        std::string pkg_name_path = ros::package::getPath("upat_follower");
         folder_data_name_ = pkg_name_path + "/tests/data";
     }
 }
@@ -75,7 +75,7 @@ nav_msgs::Path Manager::constructPath(std::vector<double> _wps_x, std::vector<do
 
 nav_msgs::Path Manager::csvToPath(std::string _file_name) {
     nav_msgs::Path out_path;
-    std::string pkg_name_path = ros::package::getPath("uav_path_manager");
+    std::string pkg_name_path = ros::package::getPath("upat_follower");
     std::string folder_name = pkg_name_path + "/data" + _file_name;
     std::fstream read_csv;
     read_csv.open(folder_name);
@@ -104,7 +104,7 @@ nav_msgs::Path Manager::csvToPath(std::string _file_name) {
 
 std::vector<double> Manager::csvToVector(std::string _file_name) {
     std::vector<double> out_vector;
-    std::string pkg_name_path = ros::package::getPath("uav_path_manager");
+    std::string pkg_name_path = ros::package::getPath("upat_follower");
     std::string folder_name = pkg_name_path + "/data" + _file_name;
     std::fstream read_csv;
     read_csv.open(folder_name);
@@ -135,7 +135,7 @@ void Manager::velocityCallback(const geometry_msgs::TwistStamped &_velocity) {
 }
 
 void Manager::saveDataForTesting() {
-    static uav_path_manager::Follower follower_save_data(uav_id_);
+    static upat_follower::Follower follower_save_data(uav_id_);
     std::ofstream csv_cubic_loyal, csv_cubic, csv_interp1, csv_init;
     csv_init.open(folder_data_name_ + "/init.csv");
     csv_init << std::fixed << std::setprecision(5);
@@ -167,7 +167,7 @@ void Manager::saveDataForTesting() {
 }
 
 void Manager::callVisualization() {
-    uav_path_manager::Visualize visualize;
+    upat_follower::Visualize visualize;
     visualize.request.init_path = init_path_;
     visualize.request.generated_path = path;
     visualize.request.current_path = current_path_;
@@ -175,12 +175,12 @@ void Manager::callVisualization() {
 }
 
 void Manager::runMission() {
-    static uav_path_manager::Follower follower_(uav_id_);
+    static upat_follower::Follower follower_(uav_id_);
 
     uav_abstraction_layer::TakeOff take_off;
     uav_abstraction_layer::Land land;
-    uav_path_manager::PreparePath prepare_path;
-    uav_path_manager::PrepareTrajectory prepare_trajectory;
+    upat_follower::PreparePath prepare_path;
+    upat_follower::PrepareTrajectory prepare_trajectory;
     if (path.poses.size() < 1) {
         if (save_csv_) saveDataForTesting();
         if (trajectory_) {

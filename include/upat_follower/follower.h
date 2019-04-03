@@ -22,17 +22,17 @@
 
 #include <ros/ros.h>
 #include <uav_abstraction_layer/ual.h>
-#include <uav_path_manager/GeneratePath.h>
-#include <uav_path_manager/PreparePath.h>
-#include <uav_path_manager/PrepareTrajectory.h>
-#include <uav_path_manager/generator.h>
+#include <upat_follower/GeneratePath.h>
+#include <upat_follower/PreparePath.h>
+#include <upat_follower/PrepareTrajectory.h>
+#include <upat_follower/generator.h>
 #include <Eigen/Eigen>
 #include "geometry_msgs/PointStamped.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/TwistStamped.h"
 #include "nav_msgs/Path.h"
 
-namespace uav_path_manager {
+namespace upat_follower {
 
 class Follower {
    public:
@@ -50,8 +50,8 @@ class Follower {
    private:
     // Callbacks
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
-    bool preparePathCb(uav_path_manager::PreparePath::Request &_req_path, uav_path_manager::PreparePath::Response &_res_path);
-    bool prepareTrajectoryCb(uav_path_manager::PrepareTrajectory::Request &_req_trajectory, uav_path_manager::PrepareTrajectory::Response &_res_trajectory);
+    bool preparePathCb(upat_follower::PreparePath::Request &_req_path, upat_follower::PreparePath::Response &_res_path);
+    bool prepareTrajectoryCb(upat_follower::PrepareTrajectory::Request &_req_trajectory, upat_follower::PrepareTrajectory::Response &_res_trajectory);
     // Methods
     double changeLookAhead(int _pos_on_path);
     int calculatePosLookAhead(int _pos_on_path);
@@ -88,6 +88,6 @@ class Follower {
     geometry_msgs::PointStamped point_look_ahead_, point_normal_, point_search_normal_begin_, point_search_normal_end_;
 };
 
-}  // namespace uav_path_manager
+}  // namespace upat_follower
 
 #endif /* FOLLOWER_H */
