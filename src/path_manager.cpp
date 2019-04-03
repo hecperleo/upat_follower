@@ -143,21 +143,21 @@ void PathManager::saveDataForTesting() {
         csv_init << init_path_.poses.at(i).pose.position.x << ", " << init_path_.poses.at(i).pose.position.y << ", " << init_path_.poses.at(i).pose.position.z << std::endl;
     }
     csv_init.close();
-    follower_save_data.preparePath(init_path_, 0);
+    path = follower_save_data.preparePath(init_path_, 0);
     csv_interp1.open(folder_data_name_ + "/interp1.csv");
     csv_interp1 << std::fixed << std::setprecision(5);
     for (int i = 0; i < path.poses.size(); i++) {
         csv_interp1 << path.poses.at(i).pose.position.x << ", " << path.poses.at(i).pose.position.y << ", " << path.poses.at(i).pose.position.z << std::endl;
     }
     csv_interp1.close();
-    follower_save_data.preparePath(init_path_, 1);
+    path = follower_save_data.preparePath(init_path_, 1);
     csv_cubic_loyal.open(folder_data_name_ + "/cubic_spline_loyal.csv");
     csv_cubic_loyal << std::fixed << std::setprecision(5);
     for (int i = 0; i < path.poses.size(); i++) {
         csv_cubic_loyal << path.poses.at(i).pose.position.x << ", " << path.poses.at(i).pose.position.y << ", " << path.poses.at(i).pose.position.z << std::endl;
     }
     csv_cubic_loyal.close();
-    follower_save_data.preparePath(init_path_, 2);
+    path = follower_save_data.preparePath(init_path_, 2);
     csv_cubic.open(folder_data_name_ + "/cubic_spline.csv");
     csv_cubic << std::fixed << std::setprecision(5);
     for (int i = 0; i < path.poses.size(); i++) {

@@ -67,7 +67,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         </group>
 
         <!-- Add one more UAV and nodes to manage it -->
-        <!-- <group unless="$(arg debug)"> -->
         <group if="$(arg multi)" ns="$(arg ns_prefix)2">
             <node pkg="uav_path_manager" type="path_manager_node" name="manager" required="true" output="screen">
                 <param name="uav_id" value="2"/>
@@ -90,7 +89,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 <param name="robot_model" value="$(arg robot_model)"/>
             </node>
         </group>
-        <!-- </group> -->
     </group>
 
 </launch>
