@@ -3,7 +3,7 @@
 This repository contains all the code for running the **upat_follower** package on ROS. It is composed of two cpp-classes.
 
 - [Generator](https://github.com/hecperleo/upat_follower/blob/dev/src/generator.cpp) is responsible for receiving an initial path and generating an improved final path or trajectory. Mainly improves the path using linear or cubic interpolations. If a trajectory must be generated, this node also needs the percentage of maximum speed at every segment of the initial path.
-- [Follower](https://github.com/hecperleo/upat_follower/blob/dev/src/follower.cpp) is responsible for receiving the final path or trajectory and generating a velocity to follow it.
+- [Follower](https://github.com/hecperleo/upat_follower/blob/dev/src/follower.cpp) is responsible for receiving a path or trajectory and generating a velocity to follow it.
 
 ## Installation Instructions - Ubuntu 16.04 with ROS Kinetic
 

@@ -36,10 +36,10 @@
 #include "nav_msgs/Path.h"
 #include "std_msgs/Int8.h"
 
-class Manager {
+class UALCommunication {
    public:
-    Manager();
-    ~Manager();
+    UALCommunication();
+    ~UALCommunication();
 
     void runMission();
     void callVisualization();

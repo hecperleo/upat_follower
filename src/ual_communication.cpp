@@ -19,7 +19,7 @@
 
 #include <upat_follower/ual_communication.h>
 
-Manager::Manager() : nh_(), pnh_("~") {
+UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     // Parameters
     pnh_.getParam("uav_id", uav_id_);
     pnh_.getParam("save_csv", save_csv_);
@@ -28,9 +28,9 @@ Manager::Manager() : nh_(), pnh_("~") {
     pnh_.getParam("reach_tolerance", reach_tolerance_);
     pnh_.getParam("use_class", use_class_);
     // Subscriptions
-    sub_pose_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/pose", 0, &Manager::ualPoseCallback, this);
-    sub_state_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/state", 0, &Manager::ualStateCallback, this);
-    sub_velocity_ = nh_.subscribe("/upat_follower/follower/uav_" + std::to_string(uav_id_) + "/output_vel", 0, &Manager::velocityCallback, this);
+    sub_pose_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/pose", 0, &UALCommunication::ualPoseCallback, this);
+    sub_state_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/state", 0, &UALCommunication::ualStateCallback, this);
+    sub_velocity_ = nh_.subscribe("/upat_follower/follower/uav_" + std::to_string(uav_id_) + "/output_vel", 0, &UALCommunication::velocityCallback, this);
     // Publishers
     pub_set_pose_ = nh_.advertise<geometry_msgs::PoseStamped>("/uav_" + std::to_string(uav_id_) + "/ual/set_pose", 1000);
     pub_set_velocity_ = nh_.advertise<geometry_msgs::TwistStamped>("/uav_" + std::to_string(uav_id_) + "/ual/set_velocity", 1000);
@@ -53,10 +53,10 @@ Manager::Manager() : nh_(), pnh_("~") {
     }
 }
 
-Manager::~Manager() {
+UALCommunication::~UALCommunication() {
 }
 
-nav_msgs::Path Manager::constructPath(std::vector<double> _wps_x, std::vector<double> _wps_y, std::vector<double> _wps_z, std::string frame_id) {
+nav_msgs::Path UALCommunication::constructPath(std::vector<double> _wps_x, std::vector<double> _wps_y, std::vector<double> _wps_z, std::string frame_id) {
     nav_msgs::Path out_path;
     std::vector<geometry_msgs::PoseStamped> poses(_wps_x.size());
     out_path.header.frame_id = frame_id;
@@ -73,7 +73,7 @@ nav_msgs::Path Manager::constructPath(std::vector<double> _wps_x, std::vector<do
     return out_path;
 }
 
-nav_msgs::Path Manager::csvToPath(std::string _file_name) {
+nav_msgs::Path UALCommunication::csvToPath(std::string _file_name) {
     nav_msgs::Path out_path;
     std::string pkg_name_path = ros::package::getPath("upat_follower");
     std::string folder_name = pkg_name_path + "/data" + _file_name;
@@ -102,7 +102,7 @@ nav_msgs::Path Manager::csvToPath(std::string _file_name) {
     return constructPath(list_x, list_y, list_z, "uav_" + std::to_string(uav_id_) + "_home");
 }
 
-std::vector<double> Manager::csvToVector(std::string _file_name) {
+std::vector<double> UALCommunication::csvToVector(std::string _file_name) {
     std::vector<double> out_vector;
     std::string pkg_name_path = ros::package::getPath("upat_follower");
     std::string folder_name = pkg_name_path + "/data" + _file_name;
@@ -122,19 +122,19 @@ std::vector<double> Manager::csvToVector(std::string _file_name) {
     return out_vector;
 }
 
-void Manager::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose) {
+void UALCommunication::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose) {
     ual_pose_ = *_ual_pose;
 }
 
-void Manager::ualStateCallback(const uav_abstraction_layer::State &_ual_state) {
+void UALCommunication::ualStateCallback(const uav_abstraction_layer::State &_ual_state) {
     ual_state_.state = _ual_state.state;
 }
 
-void Manager::velocityCallback(const geometry_msgs::TwistStamped &_velocity) {
+void UALCommunication::velocityCallback(const geometry_msgs::TwistStamped &_velocity) {
     velocity_ = _velocity;
 }
 
-void Manager::saveDataForTesting() {
+void UALCommunication::saveDataForTesting() {
     static upat_follower::Follower follower_save_data(uav_id_);
     std::ofstream csv_cubic_loyal, csv_cubic, csv_interp1, csv_init;
     csv_init.open(folder_data_name_ + "/init.csv");
@@ -166,7 +166,7 @@ void Manager::saveDataForTesting() {
     csv_cubic.close();
 }
 
-void Manager::callVisualization() {
+void UALCommunication::callVisualization() {
     upat_follower::Visualize visualize;
     visualize.request.init_path = init_path_;
     visualize.request.generated_path = path;
@@ -174,7 +174,7 @@ void Manager::callVisualization() {
     client_visualize_.call(visualize);
 }
 
-void Manager::runMission() {
+void UALCommunication::runMission() {
     static upat_follower::Follower follower_(uav_id_);
 
     uav_abstraction_layer::TakeOff take_off;
