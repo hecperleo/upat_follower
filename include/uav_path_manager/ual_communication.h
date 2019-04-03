@@ -27,8 +27,8 @@
 #include <uav_path_manager/PrepareTrajectory.h>
 #include <uav_path_manager/GeneratePath.h>
 #include <uav_path_manager/Visualize.h>
-#include <uav_path_manager/path_generator.h>
-#include <uav_path_manager/path_follower.h>
+#include <uav_path_manager/generator.h>
+#include <uav_path_manager/follower.h>
 #include <Eigen/Eigen>
 #include <fstream>
 #include "ecl/geometry.hpp"
@@ -36,10 +36,10 @@
 #include "nav_msgs/Path.h"
 #include "std_msgs/Int8.h"
 
-class PathManager {
+class Manager {
    public:
-    PathManager();
-    ~PathManager();
+    Manager();
+    ~Manager();
 
     void runMission();
     void callVisualization();

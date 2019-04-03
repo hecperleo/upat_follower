@@ -17,15 +17,15 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //----------------------------------------------------------------------------------------------------------------------
 
-#ifndef PATHFOLLOWER_H
-#define PATHFOLLOWER_H
+#ifndef FOLLOWER_H
+#define FOLLOWER_H
 
 #include <ros/ros.h>
 #include <uav_abstraction_layer/ual.h>
 #include <uav_path_manager/GeneratePath.h>
 #include <uav_path_manager/PreparePath.h>
 #include <uav_path_manager/PrepareTrajectory.h>
-#include <uav_path_manager/path_generator.h>
+#include <uav_path_manager/generator.h>
 #include <Eigen/Eigen>
 #include "geometry_msgs/PointStamped.h"
 #include "geometry_msgs/PoseStamped.h"
@@ -34,11 +34,11 @@
 
 namespace uav_path_manager {
 
-class PathFollower {
+class Follower {
    public:
-    PathFollower();
-    PathFollower(int _uav_id, double _vxy = 2.0, double _vz_up = 3.0, double _vz_dn = 1.0, bool _debug = false);
-    ~PathFollower();
+    Follower();
+    Follower(int _uav_id, double _vxy = 2.0, double _vz_up = 3.0, double _vz_dn = 1.0, bool _debug = false);
+    ~Follower();
 
     void pubMsgs();
     geometry_msgs::TwistStamped out_velocity_;
@@ -90,4 +90,4 @@ class PathFollower {
 
 }  // namespace uav_path_manager
 
-#endif /* PATHFOLLOWER_H */
+#endif /* FOLLOWER_H */

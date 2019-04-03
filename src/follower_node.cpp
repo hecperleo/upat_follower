@@ -18,18 +18,18 @@
 //----------------------------------------------------------------------------------------------------------------------
 
 #include <ros/ros.h>
-#include <uav_path_manager/path_manager.h>
+#include <uav_path_manager/follower.h>
 
 int main(int _argc, char **_argv) {
-    ros::init(_argc, _argv, "path_manager_node");
+    ros::init(_argc, _argv, "follower_node");
 
-    PathManager manager;
+    uav_path_manager::Follower follower;
     int pub_rate_;
     ros::param::param<int>("~pub_rate", pub_rate_, 30);
     ros::Rate rate(pub_rate_);
     while (ros::ok()) {
-        manager.runMission();
-        manager.callVisualization();
+        follower.getVelocity();
+        follower.pubMsgs();
         ros::spinOnce();
         rate.sleep();
     }

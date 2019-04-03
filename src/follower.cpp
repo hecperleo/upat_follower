@@ -1,3 +1,4 @@
+
 //----------------------------------------------------------------------------------------------------------------------
 // The MIT License (MIT)
 //
@@ -17,11 +18,11 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //----------------------------------------------------------------------------------------------------------------------
 
-#include <uav_path_manager/path_follower.h>
+#include <uav_path_manager/follower.h>
 
 namespace uav_path_manager {
 
-PathFollower::PathFollower() : nh_(), pnh_("~") {
+Follower::Follower() : nh_(), pnh_("~") {
     // Parameters
     pnh_.getParam("uav_id", uav_id_);
     pnh_.getParam("debug", debug_);
@@ -29,12 +30,12 @@ PathFollower::PathFollower() : nh_(), pnh_("~") {
     pnh_.getParam("vz_up", vz_up_);
     pnh_.getParam("vz_dn", vz_dn_);
     // Subscriptions
-    sub_pose_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/pose", 0, &PathFollower::ualPoseCallback, this);
+    sub_pose_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/pose", 0, &Follower::ualPoseCallback, this);
     // Publishers
     pub_output_velocity_ = nh_.advertise<geometry_msgs::TwistStamped>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/output_vel", 1000);
     // Services
-    server_prepare_path_ = nh_.advertiseService("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/prepare_path", &PathFollower::preparePathCb, this);
-    server_prepare_trajectory_ = nh_.advertiseService("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/prepare_trajectory", &PathFollower::prepareTrajectoryCb, this);
+    server_prepare_path_ = nh_.advertiseService("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/prepare_path", &Follower::preparePathCb, this);
+    server_prepare_trajectory_ = nh_.advertiseService("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/prepare_trajectory", &Follower::prepareTrajectoryCb, this);
     // Debug follower
     if (debug_) {
         pub_point_look_ahead_ = nh_.advertise<geometry_msgs::PointStamped>("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/debug_point_look_ahead", 1000);
@@ -44,7 +45,7 @@ PathFollower::PathFollower() : nh_(), pnh_("~") {
     }
 }
 
-PathFollower::PathFollower(int _uav_id, double _vxy, double _vz_up, double _vz_dn, bool _debug) {
+Follower::Follower(int _uav_id, double _vxy, double _vz_up, double _vz_dn, bool _debug) {
     debug_ = _debug;
     uav_id_ = _uav_id;
     vxy_ = _vxy;
@@ -52,12 +53,12 @@ PathFollower::PathFollower(int _uav_id, double _vxy, double _vz_up, double _vz_d
     vz_dn_ = _vz_dn;
 }
 
-PathFollower::~PathFollower() {
+Follower::~Follower() {
 }
 
-nav_msgs::Path PathFollower::preparePath(nav_msgs::Path _init_path, int _generator_mode, double _look_ahead, double _cruising_speed) {
+nav_msgs::Path Follower::preparePath(nav_msgs::Path _init_path, int _generator_mode, double _look_ahead, double _cruising_speed) {
     follower_mode_ = 0;
-    uav_path_manager::PathGenerator generator(vxy_, vz_up_, vz_dn_, debug_);
+    uav_path_manager::Generator generator(vxy_, vz_up_, vz_dn_, debug_);
     generator.generatePath(_init_path, _generator_mode);
     look_ahead_ = _look_ahead;
     cruising_speed_ = _cruising_speed;
@@ -65,9 +66,9 @@ nav_msgs::Path PathFollower::preparePath(nav_msgs::Path _init_path, int _generat
     return generator.out_path_;
 }
 
-nav_msgs::Path PathFollower::prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _max_vel_percentage) {
+nav_msgs::Path Follower::prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _max_vel_percentage) {
     follower_mode_ = 1;
-    uav_path_manager::PathGenerator generator(vxy_, vz_up_, vz_dn_, debug_);
+    uav_path_manager::Generator generator(vxy_, vz_up_, vz_dn_, debug_);
     generator.generateTrajectory(_init_path, _max_vel_percentage);
     target_vel_path_ = generator.generated_path_vel_percentage_;
     target_vel_path_.header.frame_id = generator.out_path_.header.frame_id;
@@ -79,9 +80,9 @@ nav_msgs::Path PathFollower::prepareTrajectory(nav_msgs::Path _init_path, std::v
     return generator.out_path_;
 }
 
-bool PathFollower::preparePathCb(uav_path_manager::PreparePath::Request &_req_path, uav_path_manager::PreparePath::Response &_res_path) {
+bool Follower::preparePathCb(uav_path_manager::PreparePath::Request &_req_path, uav_path_manager::PreparePath::Response &_res_path) {
     follower_mode_ = 0;
-    uav_path_manager::PathGenerator generator(vxy_, vz_up_, vz_dn_, debug_);
+    uav_path_manager::Generator generator(vxy_, vz_up_, vz_dn_, debug_);
     generator.generatePath(_req_path.init_path, _req_path.generator_mode.data);
     look_ahead_ = _req_path.look_ahead.data;
     cruising_speed_ = _req_path.cruising_speed.data;
@@ -90,9 +91,9 @@ bool PathFollower::preparePathCb(uav_path_manager::PreparePath::Request &_req_pa
     return true;
 }
 
-bool PathFollower::prepareTrajectoryCb(uav_path_manager::PrepareTrajectory::Request &_req_trajectory, uav_path_manager::PrepareTrajectory::Response &_res_trajectory) {
+bool Follower::prepareTrajectoryCb(uav_path_manager::PrepareTrajectory::Request &_req_trajectory, uav_path_manager::PrepareTrajectory::Response &_res_trajectory) {
     follower_mode_ = 1;
-    uav_path_manager::PathGenerator generator(vxy_, vz_up_, vz_dn_, debug_);
+    uav_path_manager::Generator generator(vxy_, vz_up_, vz_dn_, debug_);
     std::vector<double> vec_max_vel_percentage;
     for (int i = 0; i < _req_trajectory.max_vel_percentage.size(); i++) {
         vec_max_vel_percentage.push_back(_req_trajectory.max_vel_percentage.at(i).data);
@@ -109,15 +110,15 @@ bool PathFollower::prepareTrajectoryCb(uav_path_manager::PrepareTrajectory::Requ
     return true;
 }
 
-void PathFollower::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose) {
+void Follower::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose) {
     ual_pose_ = *_ual_pose;
 }
 
-void PathFollower::updatePose(const geometry_msgs::PoseStamped &_ual_pose) {
+void Follower::updatePose(const geometry_msgs::PoseStamped &_ual_pose) {
     ual_pose_ = _ual_pose;
 }
 
-int PathFollower::calculatePosOnPath(Eigen::Vector3f _current_point, double _search_range, int _prev_normal_pos_on_path, nav_msgs::Path _path_search) {
+int Follower::calculatePosOnPath(Eigen::Vector3f _current_point, double _search_range, int _prev_normal_pos_on_path, nav_msgs::Path _path_search) {
     std::vector<double> vec_distances;
     int start_search_pos_on_path = calculateDistanceOnPath(_prev_normal_pos_on_path, -_search_range);
     int end_search_pos_on_path = calculateDistanceOnPath(_prev_normal_pos_on_path, _search_range);
@@ -132,7 +133,7 @@ int PathFollower::calculatePosOnPath(Eigen::Vector3f _current_point, double _sea
     return pos_on_path + start_search_pos_on_path;
 }
 
-int PathFollower::calculatePosLookAhead(int _pos_on_path) {
+int Follower::calculatePosLookAhead(int _pos_on_path) {
     int pos_look_ahead;
     std::vector<double> vec_distances;
     double temp_dist = 0.0;
@@ -150,12 +151,12 @@ int PathFollower::calculatePosLookAhead(int _pos_on_path) {
     return pos_look_ahead;
 }
 
-double PathFollower::changeLookAhead(int _pos_on_path) {
+double Follower::changeLookAhead(int _pos_on_path) {
     // ROS_WARN("la: %f, max: %f, %: %f", max_vel_ * generated_max_vel_percentage_[_pos_on_path], max_vel_, generated_max_vel_percentage_[_pos_on_path]);
     return max_vel_ * generated_max_vel_percentage_[_pos_on_path];
 }
 
-geometry_msgs::TwistStamped PathFollower::calculateVelocity(Eigen::Vector3f _current_point, int _pos_look_ahead) {
+geometry_msgs::TwistStamped Follower::calculateVelocity(Eigen::Vector3f _current_point, int _pos_look_ahead) {
     geometry_msgs::TwistStamped out_vel;
     Eigen::Vector3f target_p, unit_vec, hypo_vec;
     target_p = Eigen::Vector3f(target_path_.poses.at(_pos_look_ahead).pose.position.x, target_path_.poses.at(_pos_look_ahead).pose.position.y, target_path_.poses.at(_pos_look_ahead).pose.position.z);
@@ -185,7 +186,7 @@ geometry_msgs::TwistStamped PathFollower::calculateVelocity(Eigen::Vector3f _cur
     return out_vel;
 }
 
-int PathFollower::calculateDistanceOnPath(int _prev_normal_pos_on_path, double _meters) {
+int Follower::calculateDistanceOnPath(int _prev_normal_pos_on_path, double _meters) {
     int pos_equals_dist;
     double dist_to_front, dist_to_back, temp_dist;
     std::vector<double> vec_distances;
@@ -231,7 +232,7 @@ int PathFollower::calculateDistanceOnPath(int _prev_normal_pos_on_path, double _
     return pos_equals_dist;
 }
 
-void PathFollower::prepareDebug(double _search_range, int _normal_pos_on_path, int _pos_look_ahead) {
+void Follower::prepareDebug(double _search_range, int _normal_pos_on_path, int _pos_look_ahead) {
     point_normal_.header.frame_id = point_look_ahead_.header.frame_id =
         point_search_normal_begin_.header.frame_id = point_search_normal_end_.header.frame_id =
             target_path_.header.frame_id;
@@ -243,7 +244,7 @@ void PathFollower::prepareDebug(double _search_range, int _normal_pos_on_path, i
     point_search_normal_end_.point = target_path_.poses.at(end_search_pos_on_path).pose.position;
 }
 
-void PathFollower::pubMsgs() {
+void Follower::pubMsgs() {
     pub_output_velocity_.publish(out_velocity_);
     if (debug_) {
         pub_point_look_ahead_.publish(point_look_ahead_);
@@ -253,7 +254,7 @@ void PathFollower::pubMsgs() {
     }
 }
 
-geometry_msgs::TwistStamped PathFollower::getVelocity() {
+geometry_msgs::TwistStamped Follower::getVelocity() {
     if (target_path_.poses.size() > 1) {
         Eigen::Vector3f current_point, target_path0_point;
         current_point = Eigen::Vector3f(ual_pose_.pose.position.x, ual_pose_.pose.position.y, ual_pose_.pose.position.z);

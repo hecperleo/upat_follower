@@ -16,8 +16,8 @@
 // OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //----------------------------------------------------------------------------------------------------------------------
-#ifndef PATHGENERATOR_H
-#define PATHGENERATOR_H
+#ifndef GENERATOR_H
+#define GENERATOR_H
 
 #include <mavros_msgs/ParamGet.h>
 #include <ros/ros.h>
@@ -38,11 +38,11 @@
 
 namespace uav_path_manager {
 
-class PathGenerator {
+class Generator {
    public:
-    PathGenerator();
-    PathGenerator(double _vxy, double _vz_up, double _vz_dn, bool _debug = false);
-    ~PathGenerator();
+    Generator();
+    Generator(double _vxy, double _vz_up, double _vz_dn, bool _debug = false);
+    ~Generator();
 
     double max_velocity_;
     nav_msgs::Path out_path_;
@@ -90,4 +90,4 @@ class PathGenerator {
 
 }  // namespace uav_path_manager
 
-#endif /* PATHGENERATOR_H */
+#endif /* GENERATOR_H */

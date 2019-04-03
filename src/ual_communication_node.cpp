@@ -18,16 +18,18 @@
 //----------------------------------------------------------------------------------------------------------------------
 
 #include <ros/ros.h>
-#include <uav_path_manager/path_generator.h>
+#include <uav_path_manager/ual_communication.h>
 
 int main(int _argc, char **_argv) {
-    ros::init(_argc, _argv, "path_generator_node");
+    ros::init(_argc, _argv, "ual_communication_node");
 
-    uav_path_manager::PathGenerator generator;
+    Manager ual_communication;
     int pub_rate_;
     ros::param::param<int>("~pub_rate", pub_rate_, 30);
     ros::Rate rate(pub_rate_);
     while (ros::ok()) {
+        ual_communication.runMission();
+        ual_communication.callVisualization();
         ros::spinOnce();
         rate.sleep();
     }

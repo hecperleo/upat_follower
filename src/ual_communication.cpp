@@ -17,9 +17,9 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //----------------------------------------------------------------------------------------------------------------------
 
-#include <uav_path_manager/path_manager.h>
+#include <uav_path_manager/ual_communication.h>
 
-PathManager::PathManager() : nh_(), pnh_("~") {
+Manager::Manager() : nh_(), pnh_("~") {
     // Parameters
     pnh_.getParam("uav_id", uav_id_);
     pnh_.getParam("save_csv", save_csv_);
@@ -28,9 +28,9 @@ PathManager::PathManager() : nh_(), pnh_("~") {
     pnh_.getParam("reach_tolerance", reach_tolerance_);
     pnh_.getParam("use_class", use_class_);
     // Subscriptions
-    sub_pose_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/pose", 0, &PathManager::ualPoseCallback, this);
-    sub_state_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/state", 0, &PathManager::ualStateCallback, this);
-    sub_velocity_ = nh_.subscribe("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/output_vel", 0, &PathManager::velocityCallback, this);
+    sub_pose_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/pose", 0, &Manager::ualPoseCallback, this);
+    sub_state_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/state", 0, &Manager::ualStateCallback, this);
+    sub_velocity_ = nh_.subscribe("/uav_path_manager/follower/uav_" + std::to_string(uav_id_) + "/output_vel", 0, &Manager::velocityCallback, this);
     // Publishers
     pub_set_pose_ = nh_.advertise<geometry_msgs::PoseStamped>("/uav_" + std::to_string(uav_id_) + "/ual/set_pose", 1000);
     pub_set_velocity_ = nh_.advertise<geometry_msgs::TwistStamped>("/uav_" + std::to_string(uav_id_) + "/ual/set_velocity", 1000);
@@ -53,10 +53,10 @@ PathManager::PathManager() : nh_(), pnh_("~") {
     }
 }
 
-PathManager::~PathManager() {
+Manager::~Manager() {
 }
 
-nav_msgs::Path PathManager::constructPath(std::vector<double> _wps_x, std::vector<double> _wps_y, std::vector<double> _wps_z, std::string frame_id) {
+nav_msgs::Path Manager::constructPath(std::vector<double> _wps_x, std::vector<double> _wps_y, std::vector<double> _wps_z, std::string frame_id) {
     nav_msgs::Path out_path;
     std::vector<geometry_msgs::PoseStamped> poses(_wps_x.size());
     out_path.header.frame_id = frame_id;
@@ -73,7 +73,7 @@ nav_msgs::Path PathManager::constructPath(std::vector<double> _wps_x, std::vecto
     return out_path;
 }
 
-nav_msgs::Path PathManager::csvToPath(std::string _file_name) {
+nav_msgs::Path Manager::csvToPath(std::string _file_name) {
     nav_msgs::Path out_path;
     std::string pkg_name_path = ros::package::getPath("uav_path_manager");
     std::string folder_name = pkg_name_path + "/data" + _file_name;
@@ -102,7 +102,7 @@ nav_msgs::Path PathManager::csvToPath(std::string _file_name) {
     return constructPath(list_x, list_y, list_z, "uav_" + std::to_string(uav_id_) + "_home");
 }
 
-std::vector<double> PathManager::csvToVector(std::string _file_name) {
+std::vector<double> Manager::csvToVector(std::string _file_name) {
     std::vector<double> out_vector;
     std::string pkg_name_path = ros::package::getPath("uav_path_manager");
     std::string folder_name = pkg_name_path + "/data" + _file_name;
@@ -122,20 +122,20 @@ std::vector<double> PathManager::csvToVector(std::string _file_name) {
     return out_vector;
 }
 
-void PathManager::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose) {
+void Manager::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose) {
     ual_pose_ = *_ual_pose;
 }
 
-void PathManager::ualStateCallback(const uav_abstraction_layer::State &_ual_state) {
+void Manager::ualStateCallback(const uav_abstraction_layer::State &_ual_state) {
     ual_state_.state = _ual_state.state;
 }
 
-void PathManager::velocityCallback(const geometry_msgs::TwistStamped &_velocity) {
+void Manager::velocityCallback(const geometry_msgs::TwistStamped &_velocity) {
     velocity_ = _velocity;
 }
 
-void PathManager::saveDataForTesting() {
-    static uav_path_manager::PathFollower follower_save_data(uav_id_);
+void Manager::saveDataForTesting() {
+    static uav_path_manager::Follower follower_save_data(uav_id_);
     std::ofstream csv_cubic_loyal, csv_cubic, csv_interp1, csv_init;
     csv_init.open(folder_data_name_ + "/init.csv");
     csv_init << std::fixed << std::setprecision(5);
@@ -166,7 +166,7 @@ void PathManager::saveDataForTesting() {
     csv_cubic.close();
 }
 
-void PathManager::callVisualization() {
+void Manager::callVisualization() {
     uav_path_manager::Visualize visualize;
     visualize.request.init_path = init_path_;
     visualize.request.generated_path = path;
@@ -174,8 +174,8 @@ void PathManager::callVisualization() {
     client_visualize_.call(visualize);
 }
 
-void PathManager::runMission() {
-    static uav_path_manager::PathFollower follower_(uav_id_);
+void Manager::runMission() {
+    static uav_path_manager::Follower follower_(uav_id_);
 
     uav_abstraction_layer::TakeOff take_off;
     uav_abstraction_layer::Land land;
