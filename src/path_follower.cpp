@@ -19,6 +19,8 @@
 
 #include <uav_path_manager/path_follower.h>
 
+namespace uav_path_manager {
+
 PathFollower::PathFollower() : nh_(), pnh_("~") {
     // Parameters
     pnh_.getParam("uav_id", uav_id_);
@@ -55,7 +57,7 @@ PathFollower::~PathFollower() {
 
 nav_msgs::Path PathFollower::preparePath(nav_msgs::Path _init_path, int _generator_mode, double _look_ahead, double _cruising_speed) {
     follower_mode_ = 0;
-    PathGenerator generator(vxy_, vz_up_, vz_dn_, debug_);
+    uav_path_manager::PathGenerator generator(vxy_, vz_up_, vz_dn_, debug_);
     generator.generatePath(_init_path, _generator_mode);
     look_ahead_ = _look_ahead;
     cruising_speed_ = _cruising_speed;
@@ -65,7 +67,7 @@ nav_msgs::Path PathFollower::preparePath(nav_msgs::Path _init_path, int _generat
 
 nav_msgs::Path PathFollower::prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _max_vel_percentage) {
     follower_mode_ = 1;
-    PathGenerator generator(vxy_, vz_up_, vz_dn_, debug_);
+    uav_path_manager::PathGenerator generator(vxy_, vz_up_, vz_dn_, debug_);
     generator.generateTrajectory(_init_path, _max_vel_percentage);
     target_vel_path_ = generator.generated_path_vel_percentage_;
     target_vel_path_.header.frame_id = generator.out_path_.header.frame_id;
@@ -79,7 +81,7 @@ nav_msgs::Path PathFollower::prepareTrajectory(nav_msgs::Path _init_path, std::v
 
 bool PathFollower::preparePathCb(uav_path_manager::PreparePath::Request &_req_path, uav_path_manager::PreparePath::Response &_res_path) {
     follower_mode_ = 0;
-    PathGenerator generator(vxy_, vz_up_, vz_dn_, debug_);
+    uav_path_manager::PathGenerator generator(vxy_, vz_up_, vz_dn_, debug_);
     generator.generatePath(_req_path.init_path, _req_path.generator_mode.data);
     look_ahead_ = _req_path.look_ahead.data;
     cruising_speed_ = _req_path.cruising_speed.data;
@@ -90,7 +92,7 @@ bool PathFollower::preparePathCb(uav_path_manager::PreparePath::Request &_req_pa
 
 bool PathFollower::prepareTrajectoryCb(uav_path_manager::PrepareTrajectory::Request &_req_trajectory, uav_path_manager::PrepareTrajectory::Response &_res_trajectory) {
     follower_mode_ = 1;
-    PathGenerator generator(vxy_, vz_up_, vz_dn_, debug_);
+    uav_path_manager::PathGenerator generator(vxy_, vz_up_, vz_dn_, debug_);
     std::vector<double> vec_max_vel_percentage;
     for (int i = 0; i < _req_trajectory.max_vel_percentage.size(); i++) {
         vec_max_vel_percentage.push_back(_req_trajectory.max_vel_percentage.at(i).data);
@@ -278,3 +280,5 @@ geometry_msgs::TwistStamped PathFollower::getVelocity() {
     }
     return out_velocity_;
 }
+
+}  // namespace uav_path_manager

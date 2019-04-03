@@ -36,6 +36,8 @@
 #include <limits>
 #include <vector>
 
+namespace uav_path_manager {
+
 class PathGenerator {
    public:
     PathGenerator();
@@ -85,5 +87,7 @@ class PathGenerator {
     // Params
     bool debug_;
 };
+
+}  // namespace uav_path_manager
 
 #endif /* PATHGENERATOR_H */

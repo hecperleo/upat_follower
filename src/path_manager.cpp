@@ -135,7 +135,7 @@ void PathManager::velocityCallback(const geometry_msgs::TwistStamped &_velocity)
 }
 
 void PathManager::saveDataForTesting() {
-    static PathFollower follower_save_data(uav_id_);
+    static uav_path_manager::PathFollower follower_save_data(uav_id_);
     std::ofstream csv_cubic_loyal, csv_cubic, csv_interp1, csv_init;
     csv_init.open(folder_data_name_ + "/init.csv");
     csv_init << std::fixed << std::setprecision(5);
@@ -175,7 +175,7 @@ void PathManager::callVisualization() {
 }
 
 void PathManager::runMission() {
-    static PathFollower follower_(uav_id_);
+    static uav_path_manager::PathFollower follower_(uav_id_);
 
     uav_abstraction_layer::TakeOff take_off;
     uav_abstraction_layer::Land land;

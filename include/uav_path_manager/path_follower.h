@@ -22,16 +22,17 @@
 
 #include <ros/ros.h>
 #include <uav_abstraction_layer/ual.h>
+#include <uav_path_manager/GeneratePath.h>
 #include <uav_path_manager/PreparePath.h>
 #include <uav_path_manager/PrepareTrajectory.h>
-#include <uav_path_manager/GeneratePath.h>
-// #include <uav_path_manager/GenerateTrajectory.h>
 #include <uav_path_manager/path_generator.h>
 #include <Eigen/Eigen>
 #include "geometry_msgs/PointStamped.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/TwistStamped.h"
 #include "nav_msgs/Path.h"
+
+namespace uav_path_manager {
 
 class PathFollower {
    public:
@@ -86,5 +87,7 @@ class PathFollower {
     // Debug
     geometry_msgs::PointStamped point_look_ahead_, point_normal_, point_search_normal_begin_, point_search_normal_end_;
 };
+
+}  // namespace uav_path_manager
 
 #endif /* PATHFOLLOWER_H */

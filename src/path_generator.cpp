@@ -19,7 +19,7 @@
 
 #include <uav_path_manager/path_generator.h>
 
-#include <visualization_msgs/Marker.h>
+namespace uav_path_manager {
 
 PathGenerator::PathGenerator() : nh_(), pnh_("~") {
     double vxy, vz_up, vz_dn;
@@ -467,3 +467,5 @@ nav_msgs::Path PathGenerator::pathManagement(std::vector<double> _list_pose_x, s
             return createPathCubicSpline(_list_pose_x, _list_pose_y, _list_pose_z, _list_pose_x.size());
     }
 }
+
+}  // namespace uav_path_manager
