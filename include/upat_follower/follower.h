@@ -43,6 +43,8 @@ class Follower {
     geometry_msgs::TwistStamped out_velocity_;
     geometry_msgs::TwistStamped getVelocity();
     void updatePose(const geometry_msgs::PoseStamped &_ual_pose);
+    void updatePath(nav_msgs::Path _new_target_path);
+    // nav_msgs::Path updateTrajectory(); TODO
     nav_msgs::Path prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _max_vel_percentage);
     nav_msgs::Path preparePath(nav_msgs::Path _init_path, int _generator_mode = 0, double _look_ahead = 1.2, double _cruising_speed = 1.0);
 
@@ -51,6 +53,8 @@ class Follower {
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
     bool preparePathCb(upat_follower::PreparePath::Request &_req_path, upat_follower::PreparePath::Response &_res_path);
     bool prepareTrajectoryCb(upat_follower::PrepareTrajectory::Request &_req_trajectory, upat_follower::PrepareTrajectory::Response &_res_trajectory);
+    // bool updatePathCb(); TODO
+    // bool updateTrajectoryCb(); TODO
     // Methods
     double changeLookAhead(int _pos_on_path);
     int calculatePosLookAhead(int _pos_on_path);

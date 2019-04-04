@@ -254,6 +254,10 @@ void Follower::pubMsgs() {
     }
 }
 
+void Follower::updatePath(nav_msgs::Path _new_target_path){
+    target_path_ = _new_target_path;
+}
+
 geometry_msgs::TwistStamped Follower::getVelocity() {
     if (target_path_.poses.size() > 1) {
         Eigen::Vector3f current_point, target_path0_point;
