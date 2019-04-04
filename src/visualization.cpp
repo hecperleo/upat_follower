@@ -33,9 +33,6 @@ Visualization::Visualization() : nh_(), pnh_("~") {
     pub_uav_model_ = nh_.advertise<visualization_msgs::Marker>("/upat_follower/visualization/uav_" + std::to_string(uav_id_) + "/uav_model", 1);
     // Services
     server_visualize_ = nh_.advertiseService("/upat_follower/visualization/uav_" + std::to_string(uav_id_) + "/visualize", &Visualization::visualCallback, this);
-    // Flags
-    // Initialize path
-    // Save data
 
     uav_model_ = readModel(robot_model);
 }

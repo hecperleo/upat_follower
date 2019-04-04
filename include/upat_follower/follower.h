@@ -22,7 +22,6 @@
 
 #include <ros/ros.h>
 #include <uav_abstraction_layer/ual.h>
-#include <upat_follower/GeneratePath.h>
 #include <upat_follower/PreparePath.h>
 #include <upat_follower/PrepareTrajectory.h>
 #include <upat_follower/generator.h>
@@ -72,18 +71,14 @@ class Follower {
     int prev_normal_pos_on_path_ = 0;
     int prev_normal_vel_on_path_ = 0;
     bool flag_run_ = false;
-    double look_ahead_ = 1.0;
-    double cruising_speed_ = 1.0;
-    double max_vel_ = 1.0;
     geometry_msgs::PoseStamped ual_pose_;
     nav_msgs::Path target_path_, target_vel_path_;
+    double look_ahead_, cruising_speed_, max_vel_;
     std::vector<double> generated_max_vel_percentage_;
     // Params
     int uav_id_;
-    bool debug_ = false;
-    double vxy_ = 2.0;
-    double vz_up_ = 3.0;
-    double vz_dn_ = 1.0;
+    bool debug_;
+    double vxy_, vz_up_, vz_dn_;
     // Debug
     geometry_msgs::PointStamped point_look_ahead_, point_normal_, point_search_normal_begin_, point_search_normal_end_;
 };

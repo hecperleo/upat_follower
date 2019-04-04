@@ -143,25 +143,25 @@ void UALCommunication::saveDataForTesting() {
         csv_init << init_path_.poses.at(i).pose.position.x << ", " << init_path_.poses.at(i).pose.position.y << ", " << init_path_.poses.at(i).pose.position.z << std::endl;
     }
     csv_init.close();
-    path = follower_save_data.preparePath(init_path_, 0);
+    target_path_ = follower_save_data.preparePath(init_path_, 0);
     csv_interp1.open(folder_data_name_ + "/interp1.csv");
     csv_interp1 << std::fixed << std::setprecision(5);
-    for (int i = 0; i < path.poses.size(); i++) {
-        csv_interp1 << path.poses.at(i).pose.position.x << ", " << path.poses.at(i).pose.position.y << ", " << path.poses.at(i).pose.position.z << std::endl;
+    for (int i = 0; i < target_path_.poses.size(); i++) {
+        csv_interp1 << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
     }
     csv_interp1.close();
-    path = follower_save_data.preparePath(init_path_, 1);
+    target_path_ = follower_save_data.preparePath(init_path_, 1);
     csv_cubic_loyal.open(folder_data_name_ + "/cubic_spline_loyal.csv");
     csv_cubic_loyal << std::fixed << std::setprecision(5);
-    for (int i = 0; i < path.poses.size(); i++) {
-        csv_cubic_loyal << path.poses.at(i).pose.position.x << ", " << path.poses.at(i).pose.position.y << ", " << path.poses.at(i).pose.position.z << std::endl;
+    for (int i = 0; i < target_path_.poses.size(); i++) {
+        csv_cubic_loyal << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
     }
     csv_cubic_loyal.close();
-    path = follower_save_data.preparePath(init_path_, 2);
+    target_path_ = follower_save_data.preparePath(init_path_, 2);
     csv_cubic.open(folder_data_name_ + "/cubic_spline.csv");
     csv_cubic << std::fixed << std::setprecision(5);
-    for (int i = 0; i < path.poses.size(); i++) {
-        csv_cubic << path.poses.at(i).pose.position.x << ", " << path.poses.at(i).pose.position.y << ", " << path.poses.at(i).pose.position.z << std::endl;
+    for (int i = 0; i < target_path_.poses.size(); i++) {
+        csv_cubic << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
     }
     csv_cubic.close();
 }
@@ -169,7 +169,7 @@ void UALCommunication::saveDataForTesting() {
 void UALCommunication::callVisualization() {
     upat_follower::Visualize visualize;
     visualize.request.init_path = init_path_;
-    visualize.request.generated_path = path;
+    visualize.request.generated_path = target_path_;
     visualize.request.current_path = current_path_;
     client_visualize_.call(visualize);
 }
@@ -181,7 +181,7 @@ void UALCommunication::runMission() {
     uav_abstraction_layer::Land land;
     upat_follower::PreparePath prepare_path;
     upat_follower::PrepareTrajectory prepare_trajectory;
-    if (path.poses.size() < 1) {
+    if (target_path_.poses.size() < 1) {
         if (save_csv_) saveDataForTesting();
         if (trajectory_) {
             for (int i = 0; i < max_vel_percentage_.size(); i++) {
@@ -192,9 +192,9 @@ void UALCommunication::runMission() {
             prepare_trajectory.request.init_path = init_path_;
             if (!use_class_) {
                 client_prepare_trajectory_.call(prepare_trajectory);
-                path = prepare_trajectory.response.generated_path;
+                target_path_ = prepare_trajectory.response.generated_path;
             }
-            if (use_class_) path = follower_.prepareTrajectory(init_path_, max_vel_percentage_);
+            if (use_class_) target_path_ = follower_.prepareTrajectory(init_path_, max_vel_percentage_);
         } else {
             prepare_path.request.init_path = init_path_;
             prepare_path.request.generator_mode.data = 2;
@@ -202,16 +202,16 @@ void UALCommunication::runMission() {
             prepare_path.request.cruising_speed.data = 1.0;
             if (!use_class_) {
                 client_prepare_path_.call(prepare_path);
-                path = prepare_path.response.generated_path;
+                target_path_ = prepare_path.response.generated_path;
             }
-            if (use_class_) path = follower_.preparePath(init_path_, 2, 1.2, 1.0);
+            if (use_class_) target_path_ = follower_.preparePath(init_path_, 2, 1.2, 1.0);
         }
     }
 
     Eigen::Vector3f current_p, path0_p, path_end_p;
     current_p = Eigen::Vector3f(ual_pose_.pose.position.x, ual_pose_.pose.position.y, ual_pose_.pose.position.z);
-    path0_p = Eigen::Vector3f(path.poses.front().pose.position.x, path.poses.front().pose.position.y, path.poses.front().pose.position.z);
-    path_end_p = Eigen::Vector3f(path.poses.back().pose.position.x, path.poses.back().pose.position.y, path.poses.back().pose.position.z);
+    path0_p = Eigen::Vector3f(target_path_.poses.front().pose.position.x, target_path_.poses.front().pose.position.y, target_path_.poses.front().pose.position.z);
+    path_end_p = Eigen::Vector3f(target_path_.poses.back().pose.position.x, target_path_.poses.back().pose.position.y, target_path_.poses.back().pose.position.z);
     switch (ual_state_.state) {
         case 2:  // Landed armed
             if (!end_path_) {
@@ -226,14 +226,14 @@ void UALCommunication::runMission() {
             if (!end_path_) {
                 if (!on_path_) {
                     if ((current_p - path0_p).norm() > reach_tolerance_ * 2) {
-                        pub_set_pose_.publish(path.poses.at(0));
+                        pub_set_pose_.publish(target_path_.poses.at(0));
                     } else if (reach_tolerance_ > (current_p - path0_p).norm()) {
-                        pub_set_pose_.publish(path.poses.front());
+                        pub_set_pose_.publish(target_path_.poses.front());
                         on_path_ = true;
                     }
                 } else {
                     if (reach_tolerance_ * 2 > (current_p - path_end_p).norm()) {
-                        pub_set_pose_.publish(path.poses.back());
+                        pub_set_pose_.publish(target_path_.poses.back());
                         on_path_ = false;
                         end_path_ = true;
                     } else {
@@ -248,7 +248,7 @@ void UALCommunication::runMission() {
                 }
             } else {
                 if (reach_tolerance_ * 2 > (current_p - path_end_p).norm() && (current_p - path_end_p).norm() > reach_tolerance_) {
-                    pub_set_pose_.publish(path.poses.back());
+                    pub_set_pose_.publish(target_path_.poses.back());
                 } else {
                     land.request.blocking = true;
                     client_land_.call(land);

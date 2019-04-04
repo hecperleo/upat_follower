@@ -32,20 +32,17 @@ Generator::Generator() : nh_(), pnh_("~") {
     server_generate_trajectory_ = nh_.advertiseService("/upat_follower/generator/generate_trajectory", &Generator::generateTrajectoryCb, this);
     // Client to get parameters from mavros and required default values
     get_param_client_ = nh_.serviceClient<mavros_msgs::ParamGet>("mavros/param/get");
-    mavros_params_["MPC_XY_VEL_MAX"] = vxy;      // [m/s]   Default value
-    mavros_params_["MPC_Z_VEL_MAX_UP"] = vz_up;  // [m/s]   Default value
-    mavros_params_["MPC_Z_VEL_MAX_DN"] = vz_dn;  // [m/s]   Default value
-    // Updating here is non-sense as service seems to be slow in waking up
+    mavros_params_["MPC_XY_VEL_MAX"] = vxy;      
+    mavros_params_["MPC_Z_VEL_MAX_UP"] = vz_up;  
+    mavros_params_["MPC_Z_VEL_MAX_DN"] = vz_dn;  
 }
 
 Generator::Generator(double _vxy, double _vz_up, double _vz_dn, bool _debug) {
     debug_ = _debug;
-    // Client to get parameters from mavros and required default values
     get_param_client_ = nh_.serviceClient<mavros_msgs::ParamGet>("mavros/param/get");
-    mavros_params_["MPC_XY_VEL_MAX"] = _vxy;      // [m/s]   Default value
-    mavros_params_["MPC_Z_VEL_MAX_UP"] = _vz_up;  // [m/s]   Default value
-    mavros_params_["MPC_Z_VEL_MAX_DN"] = _vz_dn;  // [m/s]   Default value
-    // Updating here is non-sense as service seems to be slow in waking up
+    mavros_params_["MPC_XY_VEL_MAX"] = _vxy;    
+    mavros_params_["MPC_Z_VEL_MAX_UP"] = _vz_up;
+    mavros_params_["MPC_Z_VEL_MAX_DN"] = _vz_dn;
 }
 
 Generator::~Generator() {
