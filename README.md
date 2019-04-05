@@ -2,8 +2,8 @@
 
 This repository contains all the code for running the **upat_follower** package on ROS. It is composed of two cpp-classes.
 
-- [Generator](https://github.com/hecperleo/upat_follower/blob/dev/src/generator.cpp) is responsible for receiving an initial path and generating an improved final path or trajectory. Mainly improves the path using linear or cubic interpolations. If a trajectory must be generated, this node also needs the percentage of maximum speed at every segment of the initial path.
-- [Follower](https://github.com/hecperleo/upat_follower/blob/dev/src/follower.cpp) is responsible for receiving a path or trajectory and generating a velocity to follow it.
+- [Generator](https://github.com/hecperleo/upat_follower/blob/master/src/generator.cpp) is responsible for receiving an initial path and generating an improved final path or trajectory. Mainly improves the path using linear or cubic interpolations. If a trajectory must be generated, this node also needs the percentage of maximum speed at every segment of the initial path.
+- [Follower](https://github.com/hecperleo/upat_follower/blob/master/src/follower.cpp) is responsible for receiving a path or trajectory and generating a velocity to follow it.
 
 ## Installation Instructions - Ubuntu 16.04 with ROS Kinetic
 
@@ -39,14 +39,14 @@ Running this command in a terminal is enough to launch the simulation.
 $ roslaunch upat_follower mision_ual.launch
 ```
 
-[mision_ual](https://github.com/hecperleo/upat_follower/blob/dev/launch/mision_ual.launch) creates a node per UAV that communicates with UAL. This launch is an example of the whole project generating and following a trajectory. 
+[mision_ual](https://github.com/hecperleo/upat_follower/blob/master/launch/mision_ual.launch) creates a node per UAV that communicates with UAL. This launch is an example of the whole project generating and following a trajectory. 
 By default, you will see two UAV, if you want to see just one UAV you can turn off the flag `multi`, you also can turn off the flag `trajectory` to see how this project works with a path instead of a trajectory. If you want to use ROS interface instead of cpp-classes, you can turn off the flag `use_class` and see how this project works using ROS services and topics.
 
 ```
 $ roslaunch upat_follower mision_ual.launch multi:=false trajectory:=false use_class:=false
 ```
 
-> **Note**: Check [ual_communication](https://github.com/hecperleo/upat_follower/blob/dev/src/ual_communication.cpp) to see an example.
+> **Note**: Check [ual_communication](https://github.com/hecperleo/upat_follower/blob/master/src/ual_communication.cpp) to see an example.
 
 ## C++ class interface
 
