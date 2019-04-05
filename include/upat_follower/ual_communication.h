@@ -23,9 +23,12 @@
 #include <uav_abstraction_layer/State.h>
 #include <uav_abstraction_layer/TakeOff.h>
 #include <uav_abstraction_layer/ual.h>
-#include <uav_path_manager/FollowPath.h>
-#include <uav_path_manager/GeneratePath.h>
-#include <uav_path_manager/Visualize.h>
+#include <upat_follower/PreparePath.h>
+#include <upat_follower/PrepareTrajectory.h>
+#include <upat_follower/GeneratePath.h>
+#include <upat_follower/Visualize.h>
+#include <upat_follower/generator.h>
+#include <upat_follower/follower.h>
 #include <Eigen/Eigen>
 #include <fstream>
 #include "ecl/geometry.hpp"
@@ -33,15 +36,19 @@
 #include "nav_msgs/Path.h"
 #include "std_msgs/Int8.h"
 
-class PathManager {
+class UALCommunication {
    public:
-    PathManager();
-    ~PathManager();
+    UALCommunication();
+    ~UALCommunication();
 
     void runMission();
     void callVisualization();
 
    private:
+    double vxy_ = 2.0;
+    double vz_up_ = 3.0;
+    double vz_dn_ = 1.0;
+    // PathGenerator generator_;
     // Callbacks
     void ualStateCallback(const uav_abstraction_layer::State &_ual_state);
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
@@ -58,19 +65,18 @@ class PathManager {
     // Publishers
     ros::Publisher pub_set_velocity_, pub_set_pose_;
     // Services
-    ros::ServiceClient client_take_off_, client_land_, client_generate_path_, client_follow_path_, client_visualize_;
+    ros::ServiceClient client_take_off_, client_land_, client_generate_path_, client_prepare_path_, client_prepare_trajectory_, client_visualize_;
     // Variables
     std::string folder_data_name_;
     bool on_path_, end_path_;
-    nav_msgs::Path path, vel_percentage_path_, init_path_, current_path_;
+    nav_msgs::Path target_path_, vel_percentage_path_, init_path_, current_path_;
     geometry_msgs::PoseStamped ual_pose_;
     geometry_msgs::TwistStamped velocity_;
     uav_abstraction_layer::State ual_state_;
     std::vector<double> max_vel_percentage_;
     // Params
     int uav_id_;
-    bool save_csv_;
-    bool trajectory_;
+    bool save_csv_, trajectory_, use_class_;
     double reach_tolerance_;
     std::string init_path_name_;
 };

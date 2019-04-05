@@ -18,18 +18,16 @@
 //----------------------------------------------------------------------------------------------------------------------
 
 #include <ros/ros.h>
-#include <uav_path_manager/path_follower.h>
+#include <upat_follower/generator.h>
 
 int main(int _argc, char **_argv) {
-    ros::init(_argc, _argv, "path_follower_node");
+    ros::init(_argc, _argv, "generator_node");
 
-    PathFollower path_follower;
+    upat_follower::Generator generator;
     int pub_rate_;
     ros::param::param<int>("~pub_rate", pub_rate_, 30);
     ros::Rate rate(pub_rate_);
     while (ros::ok()) {
-        path_follower.followPath();
-        path_follower.pubMsgs();
         ros::spinOnce();
         rate.sleep();
     }

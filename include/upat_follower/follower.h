@@ -17,27 +17,44 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //----------------------------------------------------------------------------------------------------------------------
 
+#ifndef FOLLOWER_H
+#define FOLLOWER_H
+
 #include <ros/ros.h>
 #include <uav_abstraction_layer/ual.h>
-#include <uav_path_manager/FollowPath.h>
+#include <upat_follower/PreparePath.h>
+#include <upat_follower/PrepareTrajectory.h>
+#include <upat_follower/generator.h>
 #include <Eigen/Eigen>
 #include "geometry_msgs/PointStamped.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/TwistStamped.h"
 #include "nav_msgs/Path.h"
 
-class PathFollower {
+namespace upat_follower {
+
+class Follower {
    public:
-    PathFollower();
-    ~PathFollower();
+    Follower();
+    Follower(int _uav_id, double _vxy = 2.0, double _vz_up = 3.0, double _vz_dn = 1.0, bool _debug = false);
+    ~Follower();
 
     void pubMsgs();
-    void followPath();
+    geometry_msgs::TwistStamped out_velocity_;
+    geometry_msgs::TwistStamped getVelocity();
+    void updatePose(const geometry_msgs::PoseStamped &_ual_pose);
+    void updatePath(nav_msgs::Path _new_target_path);
+    // nav_msgs::Path updateTrajectory(); TODO
+    nav_msgs::Path prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _max_vel_percentage);
+    nav_msgs::Path preparePath(nav_msgs::Path _init_path, int _generator_mode = 0, double _look_ahead = 1.2, double _cruising_speed = 1.0);
 
    private:
     // Callbacks
-    bool pathCallback(uav_path_manager::FollowPath::Request &_req_path, uav_path_manager::FollowPath::Response &_res_path);
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
+    bool preparePathCb(upat_follower::PreparePath::Request &_req_path, upat_follower::PreparePath::Response &_res_path);
+    bool prepareTrajectoryCb(upat_follower::PrepareTrajectory::Request &_req_trajectory, upat_follower::PrepareTrajectory::Response &_res_trajectory);
+    // bool updatePathCb(); TODO
+    // bool updateTrajectoryCb(); TODO
     // Methods
     double changeLookAhead(int _pos_on_path);
     int calculatePosLookAhead(int _pos_on_path);
@@ -52,22 +69,24 @@ class PathFollower {
     // Publishers
     ros::Publisher pub_output_velocity_, pub_point_look_ahead_, pub_point_normal_, pub_point_search_normal_begin_, pub_point_search_normal_end_;
     // Services
-    ros::ServiceServer server_follow_path_;
+    ros::ServiceServer server_prepare_path_, server_prepare_trajectory_;
     // Variables
     int follower_mode_;
     int prev_normal_pos_on_path_ = 0;
     int prev_normal_vel_on_path_ = 0;
     bool flag_run_ = false;
-    double look_ahead_ = 1.0;
-    double cruising_speed_ = 1.0;
-    double max_vel_ = 1.0;
     geometry_msgs::PoseStamped ual_pose_;
-    geometry_msgs::TwistStamped out_velocity_;
     nav_msgs::Path target_path_, target_vel_path_;
+    double look_ahead_, cruising_speed_, max_vel_;
     std::vector<double> generated_max_vel_percentage_;
     // Params
     int uav_id_;
     bool debug_;
+    double vxy_, vz_up_, vz_dn_;
     // Debug
     geometry_msgs::PointStamped point_look_ahead_, point_normal_, point_search_normal_begin_, point_search_normal_end_;
 };
+
+}  // namespace upat_follower
+
+#endif /* FOLLOWER_H */

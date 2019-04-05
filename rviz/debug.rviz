@@ -80,7 +80,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/MarkerArray
       Enabled: false
-      Marker Topic: /uav_path_manager/visualization/marker_array
+      Marker Topic: /upat_follower/visualization/marker_array
       Name: /uav_1/marks
       Namespaces:
         {}
@@ -106,7 +106,7 @@ Visualization Manager:
       Radius: 0.0299999993
       Shaft Diameter: 0.100000001
       Shaft Length: 0.100000001
-      Topic: /uav_path_manager/visualization/uav_1/init_path
+      Topic: /upat_follower/visualization/uav_1/init_path
       Unreliable: false
       Value: false
     - Alpha: 1
@@ -129,7 +129,7 @@ Visualization Manager:
       Radius: 0.0299999993
       Shaft Diameter: 0.100000001
       Shaft Length: 0.100000001
-      Topic: /uav_path_manager/visualization/uav_1/generated_path
+      Topic: /upat_follower/visualization/uav_1/generated_path
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -152,12 +152,12 @@ Visualization Manager:
       Radius: 0.0299999993
       Shaft Diameter: 0.100000001
       Shaft Length: 0.100000001
-      Topic: /uav_path_manager/visualization/uav_1/current_path
+      Topic: /upat_follower/visualization/uav_1/current_path
       Unreliable: false
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /uav_path_manager/visualization/uav_1/uav_model
+      Marker Topic: /upat_follower/visualization/uav_1/uav_model
       Name: /uav_1/model
       Namespaces:
         "": true
@@ -170,7 +170,7 @@ Visualization Manager:
       History Length: 1
       Name: /uav_1/change_vel_point
       Radius: 0.200000003
-      Topic: /uav_path_manager/follower/uav_1/v_on_path_
+      Topic: /upat_follower/follower/uav_1/v_on_path_
       Unreliable: false
       Value: false
     - Alpha: 1
@@ -180,7 +180,7 @@ Visualization Manager:
       History Length: 1
       Name: /uav_1/debug/look_ahead_point
       Radius: 0.200000003
-      Topic: /uav_path_manager/follower/uav_1/debug_point_look_ahead
+      Topic: /upat_follower/follower/uav_1/debug_point_look_ahead
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -190,7 +190,7 @@ Visualization Manager:
       History Length: 1
       Name: /uav_1/debug/normal_point
       Radius: 0.200000003
-      Topic: /uav_path_manager/follower/uav_1/debug_point_normal
+      Topic: /upat_follower/follower/uav_1/debug_point_normal
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -200,7 +200,7 @@ Visualization Manager:
       History Length: 1
       Name: /uav_1/debug/search_point_begin
       Radius: 0.200000003
-      Topic: /uav_path_manager/follower/uav_1/debug_point_search_begin
+      Topic: /upat_follower/follower/uav_1/debug_point_search_begin
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -210,7 +210,7 @@ Visualization Manager:
       History Length: 1
       Name: /uav_1/debug/search_point_end
       Radius: 0.200000003
-      Topic: /uav_path_manager/follower/uav_1/debug_point_search_end
+      Topic: /upat_follower/follower/uav_1/debug_point_search_end
       Unreliable: false
       Value: true
   Enabled: true

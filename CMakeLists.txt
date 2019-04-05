@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(uav_path_manager)
+project(upat_follower)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)
@@ -62,7 +62,8 @@ find_package(rostest REQUIRED)
 add_service_files(
   FILES
   GeneratePath.srv
-  FollowPath.srv
+  PreparePath.srv
+  PrepareTrajectory.srv
   Visualize.srv
 )
 
@@ -110,7 +111,7 @@ add_service_files(
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES uav_path_manager
+  LIBRARIES upat_follower
   CATKIN_DEPENDS geometry_msgs nav_msgs roscpp uav_abstraction_layer std_msgs ecl_geometry message_runtime
   DEPENDS EIGEN3
 )
@@ -134,7 +135,7 @@ include_directories(
 #   src/${PROJECT_NAME}/pure_pursuit.cpp
 # )
 add_library(${PROJECT_NAME}
-  src/path_follower.cpp src/path_generator.cpp
+  src/follower.cpp src/generator.cpp
 )
 
 ## Add cmake target dependencies of the library
@@ -163,28 +164,30 @@ add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EX
 #  ${catkin_LIBRARIES}
 # )
 
-add_library(path_manager src/path_manager.cpp)
-add_dependencies(path_manager ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_library(generator src/generator.cpp)
+add_dependencies(generator ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-add_executable(path_manager_node src/path_manager_node.cpp)
-target_link_libraries(path_manager_node path_manager ${catkin_LIBRARIES})
-add_dependencies(path_manager_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
-
-add_library(path_generator src/path_generator.cpp)
-add_dependencies(path_generator ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
-add_executable(path_generator_node src/path_generator_node.cpp)
-target_link_libraries(path_generator_node path_generator ${catkin_LIBRARIES})
-add_dependencies(path_generator_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_executable(generator_node src/generator_node.cpp)
+target_link_libraries(generator_node generator ${catkin_LIBRARIES})
+add_dependencies(generator_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 
-add_library(path_follower src/path_follower.cpp)
-add_dependencies(path_follower ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_library(follower src/follower.cpp)
+target_link_libraries(follower generator ${catkin_LIBRARIES})
+add_dependencies(follower ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-add_executable(path_follower_node src/path_follower_node.cpp)
-target_link_libraries(path_follower_node path_follower ${catkin_LIBRARIES})
-add_dependencies(path_follower_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_executable(follower_node src/follower_node.cpp)
+target_link_libraries(follower_node follower ${catkin_LIBRARIES})
+add_dependencies(follower_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+
+add_library(ual_communication src/ual_communication.cpp)
+target_link_libraries(ual_communication follower ${catkin_LIBRARIES})
+add_dependencies(ual_communication ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_executable(ual_communication_node src/ual_communication_node.cpp)
+target_link_libraries(ual_communication_node ual_communication ${catkin_LIBRARIES})
+add_dependencies(ual_communication_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 
 add_library(visualization src/visualization.cpp)
@@ -243,13 +246,13 @@ add_dependencies(visualization_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-# catkin_add_gtest(path_generator-test tests/tests_path_generator.cpp)
-# target_link_libraries(path_generator-test path_generator ${catkin_LIBRARIES})
+# catkin_add_gtest(generator-test tests/tests_generator.cpp)
+# target_link_libraries(generator-test generator ${catkin_LIBRARIES})
 
 if(CATKIN_ENABLE_TESTING)
   find_package(rostest REQUIRED)
   # add_rostest_gtest(tests_mynode test/mynode.test src/test/test_mynode.cpp [more cpp files])
   # target_link_libraries(tests_mynode ${catkin_LIBRARIES})
-  catkin_add_gtest(path_generator-test launch/tests_run.test tests/tests_path_generator.cpp)
-  target_link_libraries(path_generator-test path_generator ${catkin_LIBRARIES})
+  catkin_add_gtest(generator-test launch/tests_run.test tests/tests_generator.cpp)
+  target_link_libraries(generator-test generator ${catkin_LIBRARIES})
   endif()

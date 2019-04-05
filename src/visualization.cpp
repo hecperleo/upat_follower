@@ -17,7 +17,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //----------------------------------------------------------------------------------------------------------------------
 
-#include <uav_path_manager/visualization.h>
+#include <upat_follower/visualization.h>
 
 Visualization::Visualization() : nh_(), pnh_("~") {
     // Parameters
@@ -27,15 +27,12 @@ Visualization::Visualization() : nh_(), pnh_("~") {
     // Subscriptions
     sub_pose_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/pose", 0, &Visualization::ualPoseCallback, this);
     // Publishers
-    pub_init_path_ = nh_.advertise<nav_msgs::Path>("/uav_path_manager/visualization/uav_" + std::to_string(uav_id_) + "/init_path", 1);
-    pub_generated_path_ = nh_.advertise<nav_msgs::Path>("/uav_path_manager/visualization/uav_" + std::to_string(uav_id_) + "/generated_path", 1);
-    pub_current_path_ = nh_.advertise<nav_msgs::Path>("/uav_path_manager/visualization/uav_" + std::to_string(uav_id_) + "/current_path", 1);
-    pub_uav_model_ = nh_.advertise<visualization_msgs::Marker>("/uav_path_manager/visualization/uav_" + std::to_string(uav_id_) + "/uav_model", 1);
+    pub_init_path_ = nh_.advertise<nav_msgs::Path>("/upat_follower/visualization/uav_" + std::to_string(uav_id_) + "/init_path", 1);
+    pub_generated_path_ = nh_.advertise<nav_msgs::Path>("/upat_follower/visualization/uav_" + std::to_string(uav_id_) + "/generated_path", 1);
+    pub_current_path_ = nh_.advertise<nav_msgs::Path>("/upat_follower/visualization/uav_" + std::to_string(uav_id_) + "/current_path", 1);
+    pub_uav_model_ = nh_.advertise<visualization_msgs::Marker>("/upat_follower/visualization/uav_" + std::to_string(uav_id_) + "/uav_model", 1);
     // Services
-    server_visualize_ = nh_.advertiseService("/uav_path_manager/visualization/uav_" + std::to_string(uav_id_) + "/visualize", &Visualization::visualCallback, this);
-    // Flags
-    // Initialize path
-    // Save data
+    server_visualize_ = nh_.advertiseService("/upat_follower/visualization/uav_" + std::to_string(uav_id_) + "/visualize", &Visualization::visualCallback, this);
 
     uav_model_ = readModel(robot_model);
 }
@@ -43,8 +40,8 @@ Visualization::Visualization() : nh_(), pnh_("~") {
 Visualization::~Visualization() {
 }
 
-bool Visualization::visualCallback(uav_path_manager::Visualize::Request &_req_visual,
-                                   uav_path_manager::Visualize::Response &_res_visual) {
+bool Visualization::visualCallback(upat_follower::Visualize::Request &_req_visual,
+                                   upat_follower::Visualize::Response &_res_visual) {
     init_path_ = _req_visual.init_path;
     uav_model_.header.frame_id = init_path_.header.frame_id;
     generated_path_ = _req_visual.generated_path;
