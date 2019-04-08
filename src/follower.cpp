@@ -26,9 +26,6 @@ Follower::Follower() : nh_(), pnh_("~") {
     // Parameters
     pnh_.getParam("uav_id", uav_id_);
     pnh_.getParam("debug", debug_);
-    pnh_.getParam("vxy", vxy_);
-    pnh_.getParam("vz_up", vz_up_);
-    pnh_.getParam("vz_dn", vz_dn_);
     // Subscriptions
     sub_pose_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/pose", 0, &Follower::ualPoseCallback, this);
     // Publishers
@@ -43,14 +40,13 @@ Follower::Follower() : nh_(), pnh_("~") {
         pub_point_search_normal_begin_ = nh_.advertise<geometry_msgs::PointStamped>("/upat_follower/follower/uav_" + std::to_string(uav_id_) + "/debug_point_search_begin", 1000);
         pub_point_search_normal_end_ = nh_.advertise<geometry_msgs::PointStamped>("/upat_follower/follower/uav_" + std::to_string(uav_id_) + "/debug_point_search_end", 1000);
     }
+    capMaxVelocities();
 }
 
-Follower::Follower(int _uav_id, double _vxy, double _vz_up, double _vz_dn, bool _debug) {
+Follower::Follower(int _uav_id, bool _debug) {
     debug_ = _debug;
     uav_id_ = _uav_id;
-    vxy_ = _vxy;
-    vz_up_ = _vz_up;
-    vz_dn_ = _vz_dn;
+    capMaxVelocities();
 }
 
 Follower::~Follower() {
@@ -121,6 +117,15 @@ void Follower::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_
 
 void Follower::updatePose(const geometry_msgs::PoseStamped &_ual_pose) {
     ual_pose_ = _ual_pose;
+}
+
+void Follower::capMaxVelocities() {
+    if (vxy_ < mpc_xy_vel_max_[0]) vxy_ = mpc_xy_vel_max_[0];
+    if (vxy_ > mpc_xy_vel_max_[1]) vxy_ = mpc_xy_vel_max_[1];
+    if (vz_up_ < mpc_z_vel_max_up_[0]) vz_up_ = mpc_z_vel_max_up_[0];
+    if (vz_up_ > mpc_z_vel_max_up_[1]) vz_up_ = mpc_z_vel_max_up_[1];
+    if (vz_dn_ < mpc_z_vel_max_dn_[0]) vz_dn_ = mpc_z_vel_max_dn_[0];
+    if (vz_dn_ > mpc_z_vel_max_dn_[1]) vz_dn_ = mpc_z_vel_max_dn_[1];
 }
 
 int Follower::calculatePosOnPath(Eigen::Vector3f _current_point, double _search_range, int _prev_normal_pos_on_path, nav_msgs::Path _path_search) {

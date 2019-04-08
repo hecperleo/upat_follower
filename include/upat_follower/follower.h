@@ -38,7 +38,7 @@ namespace upat_follower {
 class Follower {
    public:
     Follower();
-    Follower(int _uav_id, double _vxy = 2.0, double _vz_up = 3.0, double _vz_dn = 1.0, bool _debug = false);
+    Follower(int _uav_id, bool _debug = false);
     ~Follower();
 
     void pubMsgs();
@@ -58,6 +58,7 @@ class Follower {
     bool updatePathCb(upat_follower::UpdatePath::Request &_req_path, upat_follower::UpdatePath::Response &_res_path);
     bool updateTrajectoryCb(upat_follower::UpdateTrajectory::Request &_req_trajectory, upat_follower::UpdateTrajectory::Response &_res_trajectory);
     // Methods
+    void capMaxVelocities();
     double changeLookAhead(int _pos_on_path);
     int calculatePosLookAhead(int _pos_on_path);
     int calculateDistanceOnPath(int _prev_normal_pos_on_path, double _meters);
@@ -73,6 +74,12 @@ class Follower {
     // Services
     ros::ServiceServer server_prepare_path_, server_prepare_trajectory_;
     // Variables
+    double vxy_ = 2.0;
+    double vz_up_ = 3.0;
+    double vz_dn_ = 1.0;
+    std::vector<double> mpc_xy_vel_max_ = {0.0, 20.0};   // Default PX4 parameter limits
+    std::vector<double> mpc_z_vel_max_up_ = {0.5, 8.0};  // Default PX4 parameter limits
+    std::vector<double> mpc_z_vel_max_dn_ = {0.5, 4.0};  // Default PX4 parameter limits
     int follower_mode_;
     int prev_normal_pos_on_path_ = 0;
     int prev_normal_vel_on_path_ = 0;
@@ -84,7 +91,6 @@ class Follower {
     // Params
     int uav_id_;
     bool debug_;
-    double vxy_, vz_up_, vz_dn_;
     // Debug
     geometry_msgs::PointStamped point_look_ahead_, point_normal_, point_search_normal_begin_, point_search_normal_end_;
 };
