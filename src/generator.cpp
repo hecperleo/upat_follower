@@ -32,15 +32,15 @@ Generator::Generator() : nh_(), pnh_("~") {
     server_generate_trajectory_ = nh_.advertiseService("/upat_follower/generator/generate_trajectory", &Generator::generateTrajectoryCb, this);
     // Client to get parameters from mavros and required default values
     get_param_client_ = nh_.serviceClient<mavros_msgs::ParamGet>("mavros/param/get");
-    mavros_params_["MPC_XY_VEL_MAX"] = vxy;      
-    mavros_params_["MPC_Z_VEL_MAX_UP"] = vz_up;  
-    mavros_params_["MPC_Z_VEL_MAX_DN"] = vz_dn;  
+    mavros_params_["MPC_XY_VEL_MAX"] = vxy;
+    mavros_params_["MPC_Z_VEL_MAX_UP"] = vz_up;
+    mavros_params_["MPC_Z_VEL_MAX_DN"] = vz_dn;
 }
 
 Generator::Generator(double _vxy, double _vz_up, double _vz_dn, bool _debug) {
     debug_ = _debug;
     get_param_client_ = nh_.serviceClient<mavros_msgs::ParamGet>("mavros/param/get");
-    mavros_params_["MPC_XY_VEL_MAX"] = _vxy;    
+    mavros_params_["MPC_XY_VEL_MAX"] = _vxy;
     mavros_params_["MPC_Z_VEL_MAX_UP"] = _vz_up;
     mavros_params_["MPC_Z_VEL_MAX_DN"] = _vz_dn;
 }
@@ -200,7 +200,7 @@ nav_msgs::Path Generator::generatePath(nav_msgs::Path _init_path, int _generator
 }
 
 bool Generator::generatePathCb(upat_follower::GeneratePath::Request &_req_path,
-                                   upat_follower::GeneratePath::Response &_res_path) {
+                               upat_follower::GeneratePath::Response &_res_path) {
     std::vector<double> list_pose_x, list_pose_y, list_pose_z;
     for (int i = 0; i < _req_path.init_path.poses.size(); i++) {
         list_pose_x.push_back(_req_path.init_path.poses.at(i).pose.position.x);
@@ -237,8 +237,8 @@ bool Generator::generatePathCb(upat_follower::GeneratePath::Request &_req_path,
     return true;
 }
 
-bool Generator::generateTrajectoryCb(upat_follower::PrepareTrajectory::Request &_req_trajectory,
-                                         upat_follower::PrepareTrajectory::Response &_res_trajectory) {
+bool Generator::generateTrajectoryCb(upat_follower::GenerateTrajectory::Request &_req_trajectory,
+                                     upat_follower::GenerateTrajectory::Response &_res_trajectory) {
     std::vector<double> list_pose_x, list_pose_y, list_pose_z;
     for (int i = 0; i < _req_trajectory.init_path.poses.size(); i++) {
         list_pose_x.push_back(_req_trajectory.init_path.poses.at(i).pose.position.x);

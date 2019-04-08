@@ -81,32 +81,18 @@ nav_msgs::Path Follower::prepareTrajectory(nav_msgs::Path _init_path, std::vecto
 }
 
 bool Follower::preparePathCb(upat_follower::PreparePath::Request &_req_path, upat_follower::PreparePath::Response &_res_path) {
-    follower_mode_ = 0;
-    upat_follower::Generator generator(vxy_, vz_up_, vz_dn_, debug_);
-    generator.generatePath(_req_path.init_path, _req_path.generator_mode.data);
-    look_ahead_ = _req_path.look_ahead.data;
-    cruising_speed_ = _req_path.cruising_speed.data;
-    target_path_ = generator.out_path_;
-    _res_path.generated_path = generator.out_path_;
+    _res_path.generated_path = preparePath(_req_path.init_path, _req_path.generator_mode.data, _req_path.look_ahead.data, _req_path.cruising_speed.data);
+
     return true;
 }
 
 bool Follower::prepareTrajectoryCb(upat_follower::PrepareTrajectory::Request &_req_trajectory, upat_follower::PrepareTrajectory::Response &_res_trajectory) {
-    follower_mode_ = 1;
-    upat_follower::Generator generator(vxy_, vz_up_, vz_dn_, debug_);
     std::vector<double> vec_max_vel_percentage;
     for (int i = 0; i < _req_trajectory.max_vel_percentage.size(); i++) {
         vec_max_vel_percentage.push_back(_req_trajectory.max_vel_percentage.at(i).data);
     }
-    generator.generateTrajectory(_req_trajectory.init_path, vec_max_vel_percentage);
-    target_vel_path_ = generator.generated_path_vel_percentage_;
-    target_vel_path_.header.frame_id = generator.out_path_.header.frame_id;
-    for (int i = 0; i < generator.generated_max_vel_percentage_.size(); i++) {
-        generated_max_vel_percentage_.push_back(generator.generated_max_vel_percentage_.at(i));
-    }
-    max_vel_ = generator.max_velocity_;
-    target_path_ = generator.out_path_;
-    _res_trajectory.generated_path = generator.out_path_;
+    _res_trajectory.generated_path = prepareTrajectory(_req_trajectory.init_path, vec_max_vel_percentage);
+
     return true;
 }
 
@@ -254,8 +240,13 @@ void Follower::pubMsgs() {
     }
 }
 
-void Follower::updatePath(nav_msgs::Path _new_target_path){
+void Follower::updatePath(nav_msgs::Path _new_target_path) {
     target_path_ = _new_target_path;
+}
+
+void Follower::updateTrajectory(nav_msgs::Path _new_target_path, nav_msgs::Path _new_target_vel_path) {
+    target_path_ = _new_target_path;
+    target_vel_path_ = _new_target_vel_path;
 }
 
 geometry_msgs::TwistStamped Follower::getVelocity() {
