@@ -56,6 +56,25 @@ Follower::Follower(int _uav_id, double _vxy, double _vz_up, double _vz_dn, bool 
 Follower::~Follower() {
 }
 
+void Follower::updatePath(nav_msgs::Path _new_target_path) {
+    target_path_ = _new_target_path;
+}
+
+void Follower::updateTrajectory(nav_msgs::Path _new_target_path, nav_msgs::Path _new_target_vel_path) {
+    target_path_ = _new_target_path;
+    target_vel_path_ = _new_target_vel_path;
+}
+
+bool Follower::updatePathCb(upat_follower::UpdatePath::Request &_req_path, upat_follower::UpdatePath::Response &_res_path) {
+    updatePath(_req_path.new_target_path);
+    return true;
+}
+
+bool Follower::updateTrajectoryCb(upat_follower::UpdateTrajectory::Request &_req_trajectory, upat_follower::UpdateTrajectory::Response &_res_trajectory) {
+    updateTrajectory(_req_trajectory.new_target_path, _req_trajectory.new_target_vel_path);
+    return true;
+}
+
 nav_msgs::Path Follower::preparePath(nav_msgs::Path _init_path, int _generator_mode, double _look_ahead, double _cruising_speed) {
     follower_mode_ = 0;
     upat_follower::Generator generator(vxy_, vz_up_, vz_dn_, debug_);
@@ -238,15 +257,6 @@ void Follower::pubMsgs() {
         pub_point_search_normal_begin_.publish(point_search_normal_begin_);
         pub_point_search_normal_end_.publish(point_search_normal_end_);
     }
-}
-
-void Follower::updatePath(nav_msgs::Path _new_target_path) {
-    target_path_ = _new_target_path;
-}
-
-void Follower::updateTrajectory(nav_msgs::Path _new_target_path, nav_msgs::Path _new_target_vel_path) {
-    target_path_ = _new_target_path;
-    target_vel_path_ = _new_target_vel_path;
 }
 
 geometry_msgs::TwistStamped Follower::getVelocity() {

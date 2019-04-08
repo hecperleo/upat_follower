@@ -55,6 +55,8 @@ The Follower class is defined in follower.h. You can create one object in your c
 - `updatePose(const geometry_msgs::PoseStamped &_ual_pose)`
 - `prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _max_vel_percentage)`
 - `preparePath(nav_msgs::Path _init_path, int _generator_mode, double _look_ahead, double _cruising_speed)`
+- `updateTrajectory(nav_msgs::Path _new_target_path, nav_msgs::Path _new_target_vel_path)`
+- `updatePath(nav_msgs::Path _new_target_path)`
 - `getVelocity()`
 
 The Generator class is defined in generator.h. You can create one object in your code and use its public methods:
@@ -67,11 +69,19 @@ The Generator class is defined in generator.h. You can create one object in your
 
 You can interact with Follower and Generator classes using a ROS interface. 
 
-- `GeneratePath.srv`
+Follower: 
+
 - `PreparePath.srv`
 - `PrepareTrajectory.srv`
+- `UpdatePath.srv`
+- `UpdateTrajectory.srv`
 
-Create a client of these services with each corresponding requests and you will be able to interact with it and recive exactly the same response as using the cpp class interface.
+Generator: 
+
+- `GeneratePath.srv`
+- `GenerateTrajectory.srv`
+
+Each service will interact with the corresponding cpp method. Create a client of these services with each corresponding requests and you will be able to interact with it and receive exactly the same response as using the cpp class interface.
 
 ## Follower and Generator Modes
 

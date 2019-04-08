@@ -65,6 +65,8 @@ add_service_files(
   GenerateTrajectory.srv
   PreparePath.srv
   PrepareTrajectory.srv
+  UpdatePath.srv
+  UpdateTrajectory.srv
   Visualize.srv
 )
 

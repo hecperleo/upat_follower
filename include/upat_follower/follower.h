@@ -24,6 +24,8 @@
 #include <uav_abstraction_layer/ual.h>
 #include <upat_follower/PreparePath.h>
 #include <upat_follower/PrepareTrajectory.h>
+#include <upat_follower/UpdatePath.h>
+#include <upat_follower/UpdateTrajectory.h>
 #include <upat_follower/generator.h>
 #include <Eigen/Eigen>
 #include "geometry_msgs/PointStamped.h"
@@ -53,8 +55,8 @@ class Follower {
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
     bool preparePathCb(upat_follower::PreparePath::Request &_req_path, upat_follower::PreparePath::Response &_res_path);
     bool prepareTrajectoryCb(upat_follower::PrepareTrajectory::Request &_req_trajectory, upat_follower::PrepareTrajectory::Response &_res_trajectory);
-    // bool updatePathCb(); TODO
-    // bool updateTrajectoryCb(); TODO
+    bool updatePathCb(upat_follower::UpdatePath::Request &_req_path, upat_follower::UpdatePath::Response &_res_path);
+    bool updateTrajectoryCb(upat_follower::UpdateTrajectory::Request &_req_trajectory, upat_follower::UpdateTrajectory::Response &_res_trajectory);
     // Methods
     double changeLookAhead(int _pos_on_path);
     int calculatePosLookAhead(int _pos_on_path);
