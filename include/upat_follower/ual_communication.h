@@ -17,24 +17,29 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //----------------------------------------------------------------------------------------------------------------------
 
+#ifndef UALCOMMUNICATION_H
+#define UALCOMMUNICATION_H
+
 #include <ros/package.h>
 #include <ros/ros.h>
 #include <uav_abstraction_layer/Land.h>
 #include <uav_abstraction_layer/State.h>
 #include <uav_abstraction_layer/TakeOff.h>
 #include <uav_abstraction_layer/ual.h>
+#include <upat_follower/GeneratePath.h>
 #include <upat_follower/PreparePath.h>
 #include <upat_follower/PrepareTrajectory.h>
-#include <upat_follower/GeneratePath.h>
 #include <upat_follower/Visualize.h>
-#include <upat_follower/generator.h>
 #include <upat_follower/follower.h>
+#include <upat_follower/generator.h>
 #include <Eigen/Eigen>
 #include <fstream>
 #include "ecl/geometry.hpp"
 #include "geometry_msgs/PoseStamped.h"
 #include "nav_msgs/Path.h"
 #include "std_msgs/Int8.h"
+
+namespace upat_follower {
 
 class UALCommunication {
    public:
@@ -43,6 +48,7 @@ class UALCommunication {
 
     void runMission();
     void callVisualization();
+    bool flag_hover_ = false;
 
    private:
     double vxy_ = 2.0;
@@ -79,4 +85,9 @@ class UALCommunication {
     bool save_csv_, trajectory_, use_class_;
     double reach_tolerance_;
     std::string init_path_name_;
+    std::string pkg_name_ = "upat_follower";
 };
+
+}  // namespace upat_follower
+
+#endif /* UALCOMMUNICATION_H */

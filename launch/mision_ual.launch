@@ -18,6 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <arg name="trajectory" default="true"/>
     <arg name="reach_tolerance" default="0.1"/>
     <arg name="path" default="cubic"/>
+    <arg name="pkg_name" default="upat_follower"/>
     <arg name="use_class" default="true" unless="$(arg debug)"/>
     <arg name="use_class" default="false" if="$(arg debug)"/>
     <arg name="multi" default="true" unless="$(arg debug)"/>

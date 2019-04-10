@@ -19,12 +19,15 @@
 
 #include <upat_follower/ual_communication.h>
 
+namespace upat_follower {
+
 UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     // Parameters
     pnh_.getParam("uav_id", uav_id_);
     pnh_.getParam("save_csv", save_csv_);
     pnh_.getParam("trajectory", trajectory_);
     pnh_.getParam("path", init_path_name_);
+    pnh_.getParam("pkg_name", pkg_name_);
     pnh_.getParam("reach_tolerance", reach_tolerance_);
     pnh_.getParam("use_class", use_class_);
     // Subscriptions
@@ -48,7 +51,7 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     max_vel_percentage_ = csvToVector("/velocities.csv");
     // Save data
     if (save_csv_) {
-        std::string pkg_name_path = ros::package::getPath("upat_follower");
+        std::string pkg_name_path = ros::package::getPath(pkg_name_);
         folder_data_name_ = pkg_name_path + "/tests/data";
     }
 }
@@ -75,7 +78,7 @@ nav_msgs::Path UALCommunication::constructPath(std::vector<double> _wps_x, std::
 
 nav_msgs::Path UALCommunication::csvToPath(std::string _file_name) {
     nav_msgs::Path out_path;
-    std::string pkg_name_path = ros::package::getPath("upat_follower");
+    std::string pkg_name_path = ros::package::getPath(pkg_name_);
     std::string folder_name = pkg_name_path + "/data" + _file_name;
     std::fstream read_csv;
     read_csv.open(folder_name);
@@ -104,7 +107,7 @@ nav_msgs::Path UALCommunication::csvToPath(std::string _file_name) {
 
 std::vector<double> UALCommunication::csvToVector(std::string _file_name) {
     std::vector<double> out_vector;
-    std::string pkg_name_path = ros::package::getPath("upat_follower");
+    std::string pkg_name_path = ros::package::getPath(pkg_name_);
     std::string folder_name = pkg_name_path + "/data" + _file_name;
     std::fstream read_csv;
     read_csv.open(folder_name);
@@ -227,7 +230,7 @@ void UALCommunication::runMission() {
                 if (!on_path_) {
                     if ((current_p - path0_p).norm() > reach_tolerance_ * 2) {
                         pub_set_pose_.publish(target_path_.poses.at(0));
-                    } else if (reach_tolerance_ > (current_p - path0_p).norm()) {
+                    } else if (reach_tolerance_ > (current_p - path0_p).norm() && !flag_hover_) {
                         pub_set_pose_.publish(target_path_.poses.front());
                         on_path_ = true;
                     }
@@ -259,3 +262,5 @@ void UALCommunication::runMission() {
             break;
     }
 }
+
+}  // namespace upat_follower

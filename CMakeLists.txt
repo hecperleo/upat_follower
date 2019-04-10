@@ -138,7 +138,7 @@ include_directories(
 #   src/${PROJECT_NAME}/pure_pursuit.cpp
 # )
 add_library(${PROJECT_NAME}
-  src/follower.cpp src/generator.cpp
+  src/follower.cpp src/generator.cpp src/ual_communication.cpp src/visualization.cpp
 )
 
 ## Add cmake target dependencies of the library
