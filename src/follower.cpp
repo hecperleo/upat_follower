@@ -76,7 +76,8 @@ nav_msgs::Path Follower::preparePath(nav_msgs::Path _init_path, int _generator_m
     upat_follower::Generator generator(vxy_, vz_up_, vz_dn_, debug_);
     generator.generatePath(_init_path, _generator_mode);
     look_ahead_ = _look_ahead;
-    cruising_speed_ = _cruising_speed;
+    if (_cruising_speed > smallest_max_velocity_) cruising_speed_ = smallest_max_velocity_;
+    if (_cruising_speed <= 0) cruising_speed_ = 0.1;
     target_path_ = generator.out_path_;
     return generator.out_path_;
 }
@@ -120,12 +121,18 @@ void Follower::updatePose(const geometry_msgs::PoseStamped &_ual_pose) {
 }
 
 void Follower::capMaxVelocities() {
+    // Cap input max velocities with default PX4 max velocities
     if (vxy_ < mpc_xy_vel_max_[0]) vxy_ = mpc_xy_vel_max_[0];
     if (vxy_ > mpc_xy_vel_max_[1]) vxy_ = mpc_xy_vel_max_[1];
     if (vz_up_ < mpc_z_vel_max_up_[0]) vz_up_ = mpc_z_vel_max_up_[0];
     if (vz_up_ > mpc_z_vel_max_up_[1]) vz_up_ = mpc_z_vel_max_up_[1];
     if (vz_dn_ < mpc_z_vel_max_dn_[0]) vz_dn_ = mpc_z_vel_max_dn_[0];
     if (vz_dn_ > mpc_z_vel_max_dn_[1]) vz_dn_ = mpc_z_vel_max_dn_[1];
+    std::vector<double> velocities;
+    velocities.push_back(vxy_);
+    velocities.push_back(vz_up_);
+    velocities.push_back(vz_dn_);
+    smallest_max_velocity_ = *std::min_element(velocities.begin(), velocities.end());
 }
 
 int Follower::calculatePosOnPath(Eigen::Vector3f _current_point, double _search_range, int _prev_normal_pos_on_path, nav_msgs::Path _path_search) {
