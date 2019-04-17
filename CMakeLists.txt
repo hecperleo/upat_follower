@@ -62,8 +62,11 @@ find_package(rostest REQUIRED)
 add_service_files(
   FILES
   GeneratePath.srv
+  GenerateTrajectory.srv
   PreparePath.srv
   PrepareTrajectory.srv
+  UpdatePath.srv
+  UpdateTrajectory.srv
   Visualize.srv
 )
 
@@ -135,7 +138,7 @@ include_directories(
 #   src/${PROJECT_NAME}/pure_pursuit.cpp
 # )
 add_library(${PROJECT_NAME}
-  src/follower.cpp src/generator.cpp
+  src/follower.cpp src/generator.cpp src/ual_communication.cpp src/visualization.cpp
 )
 
 ## Add cmake target dependencies of the library

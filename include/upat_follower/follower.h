@@ -24,6 +24,8 @@
 #include <uav_abstraction_layer/ual.h>
 #include <upat_follower/PreparePath.h>
 #include <upat_follower/PrepareTrajectory.h>
+#include <upat_follower/UpdatePath.h>
+#include <upat_follower/UpdateTrajectory.h>
 #include <upat_follower/generator.h>
 #include <Eigen/Eigen>
 #include "geometry_msgs/PointStamped.h"
@@ -36,7 +38,7 @@ namespace upat_follower {
 class Follower {
    public:
     Follower();
-    Follower(int _uav_id, double _vxy = 2.0, double _vz_up = 3.0, double _vz_dn = 1.0, bool _debug = false);
+    Follower(int _uav_id, bool _debug = false);
     ~Follower();
 
     void pubMsgs();
@@ -44,7 +46,7 @@ class Follower {
     geometry_msgs::TwistStamped getVelocity();
     void updatePose(const geometry_msgs::PoseStamped &_ual_pose);
     void updatePath(nav_msgs::Path _new_target_path);
-    // nav_msgs::Path updateTrajectory(); TODO
+    void updateTrajectory(nav_msgs::Path _new_target_path, nav_msgs::Path _new_target_vel_path);
     nav_msgs::Path prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _max_vel_percentage);
     nav_msgs::Path preparePath(nav_msgs::Path _init_path, int _generator_mode = 0, double _look_ahead = 1.2, double _cruising_speed = 1.0);
 
@@ -53,9 +55,10 @@ class Follower {
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
     bool preparePathCb(upat_follower::PreparePath::Request &_req_path, upat_follower::PreparePath::Response &_res_path);
     bool prepareTrajectoryCb(upat_follower::PrepareTrajectory::Request &_req_trajectory, upat_follower::PrepareTrajectory::Response &_res_trajectory);
-    // bool updatePathCb(); TODO
-    // bool updateTrajectoryCb(); TODO
+    bool updatePathCb(upat_follower::UpdatePath::Request &_req_path, upat_follower::UpdatePath::Response &_res_path);
+    bool updateTrajectoryCb(upat_follower::UpdateTrajectory::Request &_req_trajectory, upat_follower::UpdateTrajectory::Response &_res_trajectory);
     // Methods
+    void capMaxVelocities();
     double changeLookAhead(int _pos_on_path);
     int calculatePosLookAhead(int _pos_on_path);
     int calculateDistanceOnPath(int _prev_normal_pos_on_path, double _meters);
@@ -71,6 +74,13 @@ class Follower {
     // Services
     ros::ServiceServer server_prepare_path_, server_prepare_trajectory_;
     // Variables
+    double vxy_ = 2.0;
+    double vz_up_ = 3.0;
+    double vz_dn_ = 1.0;
+    double smallest_max_velocity_;
+    std::vector<double> mpc_xy_vel_max_ = {0.0, 20.0};   // Default PX4 parameter limits
+    std::vector<double> mpc_z_vel_max_up_ = {0.5, 8.0};  // Default PX4 parameter limits
+    std::vector<double> mpc_z_vel_max_dn_ = {0.5, 4.0};  // Default PX4 parameter limits
     int follower_mode_;
     int prev_normal_pos_on_path_ = 0;
     int prev_normal_vel_on_path_ = 0;
@@ -82,7 +92,6 @@ class Follower {
     // Params
     int uav_id_;
     bool debug_;
-    double vxy_, vz_up_, vz_dn_;
     // Debug
     geometry_msgs::PointStamped point_look_ahead_, point_normal_, point_search_normal_begin_, point_search_normal_end_;
 };

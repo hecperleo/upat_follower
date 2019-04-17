@@ -26,9 +26,6 @@ Follower::Follower() : nh_(), pnh_("~") {
     // Parameters
     pnh_.getParam("uav_id", uav_id_);
     pnh_.getParam("debug", debug_);
-    pnh_.getParam("vxy", vxy_);
-    pnh_.getParam("vz_up", vz_up_);
-    pnh_.getParam("vz_dn", vz_dn_);
     // Subscriptions
     sub_pose_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/pose", 0, &Follower::ualPoseCallback, this);
     // Publishers
@@ -43,17 +40,35 @@ Follower::Follower() : nh_(), pnh_("~") {
         pub_point_search_normal_begin_ = nh_.advertise<geometry_msgs::PointStamped>("/upat_follower/follower/uav_" + std::to_string(uav_id_) + "/debug_point_search_begin", 1000);
         pub_point_search_normal_end_ = nh_.advertise<geometry_msgs::PointStamped>("/upat_follower/follower/uav_" + std::to_string(uav_id_) + "/debug_point_search_end", 1000);
     }
+    capMaxVelocities();
 }
 
-Follower::Follower(int _uav_id, double _vxy, double _vz_up, double _vz_dn, bool _debug) {
+Follower::Follower(int _uav_id, bool _debug) {
     debug_ = _debug;
     uav_id_ = _uav_id;
-    vxy_ = _vxy;
-    vz_up_ = _vz_up;
-    vz_dn_ = _vz_dn;
+    capMaxVelocities();
 }
 
 Follower::~Follower() {
+}
+
+void Follower::updatePath(nav_msgs::Path _new_target_path) {
+    target_path_ = _new_target_path;
+}
+
+void Follower::updateTrajectory(nav_msgs::Path _new_target_path, nav_msgs::Path _new_target_vel_path) {
+    target_path_ = _new_target_path;
+    target_vel_path_ = _new_target_vel_path;
+}
+
+bool Follower::updatePathCb(upat_follower::UpdatePath::Request &_req_path, upat_follower::UpdatePath::Response &_res_path) {
+    updatePath(_req_path.new_target_path);
+    return true;
+}
+
+bool Follower::updateTrajectoryCb(upat_follower::UpdateTrajectory::Request &_req_trajectory, upat_follower::UpdateTrajectory::Response &_res_trajectory) {
+    updateTrajectory(_req_trajectory.new_target_path, _req_trajectory.new_target_vel_path);
+    return true;
 }
 
 nav_msgs::Path Follower::preparePath(nav_msgs::Path _init_path, int _generator_mode, double _look_ahead, double _cruising_speed) {
@@ -61,7 +76,8 @@ nav_msgs::Path Follower::preparePath(nav_msgs::Path _init_path, int _generator_m
     upat_follower::Generator generator(vxy_, vz_up_, vz_dn_, debug_);
     generator.generatePath(_init_path, _generator_mode);
     look_ahead_ = _look_ahead;
-    cruising_speed_ = _cruising_speed;
+    if (_cruising_speed > smallest_max_velocity_) cruising_speed_ = smallest_max_velocity_;
+    if (_cruising_speed <= 0) cruising_speed_ = 0.1;
     target_path_ = generator.out_path_;
     return generator.out_path_;
 }
@@ -81,32 +97,18 @@ nav_msgs::Path Follower::prepareTrajectory(nav_msgs::Path _init_path, std::vecto
 }
 
 bool Follower::preparePathCb(upat_follower::PreparePath::Request &_req_path, upat_follower::PreparePath::Response &_res_path) {
-    follower_mode_ = 0;
-    upat_follower::Generator generator(vxy_, vz_up_, vz_dn_, debug_);
-    generator.generatePath(_req_path.init_path, _req_path.generator_mode.data);
-    look_ahead_ = _req_path.look_ahead.data;
-    cruising_speed_ = _req_path.cruising_speed.data;
-    target_path_ = generator.out_path_;
-    _res_path.generated_path = generator.out_path_;
+    _res_path.generated_path = preparePath(_req_path.init_path, _req_path.generator_mode.data, _req_path.look_ahead.data, _req_path.cruising_speed.data);
+
     return true;
 }
 
 bool Follower::prepareTrajectoryCb(upat_follower::PrepareTrajectory::Request &_req_trajectory, upat_follower::PrepareTrajectory::Response &_res_trajectory) {
-    follower_mode_ = 1;
-    upat_follower::Generator generator(vxy_, vz_up_, vz_dn_, debug_);
     std::vector<double> vec_max_vel_percentage;
     for (int i = 0; i < _req_trajectory.max_vel_percentage.size(); i++) {
         vec_max_vel_percentage.push_back(_req_trajectory.max_vel_percentage.at(i).data);
     }
-    generator.generateTrajectory(_req_trajectory.init_path, vec_max_vel_percentage);
-    target_vel_path_ = generator.generated_path_vel_percentage_;
-    target_vel_path_.header.frame_id = generator.out_path_.header.frame_id;
-    for (int i = 0; i < generator.generated_max_vel_percentage_.size(); i++) {
-        generated_max_vel_percentage_.push_back(generator.generated_max_vel_percentage_.at(i));
-    }
-    max_vel_ = generator.max_velocity_;
-    target_path_ = generator.out_path_;
-    _res_trajectory.generated_path = generator.out_path_;
+    _res_trajectory.generated_path = prepareTrajectory(_req_trajectory.init_path, vec_max_vel_percentage);
+
     return true;
 }
 
@@ -116,6 +118,21 @@ void Follower::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_
 
 void Follower::updatePose(const geometry_msgs::PoseStamped &_ual_pose) {
     ual_pose_ = _ual_pose;
+}
+
+void Follower::capMaxVelocities() {
+    // Cap input max velocities with default PX4 max velocities
+    if (vxy_ < mpc_xy_vel_max_[0]) vxy_ = mpc_xy_vel_max_[0];
+    if (vxy_ > mpc_xy_vel_max_[1]) vxy_ = mpc_xy_vel_max_[1];
+    if (vz_up_ < mpc_z_vel_max_up_[0]) vz_up_ = mpc_z_vel_max_up_[0];
+    if (vz_up_ > mpc_z_vel_max_up_[1]) vz_up_ = mpc_z_vel_max_up_[1];
+    if (vz_dn_ < mpc_z_vel_max_dn_[0]) vz_dn_ = mpc_z_vel_max_dn_[0];
+    if (vz_dn_ > mpc_z_vel_max_dn_[1]) vz_dn_ = mpc_z_vel_max_dn_[1];
+    std::vector<double> velocities;
+    velocities.push_back(vxy_);
+    velocities.push_back(vz_up_);
+    velocities.push_back(vz_dn_);
+    smallest_max_velocity_ = *std::min_element(velocities.begin(), velocities.end());
 }
 
 int Follower::calculatePosOnPath(Eigen::Vector3f _current_point, double _search_range, int _prev_normal_pos_on_path, nav_msgs::Path _path_search) {
@@ -252,10 +269,6 @@ void Follower::pubMsgs() {
         pub_point_search_normal_begin_.publish(point_search_normal_begin_);
         pub_point_search_normal_end_.publish(point_search_normal_end_);
     }
-}
-
-void Follower::updatePath(nav_msgs::Path _new_target_path){
-    target_path_ = _new_target_path;
 }
 
 geometry_msgs::TwistStamped Follower::getVelocity() {

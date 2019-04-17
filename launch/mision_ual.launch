@@ -16,11 +16,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <arg name="debug" default="false"/>
     <arg name="save_data" default="false"/>
     <arg name="trajectory" default="true"/>
-    <arg name="vxy" default="2.0"/>
-    <arg name="vz_up" default="3.0"/>
-    <arg name="vz_dn" default="1.0"/>
     <arg name="reach_tolerance" default="0.1"/>
     <arg name="path" default="cubic"/>
+    <arg name="pkg_name" default="upat_follower"/>
     <arg name="use_class" default="true" unless="$(arg debug)"/>
     <arg name="use_class" default="false" if="$(arg debug)"/>
     <arg name="multi" default="true" unless="$(arg debug)"/>
@@ -55,9 +53,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 <param name="uav_id" value="1"/>
                 <param name="debug" value="$(arg debug)"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
-                <param name="vxy" value="$(arg vxy)"/>
-                <param name="vz_up" value="$(arg vz_up)"/>
-                <param name="vz_dn" value="$(arg vz_dn)"/>
             </node>
             <node pkg="upat_follower" type="visualization_node" name="visualization" required="true">
                 <param name="uav_id" value="1"/>
@@ -79,9 +74,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             <node pkg="upat_follower" type="follower_node" name="follower" required="true" unless="$(arg use_class)">
                 <param name="uav_id" value="2"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
-                <param name="vxy" value="$(arg vxy)"/>
-                <param name="vz_up" value="$(arg vz_up)"/>
-                <param name="vz_dn" value="$(arg vz_dn)"/>
             </node>
             <node pkg="upat_follower" type="visualization_node" name="visualization" required="true">
                 <param name="uav_id" value="2"/>

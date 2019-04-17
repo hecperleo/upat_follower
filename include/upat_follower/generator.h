@@ -22,7 +22,7 @@
 #include <mavros_msgs/ParamGet.h>
 #include <ros/ros.h>
 #include <upat_follower/GeneratePath.h>
-#include <upat_follower/PrepareTrajectory.h>
+#include <upat_follower/GenerateTrajectory.h>
 #include <Eigen/Eigen>
 #include "ecl/geometry.hpp"
 #include "geometry_msgs/PoseStamped.h"
@@ -47,7 +47,7 @@ class Generator {
    private:
     // Callbacks
     bool generatePathCb(upat_follower::GeneratePath::Request &_req_path, upat_follower::GeneratePath::Response &_res_path);
-    bool generateTrajectoryCb(upat_follower::PrepareTrajectory::Request &_req_trajectory, upat_follower::PrepareTrajectory::Response &_res_trajectory);
+    bool generateTrajectoryCb(upat_follower::GenerateTrajectory::Request &_req_trajectory, upat_follower::GenerateTrajectory::Response &_res_trajectory);
     // Methods
     double checkSmallestMaxVel();
     double updateParam(const std::string &_param_id);
