@@ -19,9 +19,11 @@
 
 #include <ros/package.h>
 #include <ros/ros.h>
+#include <uav_abstraction_layer/State.h>
 #include <uav_abstraction_layer/ual.h>
 #include <upat_follower/Visualize.h>
 #include <visualization_msgs/Marker.h>
+#include <Eigen/Eigen>
 #include "geometry_msgs/PoseStamped.h"
 #include "nav_msgs/Path.h"
 
@@ -30,26 +32,39 @@ class Visualization {
     Visualization();
     ~Visualization();
 
+    bool save_data = false;
+    nav_msgs::Path current_path_;
+    uav_abstraction_layer::State ual_state_;
+
     void pubMsgs();
+    void saveMissionData();
+
 
    private:
     // Callbacks
+    void ualStateCallback(const uav_abstraction_layer::State &_ual_state);
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
     bool visualCallback(upat_follower::Visualize::Request &_req_visual, upat_follower::Visualize::Response &_res_visual);
     // Methods
+    int calculateDistanceOnPath(int _prev_normal_pos_on_path, double _meters, nav_msgs::Path _path_search);
+    int calculateNormalDistance(Eigen::Vector3f _current_point, double _search_range, int _prev_normal_pos_on_path, nav_msgs::Path _path_search);
     visualization_msgs::Marker readModel(std::string _model_type);
     // Node handlers
     ros::NodeHandle nh_, pnh_;
     // Subscribers
-    ros::Subscriber sub_pose_;
+    ros::Subscriber sub_pose_, sub_state_;
     // Publishers
     ros::Publisher pub_init_path_, pub_generated_path_, pub_current_path_, pub_uav_model_;
     // Services
     ros::ServiceServer server_visualize_;
     // Variables
     geometry_msgs::PoseStamped ual_pose_;
-    nav_msgs::Path init_path_, generated_path_, current_path_;
+    nav_msgs::Path generated_path_, init_path_;
     visualization_msgs::Marker uav_model_;
+    std::vector<double> normal_dist_generated_path_, normal_dist_init_path_;
+    double normal_distance_;
+    int prev_normal_pos_on_init_path_ = 0;
+    int prev_normal_pos_on_generated_path_ = 0;
     // Params
     int uav_id_;
     std::string model_;

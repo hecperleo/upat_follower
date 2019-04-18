@@ -26,6 +26,7 @@ Visualization::Visualization() : nh_(), pnh_("~") {
     pnh_.getParam("robot_model", robot_model);
     // Subscriptions
     sub_pose_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/pose", 0, &Visualization::ualPoseCallback, this);
+    sub_state_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/state", 0, &Visualization::ualStateCallback, this);
     // Publishers
     pub_init_path_ = nh_.advertise<nav_msgs::Path>("/upat_follower/visualization/uav_" + std::to_string(uav_id_) + "/init_path", 1);
     pub_generated_path_ = nh_.advertise<nav_msgs::Path>("/upat_follower/visualization/uav_" + std::to_string(uav_id_) + "/generated_path", 1);
@@ -48,6 +49,10 @@ bool Visualization::visualCallback(upat_follower::Visualize::Request &_req_visua
     current_path_ = _req_visual.current_path;
 
     return true;
+}
+
+void Visualization::ualStateCallback(const uav_abstraction_layer::State &_ual_state) {
+    ual_state_.state = _ual_state.state;
 }
 
 void Visualization::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose) {
@@ -86,6 +91,81 @@ visualization_msgs::Marker Visualization::readModel(std::string _model) {
     }
 
     return model_;
+}
+
+int Visualization::calculateNormalDistance(Eigen::Vector3f _current_point, double _search_range, int _prev_normal_pos_on_path, nav_msgs::Path _path_search) {
+    std::vector<double> vec_distances;
+    int start_search_pos_on_path = calculateDistanceOnPath(_prev_normal_pos_on_path, -_search_range, _path_search);
+    int end_search_pos_on_path = calculateDistanceOnPath(_prev_normal_pos_on_path, _search_range, _path_search);
+    for (int i = start_search_pos_on_path; i < end_search_pos_on_path; i++) {
+        Eigen::Vector3f target_path_point;
+        target_path_point = Eigen::Vector3f(_path_search.poses.at(i).pose.position.x, _path_search.poses.at(i).pose.position.y, _path_search.poses.at(i).pose.position.z);
+        vec_distances.push_back((target_path_point - _current_point).norm());
+    }
+    auto smallest_distance = std::min_element(vec_distances.begin(), vec_distances.end());
+    int pos_on_path = smallest_distance - vec_distances.begin();
+    normal_distance_ = *smallest_distance;
+
+    return pos_on_path + start_search_pos_on_path;
+}
+
+int Visualization::calculateDistanceOnPath(int _prev_normal_pos_on_path, double _meters, nav_msgs::Path _path_search) {
+    int pos_equals_dist;
+    double dist_to_front, dist_to_back, temp_dist;
+    std::vector<double> vec_distances;
+    Eigen::Vector3f p_prev = Eigen::Vector3f(_path_search.poses.at(_prev_normal_pos_on_path).pose.position.x, _path_search.poses.at(_prev_normal_pos_on_path).pose.position.y, _path_search.poses.at(_prev_normal_pos_on_path).pose.position.z);
+    Eigen::Vector3f p_front = Eigen::Vector3f(_path_search.poses.front().pose.position.x, _path_search.poses.front().pose.position.y, _path_search.poses.front().pose.position.z);
+    Eigen::Vector3f p_back = Eigen::Vector3f(_path_search.poses.back().pose.position.x, _path_search.poses.back().pose.position.y, _path_search.poses.back().pose.position.z);
+    dist_to_front = (p_prev - p_front).norm();
+    dist_to_back = (p_prev - p_back).norm();
+    temp_dist = 0.0;
+    if (_meters > 0) {
+        if (_meters < dist_to_back) {
+            for (int i = _prev_normal_pos_on_path; i < _path_search.poses.size() - 1; i++) {
+                Eigen::Vector3f p1 = Eigen::Vector3f(_path_search.poses.at(i).pose.position.x, _path_search.poses.at(i).pose.position.y, _path_search.poses.at(i).pose.position.z);
+                Eigen::Vector3f p2 = Eigen::Vector3f(_path_search.poses.at(i + 1).pose.position.x, _path_search.poses.at(i + 1).pose.position.y, _path_search.poses.at(i + 1).pose.position.z);
+                temp_dist = temp_dist + (p2 - p1).norm();
+                if (temp_dist < _meters) {
+                    pos_equals_dist = i;
+                } else {
+                    i = _path_search.poses.size();
+                }
+            }
+        } else {
+            pos_equals_dist = _path_search.poses.size() - 1;
+        }
+    } else {
+        if (_meters < dist_to_front) {
+            pos_equals_dist = 0;
+            for (int i = _prev_normal_pos_on_path; i >= 1; i--) {
+                Eigen::Vector3f p1 = Eigen::Vector3f(_path_search.poses.at(i).pose.position.x, _path_search.poses.at(i).pose.position.y, _path_search.poses.at(i).pose.position.z);
+                Eigen::Vector3f p0 = Eigen::Vector3f(_path_search.poses.at(i - 1).pose.position.x, _path_search.poses.at(i - 1).pose.position.y, _path_search.poses.at(i - 1).pose.position.z);
+                temp_dist = temp_dist + (p1 - p0).norm();
+                if (temp_dist < fabs(_meters / 2)) {
+                    pos_equals_dist = i;
+                } else {
+                    i = 0;
+                }
+            }
+        } else {
+            pos_equals_dist = 0;
+        }
+    }
+
+    return pos_equals_dist;
+}
+
+void Visualization::saveMissionData() {
+    Eigen::Vector3f current_point = Eigen::Vector3f(ual_pose_.pose.position.x, ual_pose_.pose.position.y, ual_pose_.pose.position.z);
+    int normal_pos_on_generated_path = calculateNormalDistance(current_point, 2.0, prev_normal_pos_on_generated_path_, generated_path_);
+    normal_dist_generated_path_.push_back(normal_distance_);
+    std::cout << normal_distance_ << " ";
+    prev_normal_pos_on_generated_path_ = normal_pos_on_generated_path;
+    // TODO: Change init_path to interp1_path
+    // int normal_pos_on_init_path = calculateNormalDistance(current_point, 2.0, prev_normal_pos_on_init_path_, init_path_); 
+    // normal_dist_init_path_.push_back(normal_distance_);
+    // std::cout << normal_distance_ << std::endl;
+    // prev_normal_pos_on_init_path_ = normal_pos_on_init_path;
 }
 
 void Visualization::pubMsgs() {
