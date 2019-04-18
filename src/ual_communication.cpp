@@ -49,7 +49,6 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     // Initialize path
     init_path_ = csvToPath("/" + init_path_name_ + ".csv");
     times_ = csvToVector("/times.csv");
-    max_vel_percentage_ = csvToVector("/velocities.csv");
     // Save data
     if (save_csv_) {
         std::string pkg_name_path = ros::package::getPath(pkg_name_);
@@ -188,17 +187,17 @@ void UALCommunication::runMission() {
     if (target_path_.poses.size() < 1) {
         if (save_csv_) saveDataForTesting();
         if (trajectory_) {
-            for (int i = 0; i < max_vel_percentage_.size(); i++) {
+            for (int i = 0; i < times_.size(); i++) {
                 std_msgs::Float32 v_percentage;
-                v_percentage.data = max_vel_percentage_[i];
-                prepare_trajectory.request.max_vel_percentage.push_back(v_percentage);
+                v_percentage.data = times_[i];
+                prepare_trajectory.request.times.push_back(v_percentage);
             }
             prepare_trajectory.request.init_path = init_path_;
             if (!use_class_) {
                 client_prepare_trajectory_.call(prepare_trajectory);
                 target_path_ = prepare_trajectory.response.generated_path;
             }
-            if (use_class_) target_path_ = follower_.prepareTrajectory(init_path_, max_vel_percentage_, times_);
+            if (use_class_) target_path_ = follower_.prepareTrajectory(init_path_, times_);
         } else {
             prepare_path.request.init_path = init_path_;
             prepare_path.request.generator_mode.data = 2;

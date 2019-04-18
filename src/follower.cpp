@@ -105,16 +105,15 @@ std::vector<double> Follower::timesToMaxVelPercentage(nav_msgs::Path _init_path,
     return out_vector;
 }
 
-nav_msgs::Path Follower::prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _max_vel_percentage, std::vector<double> _times) {
+nav_msgs::Path Follower::prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _times) {
     follower_mode_ = 1;
-    // ROS_WARN("init path: %zd")
     timesToMaxVelPercentage(_init_path, _times);
     upat_follower::Generator generator(vxy_, vz_up_, vz_dn_, debug_);
     generator.generateTrajectory(_init_path, timesToMaxVelPercentage(_init_path, _times));
     target_vel_path_ = generator.generated_path_vel_percentage_;
     target_vel_path_.header.frame_id = generator.out_path_.header.frame_id;
-    for (int i = 0; i < generator.generated_max_vel_percentage_.size(); i++) {
-        generated_max_vel_percentage_.push_back(generator.generated_max_vel_percentage_.at(i));
+    for (int i = 0; i < generator.generated_times_.size(); i++) {
+        generated_times_.push_back(generator.generated_times_.at(i));
     }
     max_vel_ = generator.max_velocity_;
     target_path_ = generator.out_path_;
@@ -128,11 +127,11 @@ bool Follower::preparePathCb(upat_follower::PreparePath::Request &_req_path, upa
 }
 
 bool Follower::prepareTrajectoryCb(upat_follower::PrepareTrajectory::Request &_req_trajectory, upat_follower::PrepareTrajectory::Response &_res_trajectory) {
-    std::vector<double> vec_max_vel_percentage;
-    for (int i = 0; i < _req_trajectory.max_vel_percentage.size(); i++) {
-        vec_max_vel_percentage.push_back(_req_trajectory.max_vel_percentage.at(i).data);
+    std::vector<double> vec_times;
+    for (int i = 0; i < _req_trajectory.times.size(); i++) {
+        vec_times.push_back(_req_trajectory.times.at(i).data);
     }
-    _res_trajectory.generated_path = prepareTrajectory(_req_trajectory.init_path, vec_max_vel_percentage, vec_max_vel_percentage);  // Fix this
+    _res_trajectory.generated_path = prepareTrajectory(_req_trajectory.init_path, vec_times);
 
     return true;
 }
@@ -194,8 +193,8 @@ int Follower::calculatePosLookAhead(int _pos_on_path) {
 }
 
 double Follower::changeLookAhead(int _pos_on_path) {
-    // ROS_WARN("la: %f, max: %f, %: %f", max_vel_ * generated_max_vel_percentage_[_pos_on_path], max_vel_, generated_max_vel_percentage_[_pos_on_path]);
-    return max_vel_ * generated_max_vel_percentage_[_pos_on_path];
+    // ROS_WARN("la: %f, max: %f, %: %f", max_vel_ * generated_times_[_pos_on_path], max_vel_, generated_times_[_pos_on_path]);
+    return max_vel_ * generated_times_[_pos_on_path];
 }
 
 geometry_msgs::TwistStamped Follower::calculateVelocity(Eigen::Vector3f _current_point, int _pos_look_ahead) {
