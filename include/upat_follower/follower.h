@@ -47,7 +47,7 @@ class Follower {
     void updatePose(const geometry_msgs::PoseStamped &_ual_pose);
     void updatePath(nav_msgs::Path _new_target_path);
     void updateTrajectory(nav_msgs::Path _new_target_path, nav_msgs::Path _new_target_vel_path);
-    nav_msgs::Path prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _max_vel_percentage);
+    nav_msgs::Path prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _max_vel_percentage, std::vector<double> _times);
     nav_msgs::Path preparePath(nav_msgs::Path _init_path, int _generator_mode = 0, double _look_ahead = 1.2, double _cruising_speed = 1.0);
 
    private:
@@ -65,6 +65,7 @@ class Follower {
     int calculatePosOnPath(Eigen::Vector3f _current_point, double _search_range, int _prev_normal_pos_on_path, nav_msgs::Path _path_search);
     void prepareDebug(double _search_range, int _normal_pos_on_path, int _pos_look_ahead);
     geometry_msgs::TwistStamped calculateVelocity(Eigen::Vector3f _current_p, int _pos_la);
+    std::vector<double> timesToMaxVelPercentage(nav_msgs::Path _init_path, std::vector<double> _times);
     // Node handlers
     ros::NodeHandle nh_, pnh_;
     // Subscribers

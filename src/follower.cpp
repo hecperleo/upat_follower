@@ -76,16 +76,41 @@ nav_msgs::Path Follower::preparePath(nav_msgs::Path _init_path, int _generator_m
     upat_follower::Generator generator(vxy_, vz_up_, vz_dn_, debug_);
     generator.generatePath(_init_path, _generator_mode);
     look_ahead_ = _look_ahead;
+    cruising_speed_ = _cruising_speed;
     if (_cruising_speed > smallest_max_velocity_) cruising_speed_ = smallest_max_velocity_;
     if (_cruising_speed <= 0) cruising_speed_ = 0.1;
     target_path_ = generator.out_path_;
     return generator.out_path_;
 }
 
-nav_msgs::Path Follower::prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _max_vel_percentage) {
+std::vector<double> Follower::timesToMaxVelPercentage(nav_msgs::Path _init_path, std::vector<double> _times) {
+    std::vector<double> out_vector;
+    for (int i = 0; i < _init_path.poses.size() - 1; i++) {
+        Eigen::Vector3f point_1, point_2;
+        point_1 = Eigen::Vector3f(_init_path.poses.at(i).pose.position.x, _init_path.poses.at(i).pose.position.y, _init_path.poses.at(i).pose.position.z);
+        point_2 = Eigen::Vector3f(_init_path.poses.at(i + 1).pose.position.x, _init_path.poses.at(i + 1).pose.position.y, _init_path.poses.at(i + 1).pose.position.z);
+        double temp_distance = (point_2 - point_1).norm();
+        double temp_time = _times.at(i + 1) - _times.at(i);
+        double temp_percentage = temp_distance / temp_time / smallest_max_velocity_;
+        if (temp_percentage > 1) temp_percentage = 1;
+        if (temp_percentage < 0) temp_percentage = 1; // TODO: substraction of times must be positive. Hot fix. Try to avoid this with another method. 
+        out_vector.push_back(temp_percentage);
+    }
+    std::cout << "                           [";
+    for (int i = 0; i < out_vector.size(); i++) {
+        std::cout << " " << out_vector.at(i);
+    }
+    std::cout << "]" << std::endl;
+
+    return out_vector;
+}
+
+nav_msgs::Path Follower::prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _max_vel_percentage, std::vector<double> _times) {
     follower_mode_ = 1;
+    // ROS_WARN("init path: %zd")
+    timesToMaxVelPercentage(_init_path, _times);
     upat_follower::Generator generator(vxy_, vz_up_, vz_dn_, debug_);
-    generator.generateTrajectory(_init_path, _max_vel_percentage);
+    generator.generateTrajectory(_init_path, timesToMaxVelPercentage(_init_path, _times));
     target_vel_path_ = generator.generated_path_vel_percentage_;
     target_vel_path_.header.frame_id = generator.out_path_.header.frame_id;
     for (int i = 0; i < generator.generated_max_vel_percentage_.size(); i++) {
@@ -107,7 +132,7 @@ bool Follower::prepareTrajectoryCb(upat_follower::PrepareTrajectory::Request &_r
     for (int i = 0; i < _req_trajectory.max_vel_percentage.size(); i++) {
         vec_max_vel_percentage.push_back(_req_trajectory.max_vel_percentage.at(i).data);
     }
-    _res_trajectory.generated_path = prepareTrajectory(_req_trajectory.init_path, vec_max_vel_percentage);
+    _res_trajectory.generated_path = prepareTrajectory(_req_trajectory.init_path, vec_max_vel_percentage, vec_max_vel_percentage);  // Fix this
 
     return true;
 }
