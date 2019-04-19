@@ -207,7 +207,7 @@ void UALCommunication::runMission() {
                 client_prepare_path_.call(prepare_path);
                 target_path_ = prepare_path.response.generated_path;
             }
-            if (use_class_) target_path_ = follower_.preparePath(init_path_, 2, 1.2, 1.0);
+            if (use_class_) target_path_ = follower_.preparePath(init_path_, 1, 1.2, 1.0);
         }
     }
 

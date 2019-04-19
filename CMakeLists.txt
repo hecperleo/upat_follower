@@ -194,6 +194,7 @@ add_dependencies(ual_communication_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${ca
 
 
 add_library(visualization src/visualization.cpp)
+target_link_libraries(visualization generator ${catkin_LIBRARIES})
 add_dependencies(visualization ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 add_executable(visualization_node src/visualization_node.cpp)

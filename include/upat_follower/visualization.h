@@ -22,8 +22,10 @@
 #include <uav_abstraction_layer/State.h>
 #include <uav_abstraction_layer/ual.h>
 #include <upat_follower/Visualize.h>
+#include <upat_follower/generator.h>
 #include <visualization_msgs/Marker.h>
 #include <Eigen/Eigen>
+#include <fstream>
 #include "geometry_msgs/PoseStamped.h"
 #include "nav_msgs/Path.h"
 
@@ -35,10 +37,10 @@ class Visualization {
     bool save_data = false;
     nav_msgs::Path current_path_;
     uav_abstraction_layer::State ual_state_;
+    std::ofstream csv_normal_distances_, csv_current_path_;
 
     void pubMsgs();
     void saveMissionData();
-
 
    private:
     // Callbacks
@@ -59,7 +61,7 @@ class Visualization {
     ros::ServiceServer server_visualize_;
     // Variables
     geometry_msgs::PoseStamped ual_pose_;
-    nav_msgs::Path generated_path_, init_path_;
+    nav_msgs::Path generated_path_, init_path_, interp1_path_;
     visualization_msgs::Marker uav_model_;
     std::vector<double> normal_dist_generated_path_, normal_dist_init_path_;
     double normal_distance_;

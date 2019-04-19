@@ -24,6 +24,12 @@ int main(int _argc, char **_argv) {
 
     Visualization visual;
     visual.save_data = true;
+    if (visual.save_data) {
+        std::string pkg_name_path = ros::package::getPath("upat_follower");
+        std::string folder_data_name = pkg_name_path + "/tests/data/plot/";
+        visual.csv_normal_distances_.open(folder_data_name + "normal_distance_generated_path.csv");
+        visual.csv_current_path_.open(folder_data_name + "current_path.csv");
+    }
 
     ros::Rate rate(50);
     while (ros::ok()) {
@@ -31,6 +37,17 @@ int main(int _argc, char **_argv) {
         if (visual.save_data == true && visual.current_path_.poses.size() > 0 && visual.ual_state_.state == 4) visual.saveMissionData();
         ros::spinOnce();
         rate.sleep();
+    }
+    
+    if (visual.save_data) {
+        for (int i = 0; visual.current_path_.poses.size(); i++) {
+            visual.csv_current_path_
+                << visual.current_path_.poses.at(i).pose.position.x << ", "
+                << visual.current_path_.poses.at(i).pose.position.y << ", "
+                << visual.current_path_.poses.at(i).pose.position.z << std::endl;
+        }
+        visual.csv_normal_distances_.close();
+        visual.csv_current_path_.close();
     }
 
     return 0;
