@@ -23,7 +23,7 @@ int main(int _argc, char **_argv) {
     ros::init(_argc, _argv, "visualization_node");
 
     Visualization visual;
-    visual.save_data = true;
+    visual.save_data = false;
     if (visual.save_data) {
         std::string pkg_name_path = ros::package::getPath("upat_follower");
         std::string folder_data_name = pkg_name_path + "/tests/data/plot/";
