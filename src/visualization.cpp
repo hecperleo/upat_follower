@@ -160,7 +160,6 @@ void Visualization::saveMissionData() {
     static bool flag_once = true;
     if (flag_once) {
         csv_normal_distances_ << std::fixed << std::setprecision(5);
-        csv_normal_distances_ << "Time,Cubic,Linear" << std::endl;
         upat_follower::Generator generator(2.0, 3.0, 1.0, 0);
         interp1_path_ = generator.generatePath(init_path_, 0);
         flag_once = false;

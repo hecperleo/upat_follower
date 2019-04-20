@@ -139,7 +139,14 @@ void UALCommunication::velocityCallback(const geometry_msgs::TwistStamped &_velo
 
 void UALCommunication::saveDataForTesting() {
     static upat_follower::Follower follower_save_data(uav_id_);
-    std::ofstream csv_cubic_loyal, csv_cubic, csv_interp1, csv_init;
+    std::ofstream csv_cubic_loyal, csv_cubic, csv_interp1, csv_init, csv_trajectory;
+    target_path_ = follower_save_data.prepareTrajectory(init_path_, times_);
+    csv_trajectory.open(folder_data_name_ + "/trajectory.csv");
+    csv_trajectory << std::fixed << std::setprecision(5);
+    for (int i = 0; i < target_path_.poses.size(); i++) {
+        csv_trajectory << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
+    }
+    csv_trajectory.close();
     csv_init.open(folder_data_name_ + "/init.csv");
     csv_init << std::fixed << std::setprecision(5);
     for (int i = 0; i < init_path_.poses.size(); i++) {
