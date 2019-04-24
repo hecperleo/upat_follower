@@ -30,11 +30,27 @@ int main(int _argc, char **_argv) {
         visual.csv_normal_distances_.open(folder_data_name + "normal_dist.csv");
         visual.csv_current_path_.open(folder_data_name + "current_path.csv");
     }
-
+    double start_time;
+    bool do_once = true;
     ros::Rate rate(50);
     while (ros::ok()) {
         visual.pubMsgs();
-        if (visual.save_data == true && visual.current_path_.poses.size() > 0 && visual.ual_state_.state == 4) visual.saveMissionData();
+        if (visual.current_path_.poses.size() > 0) {
+            if (visual.ual_state_.state == 4) {
+                if (visual.save_data == true) {
+                    visual.saveMissionData();
+                }
+                if (do_once) {
+                    start_time = ros::Time::now().toSec();
+                    do_once = false;
+                }
+            } else {
+                if(!do_once){
+                    ROS_INFO("Time: %f", ros::Time::now().toSec() - start_time);
+                    do_once = true;
+                }
+            }
+        }
         ros::spinOnce();
         rate.sleep();
     }
