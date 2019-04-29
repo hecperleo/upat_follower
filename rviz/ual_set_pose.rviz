@@ -6,7 +6,7 @@ Panels:
       Expanded:
         - /TF1/Frames1
       Splitter Ratio: 0.563169181
-    Tree Height: 746
+    Tree Height: 359
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -64,6 +64,8 @@ Visualization Manager:
           Value: false
         map:
           Value: true
+        uav_1:
+          Value: true
         uav_1_home:
           Value: true
       Marker Scale: 1
@@ -74,7 +76,8 @@ Visualization Manager:
       Tree:
         map:
           uav_1_home:
-            {}
+            uav_1:
+              {}
       Update Interval: 0
       Value: true
     - Class: rviz/MarkerArray
@@ -156,7 +159,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 32.5078087
+      Distance: 28.1949329
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
@@ -171,10 +174,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.525399148
+      Pitch: 0.515399158
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.39678097
+      Yaw: 5.16177702
     Saved: ~
 Window Geometry:
   Displays:

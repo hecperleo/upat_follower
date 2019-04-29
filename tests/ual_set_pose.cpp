@@ -103,7 +103,7 @@ int main(int _argc, char** _argv) {
         Eigen::Vector3f p1, p2;
         p1 = Eigen::Vector3f(ual.pose().pose.position.x, ual.pose().pose.position.y, ual.pose().pose.position.z);
         p2 = Eigen::Vector3f(p.pose.position.x, p.pose.position.y, p.pose.position.z);
-        while ((p2 - p1).norm() > 0.4) {
+        while ((p2 - p1).norm() > 0.5) {
             p1 = Eigen::Vector3f(ual.pose().pose.position.x, ual.pose().pose.position.y, ual.pose().pose.position.z);
             p2 = Eigen::Vector3f(p.pose.position.x, p.pose.position.y, p.pose.position.z);
             current_path.poses.push_back(ual.pose());
