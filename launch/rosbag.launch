@@ -1,0 +1,37 @@
+<launch>
+    <arg name="drone_id" default="1" />
+
+    <node pkg="rosbag" type="record" name="rosbag_record_logs" output="screen"
+	    args="/target_pose
+        /tf
+        /tf_static
+        /clock
+        /diagnostics
+        /drone_$(arg drone_id)/camera/image_raw
+        /drone_$(arg drone_id)/camera/camera_info
+        /drone_$(arg drone_id)/desired_trajectory
+        /drone_$(arg drone_id)/gimbal/cmd
+        /drone_$(arg drone_id)/gimbal/status
+        /drone_$(arg drone_id)/gimbal_lyapunov
+        /drone_$(arg drone_id)/mavros/altitude
+        /drone_$(arg drone_id)/mavros/battery
+        /drone_$(arg drone_id)/mavros/extended_state
+        /drone_$(arg drone_id)/mavros/global_position/global
+        /drone_$(arg drone_id)/mavros/global_position/raw/fix
+        /drone_$(arg drone_id)/mavros/imu/data
+        /drone_$(arg drone_id)/mavros/imu/data_raw
+        /drone_$(arg drone_id)/mavros/local_position/odom
+        /drone_$(arg drone_id)/mavros/local_position/pose
+        /drone_$(arg drone_id)/mavros/local_position/velocity_body
+        /drone_$(arg drone_id)/mavros/local_position/velocity_local
+        /drone_$(arg drone_id)/mavros/rangefinder/rangefinder
+        /drone_$(arg drone_id)/mavros/setpoint_position/local
+        /drone_$(arg drone_id)/mavros/setpoint_velocity/cmd_vel
+        /drone_$(arg drone_id)/mavros/state
+        /drone_$(arg drone_id)/ual/odom
+        /drone_$(arg drone_id)/ual/pose
+        /drone_$(arg drone_id)/ual/set_pose
+        /drone_$(arg drone_id)/ual/set_velocity
+        /drone_$(arg drone_id)/ual/state
+        /drone_$(arg drone_id)/ual/velocity"/>
+</launch>

@@ -1,6 +1,6 @@
 <launch>
 <node pkg="uav_path_manager" type="path_follower.py" name="FORCES_path_follower" output="screen">
-    <param name="trajectory_name" value="karting_constraint.mat"/>
+    <param name="trajectory_name" value="karting_cine.mat"/>
     <param name="time_horizon" value="300"/>
 </node>
 </launch>
