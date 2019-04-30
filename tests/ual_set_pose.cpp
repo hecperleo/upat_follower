@@ -109,7 +109,7 @@ int main(int _argc, char** _argv) {
             current_path.poses.push_back(ual.pose());
             visualize.request.current_path = current_path;
             client_visualize_.call(visualize);
-            sleep(0.5);
+            sleep(0.1);
         }
         std::cout << "Arrived!" << std::endl;
     }

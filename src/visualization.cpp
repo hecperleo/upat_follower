@@ -165,16 +165,19 @@ void Visualization::saveMissionData() {
         flag_once = false;
     }
     Eigen::Vector3f current_point = Eigen::Vector3f(ual_pose_.pose.position.x, ual_pose_.pose.position.y, ual_pose_.pose.position.z);
-    int normal_pos_on_generated_path = calculateNormalDistance(current_point, 2.0, prev_normal_pos_on_generated_path_, generated_path_);
-    normal_dist_generated_path_.push_back(normal_distance_);
-    prev_normal_pos_on_generated_path_ = normal_pos_on_generated_path;
-    csv_normal_distances_ << ros::Time::now().toSec() - begin << "," << normal_distance_ << ",";
-
-    int normal_pos_on_init_path = calculateNormalDistance(current_point, 2.0, prev_normal_pos_on_init_path_, interp1_path_);
-    normal_dist_init_path_.push_back(normal_distance_);
-    csv_normal_distances_ << normal_distance_ << std::endl;
-    prev_normal_pos_on_init_path_ = normal_pos_on_init_path;
-
+    csv_normal_distances_ << ros::Time::now().toSec() - begin << "," ;
+    if (generated_path_.poses.size() > 1) {
+        int normal_pos_on_generated_path = calculateNormalDistance(current_point, 2.0, prev_normal_pos_on_generated_path_, generated_path_);
+        normal_dist_generated_path_.push_back(normal_distance_);
+        prev_normal_pos_on_generated_path_ = normal_pos_on_generated_path;
+        csv_normal_distances_ << normal_distance_ << ",";
+    }
+    if (interp1_path_.poses.size() > 1) {
+        int normal_pos_on_init_path = calculateNormalDistance(current_point, 2.0, prev_normal_pos_on_init_path_, interp1_path_);
+        normal_dist_init_path_.push_back(normal_distance_);
+        csv_normal_distances_ << normal_distance_ << std::endl;
+        prev_normal_pos_on_init_path_ = normal_pos_on_init_path;
+    }
 }
 
 void Visualization::pubMsgs() {
