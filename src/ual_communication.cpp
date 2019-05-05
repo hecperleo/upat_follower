@@ -214,7 +214,7 @@ void UALCommunication::runMission() {
                 client_prepare_path_.call(prepare_path);
                 target_path_ = prepare_path.response.generated_path;
             }
-            if (use_class_) target_path_ = follower_.preparePath(init_path_, 2, 1.2, 1.0);
+            if (use_class_) target_path_ = follower_.preparePath(init_path_, 0, 0.4, 1.0);
         }
     }
 
@@ -225,7 +225,7 @@ void UALCommunication::runMission() {
     switch (ual_state_.state) {
         case 2:  // Landed armed
             if (!end_path_) {
-                take_off.request.height = 5.0;
+                take_off.request.height = 12.5;
                 take_off.request.blocking = true;
                 client_take_off_.call(take_off);
             }
