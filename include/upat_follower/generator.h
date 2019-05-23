@@ -22,7 +22,6 @@
 #include <mavros_msgs/ParamGet.h>
 #include <ros/ros.h>
 #include <upat_follower/GeneratePath.h>
-#include <upat_follower/GenerateTrajectory.h>
 #include <Eigen/Eigen>
 #include "ecl/geometry.hpp"
 #include "geometry_msgs/PoseStamped.h"
@@ -41,13 +40,11 @@ class Generator {
     nav_msgs::Path out_path_;
     nav_msgs::Path generated_path_vel_percentage_;
     std::vector<double> generated_times_;
-    nav_msgs::Path generateTrajectory(nav_msgs::Path _init_path, std::vector<double> _times);
     nav_msgs::Path generatePath(nav_msgs::Path _init_path, int _generator_mode = 0);
 
    private:
     // Callbacks
     bool generatePathCb(upat_follower::GeneratePath::Request &_req_path, upat_follower::GeneratePath::Response &_res_path);
-    bool generateTrajectoryCb(upat_follower::GenerateTrajectory::Request &_req_trajectory, upat_follower::GenerateTrajectory::Response &_res_trajectory);
     // Methods
     double checkSmallestMaxVel();
     double updateParam(const std::string &_param_id);
@@ -58,13 +55,12 @@ class Generator {
     nav_msgs::Path pathManagement(std::vector<double> _list_pose_x, std::vector<double> _list_pose_y, std::vector<double> _list_pose_z);
     nav_msgs::Path createPathCubicSpline(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size);
     nav_msgs::Path createPathInterp1(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size, int _new_path_size);
-    nav_msgs::Path createTrajectory(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size, std::vector<double> _times);
     // Node handlers
     ros::NodeHandle nh_;
     ros::NodeHandle pnh_;
     // Services
     ros::ServiceClient get_param_client_;
-    ros::ServiceServer server_generate_path_, server_generate_trajectory_;
+    ros::ServiceServer server_generate_path_;
     // Variables
     double smallest_max_vel_ = 1.0;
     int size_vec_percentage_ = 0;
@@ -72,7 +68,6 @@ class Generator {
     enum mode_t { mode_interp1_,
                   mode_cubic_spline_loyal_,
                   mode_cubic_spline_,
-                  mode_trajectory_,
                   mode_idle_ };
     mode_t mode_ = mode_idle_;
     // Params

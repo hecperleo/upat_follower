@@ -12,17 +12,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <!-- Arguments -->
     <arg name="ns_prefix" default="uav_"/>
     <arg name="robot_model" default="iris"/>
-    <arg name="pub_rate" default="50.0"/>
+    <arg name="pub_rate" default="100.0"/>
     <arg name="debug" default="false"/>
     <arg name="save_data" default="false"/>
-    <arg name="trajectory" default="true"/>
     <arg name="reach_tolerance" default="0.1"/>
     <arg name="path" default="cubic"/>
     <arg name="pkg_name" default="upat_follower"/>
     <arg name="use_class" default="true" unless="$(arg debug)"/>
     <arg name="use_class" default="false" if="$(arg debug)"/>
-    <arg name="multi" default="true" unless="$(arg debug)"/>
-    <arg name="multi" default="false" if="$(arg debug)"/>
+    <arg name="multi" default="false"/>
 
 
 
@@ -43,7 +41,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             <node pkg="upat_follower" type="ual_communication_node" name="ual_communication" output="screen" required="true">
                 <param name="uav_id" value="1"/>
                 <param name="save_csv" value="$(arg save_data)"/>
-                <param name="trajectory" value="$(arg trajectory)"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
                 <param name="path" value="$(arg path)"/>
                 <param name="reach_tolerance" value="$(arg reach_tolerance)"/>
@@ -65,7 +62,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         <group if="$(arg multi)" ns="$(arg ns_prefix)2">
             <node pkg="upat_follower" type="ual_communication_node" name="ual_communication" required="true" output="screen">
                 <param name="uav_id" value="2"/>
-                <param name="trajectory" value="$(arg trajectory)"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
                 <param name="path" value="$(arg path)"/>
                 <param name="reach_tolerance" value="$(arg reach_tolerance)"/>

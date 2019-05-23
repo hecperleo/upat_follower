@@ -29,7 +29,6 @@ Generator::Generator() : nh_(), pnh_("~") {
     pnh_.param<double>("vz_dn", vz_dn, 1.0);
     // Services
     server_generate_path_ = nh_.advertiseService("/upat_follower/generator/generate_path", &Generator::generatePathCb, this);
-    server_generate_trajectory_ = nh_.advertiseService("/upat_follower/generator/generate_trajectory", &Generator::generateTrajectoryCb, this);
     // Client to get parameters from mavros and required default values
     get_param_client_ = nh_.serviceClient<mavros_msgs::ParamGet>("mavros/param/get");
     mavros_params_["MPC_XY_VEL_MAX"] = vxy;
@@ -162,64 +161,9 @@ nav_msgs::Path Generator::generatePath(nav_msgs::Path _init_path, int _generator
     return out_path_;
 }
 
-nav_msgs::Path Generator::generateTrajectory(nav_msgs::Path _init_path, std::vector<double> _times) {
-    std::vector<double> list_pose_x, list_pose_y, list_pose_z;
-    for (int i = 0; i < _init_path.poses.size(); i++) {
-        list_pose_x.push_back(_init_path.poses.at(i).pose.position.x);
-        list_pose_y.push_back(_init_path.poses.at(i).pose.position.y);
-        list_pose_z.push_back(_init_path.poses.at(i).pose.position.z);
-    }
-    list_pose_x.push_back(list_pose_x.back());
-    list_pose_y.push_back(list_pose_y.back());
-    list_pose_z.push_back(list_pose_z.back());
-    if (_init_path.poses.size() - 1 == _times.size()) {
-        mode_ = mode_trajectory_;
-        size_vec_percentage_ = _times.size();
-        out_path_ = createTrajectory(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), _times);
-        mode_ = mode_interp1_;
-        interp1_final_size_ = out_path_.poses.size();
-        generated_path_vel_percentage_ = pathManagement(list_pose_x, list_pose_y, list_pose_z);
-        for (int i = 0; i < _times.size(); i++) {
-            int j = 0;
-            for (j = 0; j < generated_path_vel_percentage_.poses.size() / (_times.size() + 1); j++) {
-                generated_times_.push_back(_times[i]);
-            }
-        }
-        // TODO: Why do we still need this?
-        while (out_path_.poses.size() > generated_times_.size()) {
-            generated_times_.push_back(_times.back());
-        }
-        ROS_WARN_COND(debug_, "Generator -> Path sizes -> spline: %zd, maxVel: %zd, init: %zd", out_path_.poses.size(), generated_times_.size(), _init_path.poses.size());
-        max_velocity_ = abs(smallest_max_vel_);
-    } else {
-        ROS_ERROR("Time intervals size (%zd) should has one less element than init path size (%zd)", _times.size(), _init_path.poses.size());
-    }
-    out_path_.header.frame_id = _init_path.header.frame_id;
-
-    return out_path_;
-}
-
 bool Generator::generatePathCb(upat_follower::GeneratePath::Request &_req_path,
                                upat_follower::GeneratePath::Response &_res_path) {
     _res_path.generated_path = generatePath(_req_path.init_path, _req_path.generator_mode.data);
-
-    return true;
-}
-
-bool Generator::generateTrajectoryCb(upat_follower::GenerateTrajectory::Request &_req_trajectory,
-                                     upat_follower::GenerateTrajectory::Response &_res_trajectory) {
-    std::vector<double> vec_times;
-    for (int i = 0; i < _req_trajectory.times.size(); i++) {
-        vec_times.push_back(_req_trajectory.times.at(i).data);
-    }
-    _res_trajectory.generated_path = generateTrajectory(_req_trajectory.init_path, vec_times);
-    _res_trajectory.generated_path_vel_percentage = generated_path_vel_percentage_;
-    _res_trajectory.max_velocity.data = max_velocity_;
-    std_msgs::Float32 temp_generated_times;
-    for (int i = 0; i < generated_times_.size(); i++) {
-        temp_generated_times.data = generated_times_.at(i);
-        _res_trajectory.generated_times.push_back(temp_generated_times);
-    }
 
     return true;
 }
@@ -322,70 +266,6 @@ nav_msgs::Path Generator::createPathCubicSpline(std::vector<double> _list_x, std
         }
         // Construct path
         cubic_spline_path = constructPath(spline_list_x, spline_list_y, spline_list_z);
-    }
-
-    return cubic_spline_path;
-}
-
-nav_msgs::Path Generator::createTrajectory(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size, std::vector<double> _times) {
-    nav_msgs::Path cubic_spline_path;
-    if (_path_size > 1) {
-        // Calculate total distance
-        // TODO: Use or not use total_distance (?)
-        int total_distance = 0;
-        for (int i = 0; i < _path_size - 1; i++) {
-            Eigen::Vector3f point_1, point_2;
-            point_1 = Eigen::Vector3f(_list_x[i], _list_y[i], _list_z[i]);
-            point_2 = Eigen::Vector3f(_list_x[i + 1], _list_y[i + 1], _list_z[i + 1]);
-            total_distance = total_distance + (point_2 - point_1).norm();
-        }
-        // Calculate number of joints
-        int num_joints = _path_size;
-        bool try_fit_spline = true;
-        smallest_max_vel_ = checkSmallestMaxVel();
-        while (try_fit_spline) {
-            // Lineal interpolation
-            std::vector<double> interp1_list_x, interp1_list_y, interp1_list_z;
-            interp1_list_x = interpWaypointList(_list_x, num_joints);
-            interp1_list_y = interpWaypointList(_list_y, num_joints);
-            interp1_list_z = interpWaypointList(_list_z, num_joints);
-            // Prepare sets for each cubic spline
-            ecl::Array<double> t_set(interp1_list_x.size()), x_set(interp1_list_x.size()), y_set(interp1_list_x.size()), z_set(interp1_list_x.size());
-            for (int i = 0; i < interp1_list_x.size(); i++) {
-                x_set[i] = interp1_list_x[i];
-                y_set[i] = interp1_list_y[i];
-                z_set[i] = interp1_list_z[i];
-                t_set[i] = (double)i;
-            }
-            // Create a cubic spline per axis
-            ecl::CubicSpline spline_x = ecl::CubicSpline::Natural(t_set, x_set);
-            ecl::CubicSpline spline_y = ecl::CubicSpline::Natural(t_set, y_set);
-            ecl::CubicSpline spline_z = ecl::CubicSpline::Natural(t_set, z_set);
-            // Change format: ecl::CubicSpline -> std::vector
-            double sp_pts = total_distance;
-            int _amount_of_points = (interp1_list_x.size() - 1) * sp_pts;
-            std::vector<double> spline_list_x(_amount_of_points), spline_list_y(_amount_of_points), spline_list_z(_amount_of_points);
-            std::vector<double> vec_check_vel;
-            for (int i = 0; i < _amount_of_points; i++) {
-                spline_list_x[i] = spline_x(i / sp_pts);
-                spline_list_y[i] = spline_y(i / sp_pts);
-                spline_list_z[i] = spline_z(i / sp_pts);
-                vec_check_vel.push_back(spline_x.derivative(i / sp_pts));
-                vec_check_vel.push_back(spline_y.derivative(i / sp_pts));
-                vec_check_vel.push_back(spline_z.derivative(i / sp_pts));
-            }
-            // Check max and min velocity
-            double spline_max_vel = *std::max_element(vec_check_vel.begin(), vec_check_vel.end());
-            double spline_min_vel = *std::min_element(vec_check_vel.begin(), vec_check_vel.end());
-            std::div_t temp_div = std::div(spline_list_x.size(), size_vec_percentage_);
-            if (spline_max_vel > smallest_max_vel_ || fabs(spline_min_vel) > smallest_max_vel_ || temp_div.rem != 0) {
-                num_joints++;
-            } else {
-                ROS_WARN_COND(debug_, "Generator -> Spline done in %d iterations! Spline max velocities: %f and %f", num_joints - _path_size, spline_max_vel, spline_min_vel);
-                cubic_spline_path = constructPath(spline_list_x, spline_list_y, spline_list_z);
-                try_fit_spline = false;
-            }
-        }
     }
 
     return cubic_spline_path;

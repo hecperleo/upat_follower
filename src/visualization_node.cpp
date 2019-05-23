@@ -21,9 +21,11 @@
 
 int main(int _argc, char **_argv) {
     ros::init(_argc, _argv, "visualization_node");
+    int pub_rate_;
+    ros::param::param<int>("~pub_rate", pub_rate_, 30);
 
     Visualization visual;
-    visual.save_data = true;
+    visual.save_data = false;
     if (visual.save_data) {
         std::string pkg_name_path = ros::package::getPath("upat_follower");
         std::string folder_data_name = pkg_name_path + "/tests/data/plot/";
@@ -32,7 +34,7 @@ int main(int _argc, char **_argv) {
     }
     double start_time;
     bool do_once = true;
-    ros::Rate rate(50);
+    ros::Rate rate(pub_rate_);
     while (ros::ok()) {
         visual.pubMsgs();
         if (visual.current_path_.poses.size() > 0) {

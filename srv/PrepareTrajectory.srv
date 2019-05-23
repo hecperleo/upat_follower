@@ -1,4 +1,0 @@
-nav_msgs/Path init_path
-std_msgs/Float32[] times
----
-nav_msgs/Path generated_path

@@ -23,9 +23,7 @@
 #include <ros/ros.h>
 #include <uav_abstraction_layer/ual.h>
 #include <upat_follower/PreparePath.h>
-#include <upat_follower/PrepareTrajectory.h>
 #include <upat_follower/UpdatePath.h>
-#include <upat_follower/UpdateTrajectory.h>
 #include <upat_follower/generator.h>
 #include <Eigen/Eigen>
 #include "geometry_msgs/PointStamped.h"
@@ -46,17 +44,13 @@ class Follower {
     geometry_msgs::TwistStamped getVelocity();
     void updatePose(const geometry_msgs::PoseStamped &_ual_pose);
     void updatePath(nav_msgs::Path _new_target_path);
-    void updateTrajectory(nav_msgs::Path _new_target_path, nav_msgs::Path _new_target_vel_path);
-    nav_msgs::Path prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _times);
     nav_msgs::Path preparePath(nav_msgs::Path _init_path, int _generator_mode = 0, double _look_ahead = 1.2, double _cruising_speed = 1.0);
 
    private:
     // Callbacks
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
     bool preparePathCb(upat_follower::PreparePath::Request &_req_path, upat_follower::PreparePath::Response &_res_path);
-    bool prepareTrajectoryCb(upat_follower::PrepareTrajectory::Request &_req_trajectory, upat_follower::PrepareTrajectory::Response &_res_trajectory);
     bool updatePathCb(upat_follower::UpdatePath::Request &_req_path, upat_follower::UpdatePath::Response &_res_path);
-    bool updateTrajectoryCb(upat_follower::UpdateTrajectory::Request &_req_trajectory, upat_follower::UpdateTrajectory::Response &_res_trajectory);
     // Methods
     void capMaxVelocities();
     double changeLookAhead(int _pos_on_path);
@@ -73,7 +67,7 @@ class Follower {
     // Publishers
     ros::Publisher pub_output_velocity_, pub_point_look_ahead_, pub_point_normal_, pub_point_search_normal_begin_, pub_point_search_normal_end_;
     // Services
-    ros::ServiceServer server_prepare_path_, server_prepare_trajectory_;
+    ros::ServiceServer server_prepare_path_;
     // Variables
     double vxy_ = 1.0;
     double vz_up_ = 1.0;

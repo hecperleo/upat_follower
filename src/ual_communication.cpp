@@ -25,7 +25,6 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     // Parameters
     pnh_.getParam("uav_id", uav_id_);
     pnh_.getParam("save_csv", save_csv_);
-    pnh_.getParam("trajectory", trajectory_);
     pnh_.getParam("path", init_path_name_);
     pnh_.getParam("pkg_name", pkg_name_);
     pnh_.getParam("reach_tolerance", reach_tolerance_);
@@ -41,7 +40,6 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     client_take_off_ = nh_.serviceClient<uav_abstraction_layer::TakeOff>("/uav_" + std::to_string(uav_id_) + "/ual/take_off");
     client_land_ = nh_.serviceClient<uav_abstraction_layer::Land>("/uav_" + std::to_string(uav_id_) + "/ual/land");
     client_prepare_path_ = nh_.serviceClient<upat_follower::PreparePath>("/upat_follower/follower/uav_" + std::to_string(uav_id_) + "/prepare_path");
-    client_prepare_trajectory_ = nh_.serviceClient<upat_follower::PrepareTrajectory>("/upat_follower/follower/uav_" + std::to_string(uav_id_) + "/prepare_trajectory");
     client_visualize_ = nh_.serviceClient<upat_follower::Visualize>("/upat_follower/visualization/uav_" + std::to_string(uav_id_) + "/visualize");
     // Flags
     on_path_ = false;
@@ -139,14 +137,7 @@ void UALCommunication::velocityCallback(const geometry_msgs::TwistStamped &_velo
 
 void UALCommunication::saveDataForTesting() {
     static upat_follower::Follower follower_save_data(uav_id_);
-    std::ofstream csv_cubic_loyal, csv_cubic, csv_interp1, csv_init, csv_trajectory;
-    target_path_ = follower_save_data.prepareTrajectory(init_path_, times_);
-    csv_trajectory.open(folder_data_name_ + "/trajectory.csv");
-    csv_trajectory << std::fixed << std::setprecision(5);
-    for (int i = 0; i < target_path_.poses.size(); i++) {
-        csv_trajectory << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
-    }
-    csv_trajectory.close();
+    std::ofstream csv_cubic_loyal, csv_cubic, csv_interp1, csv_init;
     csv_init.open(folder_data_name_ + "/init.csv");
     csv_init << std::fixed << std::setprecision(5);
     for (int i = 0; i < init_path_.poses.size(); i++) {
@@ -190,32 +181,17 @@ void UALCommunication::runMission() {
     uav_abstraction_layer::TakeOff take_off;
     uav_abstraction_layer::Land land;
     upat_follower::PreparePath prepare_path;
-    upat_follower::PrepareTrajectory prepare_trajectory;
     if (target_path_.poses.size() < 1) {
         if (save_csv_) saveDataForTesting();
-        if (trajectory_) {
-            for (int i = 0; i < times_.size(); i++) {
-                std_msgs::Float32 v_percentage;
-                v_percentage.data = times_[i];
-                prepare_trajectory.request.times.push_back(v_percentage);
-            }
-            prepare_trajectory.request.init_path = init_path_;
-            if (!use_class_) {
-                client_prepare_trajectory_.call(prepare_trajectory);
-                target_path_ = prepare_trajectory.response.generated_path;
-            }
-            if (use_class_) target_path_ = follower_.prepareTrajectory(init_path_, times_);
-        } else {
-            prepare_path.request.init_path = init_path_;
-            prepare_path.request.generator_mode.data = 2;
-            prepare_path.request.look_ahead.data = 1.2;
-            prepare_path.request.cruising_speed.data = 1.0;
-            if (!use_class_) {
-                client_prepare_path_.call(prepare_path);
-                target_path_ = prepare_path.response.generated_path;
-            }
-            if (use_class_) target_path_ = follower_.preparePath(init_path_, 0, 0.4, 1.0);
+        prepare_path.request.init_path = init_path_;
+        prepare_path.request.generator_mode.data = 2;
+        prepare_path.request.look_ahead.data = 1.2;
+        prepare_path.request.cruising_speed.data = 1.0;
+        if (!use_class_) {
+            client_prepare_path_.call(prepare_path);
+            target_path_ = prepare_path.response.generated_path;
         }
+        if (use_class_) target_path_ = follower_.preparePath(init_path_, 0, 0.4, 1.0);
     }
 
     Eigen::Vector3f current_p, path0_p, path_end_p;

@@ -32,7 +32,6 @@ Follower::Follower() : nh_(), pnh_("~") {
     pub_output_velocity_ = nh_.advertise<geometry_msgs::TwistStamped>("/upat_follower/follower/uav_" + std::to_string(uav_id_) + "/output_vel", 1000);
     // Services
     server_prepare_path_ = nh_.advertiseService("/upat_follower/follower/uav_" + std::to_string(uav_id_) + "/prepare_path", &Follower::preparePathCb, this);
-    server_prepare_trajectory_ = nh_.advertiseService("/upat_follower/follower/uav_" + std::to_string(uav_id_) + "/prepare_trajectory", &Follower::prepareTrajectoryCb, this);
     // Debug follower
     if (debug_) {
         pub_point_look_ahead_ = nh_.advertise<geometry_msgs::PointStamped>("/upat_follower/follower/uav_" + std::to_string(uav_id_) + "/debug_point_look_ahead", 1000);
@@ -56,18 +55,8 @@ void Follower::updatePath(nav_msgs::Path _new_target_path) {
     target_path_ = _new_target_path;
 }
 
-void Follower::updateTrajectory(nav_msgs::Path _new_target_path, nav_msgs::Path _new_target_vel_path) {
-    target_path_ = _new_target_path;
-    target_vel_path_ = _new_target_vel_path;
-}
-
 bool Follower::updatePathCb(upat_follower::UpdatePath::Request &_req_path, upat_follower::UpdatePath::Response &_res_path) {
     updatePath(_req_path.new_target_path);
-    return true;
-}
-
-bool Follower::updateTrajectoryCb(upat_follower::UpdateTrajectory::Request &_req_trajectory, upat_follower::UpdateTrajectory::Response &_res_trajectory) {
-    updateTrajectory(_req_trajectory.new_target_path, _req_trajectory.new_target_vel_path);
     return true;
 }
 
@@ -100,33 +89,8 @@ std::vector<double> Follower::timesToMaxVelPercentage(nav_msgs::Path _init_path,
     return out_vector;
 }
 
-nav_msgs::Path Follower::prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _times) {
-    follower_mode_ = 1;
-    timesToMaxVelPercentage(_init_path, _times);
-    upat_follower::Generator generator(vxy_, vz_up_, vz_dn_, debug_);
-    generator.generateTrajectory(_init_path, timesToMaxVelPercentage(_init_path, _times));
-    target_vel_path_ = generator.generated_path_vel_percentage_;
-    target_vel_path_.header.frame_id = generator.out_path_.header.frame_id;
-    for (int i = 0; i < generator.generated_times_.size(); i++) {
-        generated_times_.push_back(generator.generated_times_.at(i));
-    }
-    max_vel_ = generator.max_velocity_;
-    target_path_ = generator.out_path_;
-    return generator.out_path_;
-}
-
 bool Follower::preparePathCb(upat_follower::PreparePath::Request &_req_path, upat_follower::PreparePath::Response &_res_path) {
     _res_path.generated_path = preparePath(_req_path.init_path, _req_path.generator_mode.data, _req_path.look_ahead.data, _req_path.cruising_speed.data);
-
-    return true;
-}
-
-bool Follower::prepareTrajectoryCb(upat_follower::PrepareTrajectory::Request &_req_trajectory, upat_follower::PrepareTrajectory::Response &_res_trajectory) {
-    std::vector<double> vec_times;
-    for (int i = 0; i < _req_trajectory.times.size(); i++) {
-        vec_times.push_back(_req_trajectory.times.at(i).data);
-    }
-    _res_trajectory.generated_path = prepareTrajectory(_req_trajectory.init_path, vec_times);
 
     return true;
 }
