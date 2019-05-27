@@ -1,9 +1,9 @@
 # UAV Path Follower
 
-This repository contains all the code for running the **upat_follower** package on ROS. It is composed of two cpp-classes.
+This repository contains all the code for running this package on ROS. It is composed of two cpp-classes.
 
-- [Generator](https://github.com/hecperleo/upat_follower/blob/master/src/generator.cpp) is responsible for receiving an initial path and generating an improved final path. Mainly improves the path using linear or cubic interpolations. 
-- [Follower](https://github.com/hecperleo/upat_follower/blob/master/src/follower.cpp) is responsible for receiving a path and generating a velocity to follow it.
+- [Generator](https://github.com/hecperleo/upat_follower/blob/robots2019/src/generator.cpp) is responsible for receiving an initial path and generating an improved final path. Mainly improves the path using linear or cubic interpolations. 
+- [Follower](https://github.com/hecperleo/upat_follower/blob/robots2019/src/follower.cpp) is responsible for receiving a path and generating a velocity to follow it.
 
 ## Installation Instructions - Ubuntu 16.04 with ROS Kinetic
 
@@ -39,14 +39,14 @@ Running this command in a terminal is enough to launch the simulation.
 $ roslaunch upat_follower mision_ual.launch
 ```
 
-[mision_ual](https://github.com/hecperleo/upat_follower/blob/master/launch/mision_ual.launch) creates a node per UAV that communicates with UAL. This launch is an example of the whole project generating and following a path. 
-By default, you will see two UAV, if you want to see just one UAV you can turn off the flag `multi`. If you want to use ROS interface instead of cpp-classes, you can turn off the flag `use_class` and see how this project works using ROS services and topics.
+[mision_ual](https://github.com/hecperleo/upat_follower/blob/robots2019/launch/mision_ual.launch) creates a node per UAV that communicates with UAL. This launch is an example of the whole project generating and following a path. 
+By default, you will see one UAV, if you want to see two UAV you can turn on the flag `multi`. If you want to use ROS interface instead of cpp-classes, you can turn off the flag `use_class` and see how this project works using ROS services and topics.
 
 ```
-$ roslaunch upat_follower mision_ual.launch multi:=false use_class:=false
+$ roslaunch upat_follower mision_ual.launch multi:=true use_class:=false
 ```
 
-> **Note**: Check [ual_communication](https://github.com/hecperleo/upat_follower/blob/master/src/ual_communication.cpp) to see an example.
+> **Note**: Check [ual_communication](https://github.com/hecperleo/upat_follower/blob/robots2019/src/ual_communication.cpp) to see an example.
 
 ## C++ class interface
 
@@ -77,14 +77,17 @@ Generator:
 
 Each service will interact with the corresponding cpp method. Create a client of these services with each corresponding requests and you will be able to interact with it and receive exactly the same response as using the cpp class interface.
 
-## Follower and Generator Modes
+## Generator Modes
 
 Generator:
 
 - `Mode 0`: Generate a path using linear interpolations
+
+![Alt text](tests/data/plot/overleaf/mode0.png?raw=true)
 - `Mode 1`: Generate a path using cubic spline interpolations (Step between mode `0` and mode `2`)
+
+![Alt text](tests/data/plot/overleaf/mode1.png?raw=true)
 - `Mode 2`: Generate a path using cubic spline interpolations
 
-Follower:
+![Alt text](tests/data/plot/overleaf/mode2.png?raw=true)
 
-- `Mode 0`: Follow a path
