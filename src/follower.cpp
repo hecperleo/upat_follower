@@ -76,20 +76,39 @@ nav_msgs::Path Follower::preparePath(nav_msgs::Path _init_path, int _generator_m
     upat_follower::Generator generator(vxy_, vz_up_, vz_dn_, debug_);
     generator.generatePath(_init_path, _generator_mode);
     look_ahead_ = _look_ahead;
+    cruising_speed_ = _cruising_speed;
     if (_cruising_speed > smallest_max_velocity_) cruising_speed_ = smallest_max_velocity_;
     if (_cruising_speed <= 0) cruising_speed_ = 0.1;
     target_path_ = generator.out_path_;
     return generator.out_path_;
 }
 
-nav_msgs::Path Follower::prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _max_vel_percentage) {
+std::vector<double> Follower::timesToMaxVelPercentage(nav_msgs::Path _init_path, std::vector<double> _times) {
+    std::vector<double> out_vector;
+    for (int i = 0; i < _init_path.poses.size() - 1; i++) {
+        Eigen::Vector3f point_1, point_2;
+        point_1 = Eigen::Vector3f(_init_path.poses.at(i).pose.position.x, _init_path.poses.at(i).pose.position.y, _init_path.poses.at(i).pose.position.z);
+        point_2 = Eigen::Vector3f(_init_path.poses.at(i + 1).pose.position.x, _init_path.poses.at(i + 1).pose.position.y, _init_path.poses.at(i + 1).pose.position.z);
+        double temp_distance = (point_2 - point_1).norm();
+        double temp_time = _times.at(i + 1) - _times.at(i);
+        double temp_percentage = temp_distance / temp_time / smallest_max_velocity_;
+        if (temp_percentage > 1) temp_percentage = 1;
+        if (temp_percentage < 0) temp_percentage = 1;  // TODO: substraction of times must be positive. Hot fix. Try to avoid this with another method.
+        out_vector.push_back(temp_percentage);
+    }
+
+    return out_vector;
+}
+
+nav_msgs::Path Follower::prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _times) {
     follower_mode_ = 1;
+    timesToMaxVelPercentage(_init_path, _times);
     upat_follower::Generator generator(vxy_, vz_up_, vz_dn_, debug_);
-    generator.generateTrajectory(_init_path, _max_vel_percentage);
+    generator.generateTrajectory(_init_path, timesToMaxVelPercentage(_init_path, _times));
     target_vel_path_ = generator.generated_path_vel_percentage_;
     target_vel_path_.header.frame_id = generator.out_path_.header.frame_id;
-    for (int i = 0; i < generator.generated_max_vel_percentage_.size(); i++) {
-        generated_max_vel_percentage_.push_back(generator.generated_max_vel_percentage_.at(i));
+    for (int i = 0; i < generator.generated_times_.size(); i++) {
+        generated_times_.push_back(generator.generated_times_.at(i));
     }
     max_vel_ = generator.max_velocity_;
     target_path_ = generator.out_path_;
@@ -103,11 +122,11 @@ bool Follower::preparePathCb(upat_follower::PreparePath::Request &_req_path, upa
 }
 
 bool Follower::prepareTrajectoryCb(upat_follower::PrepareTrajectory::Request &_req_trajectory, upat_follower::PrepareTrajectory::Response &_res_trajectory) {
-    std::vector<double> vec_max_vel_percentage;
-    for (int i = 0; i < _req_trajectory.max_vel_percentage.size(); i++) {
-        vec_max_vel_percentage.push_back(_req_trajectory.max_vel_percentage.at(i).data);
+    std::vector<double> vec_times;
+    for (int i = 0; i < _req_trajectory.times.size(); i++) {
+        vec_times.push_back(_req_trajectory.times.at(i).data);
     }
-    _res_trajectory.generated_path = prepareTrajectory(_req_trajectory.init_path, vec_max_vel_percentage);
+    _res_trajectory.generated_path = prepareTrajectory(_req_trajectory.init_path, vec_times);
 
     return true;
 }
@@ -141,7 +160,7 @@ int Follower::calculatePosOnPath(Eigen::Vector3f _current_point, double _search_
     int end_search_pos_on_path = calculateDistanceOnPath(_prev_normal_pos_on_path, _search_range);
     for (int i = start_search_pos_on_path; i < end_search_pos_on_path; i++) {
         Eigen::Vector3f target_path_point;
-        target_path_point = Eigen::Vector3f(target_path_.poses.at(i).pose.position.x, target_path_.poses.at(i).pose.position.y, target_path_.poses.at(i).pose.position.z);
+        target_path_point = Eigen::Vector3f(_path_search.poses.at(i).pose.position.x, _path_search.poses.at(i).pose.position.y, _path_search.poses.at(i).pose.position.z);
         vec_distances.push_back((target_path_point - _current_point).norm());
     }
     auto smallest_distance = std::min_element(vec_distances.begin(), vec_distances.end());
@@ -169,11 +188,11 @@ int Follower::calculatePosLookAhead(int _pos_on_path) {
 }
 
 double Follower::changeLookAhead(int _pos_on_path) {
-    // ROS_WARN("la: %f, max: %f, %: %f", max_vel_ * generated_max_vel_percentage_[_pos_on_path], max_vel_, generated_max_vel_percentage_[_pos_on_path]);
-    return max_vel_ * generated_max_vel_percentage_[_pos_on_path];
+    // ROS_WARN("la: %f, max: %f, %: %f", max_vel_ * generated_times_[_pos_on_path], max_vel_, generated_times_[_pos_on_path]);
+    return max_vel_ * generated_times_[_pos_on_path];
 }
 
-geometry_msgs::TwistStamped Follower::calculateVelocity(Eigen::Vector3f _current_point, int _pos_look_ahead) {
+geometry_msgs::TwistStamped Follower::calculateVelocity(Eigen::Vector3f _current_point, int _pos_look_ahead, int _pos_on_path) {
     geometry_msgs::TwistStamped out_vel;
     Eigen::Vector3f target_p, unit_vec, hypo_vec;
     target_p = Eigen::Vector3f(target_path_.poses.at(_pos_look_ahead).pose.position.x, target_path_.poses.at(_pos_look_ahead).pose.position.y, target_path_.poses.at(_pos_look_ahead).pose.position.z);
@@ -187,15 +206,15 @@ geometry_msgs::TwistStamped Follower::calculateVelocity(Eigen::Vector3f _current
             out_vel.twist.linear.z = unit_vec(2) * cruising_speed_;
             break;
         case 1:
-            hypo_vec = (target_p - _current_point);
-            out_vel.twist.linear.x = hypo_vec(0);
-            out_vel.twist.linear.y = hypo_vec(1);
-            out_vel.twist.linear.z = hypo_vec(2);
-            // unit_vec = (target_p - _current_point) / distance;
-            // unit_vec = unit_vec / unit_vec.norm();
-            // out_vel.twist.linear.x = unit_vec(0) * cruising_speed_;
-            // out_vel.twist.linear.y = unit_vec(1) * cruising_speed_;
-            // out_vel.twist.linear.z = unit_vec(2) * cruising_speed_;
+            // hypo_vec = (target_p - _current_point);
+            // out_vel.twist.linear.x = hypo_vec(0);
+            // out_vel.twist.linear.y = hypo_vec(1);
+            // out_vel.twist.linear.z = hypo_vec(2);
+            unit_vec = (target_p - _current_point) / distance;
+            unit_vec = unit_vec / unit_vec.norm();
+            out_vel.twist.linear.x = unit_vec(0) * max_vel_ * generated_times_[_pos_on_path];
+            out_vel.twist.linear.y = unit_vec(1) * max_vel_ * generated_times_[_pos_on_path];
+            out_vel.twist.linear.z = unit_vec(2) * max_vel_ * generated_times_[_pos_on_path];
             break;
     }
     out_vel.header.frame_id = target_path_.header.frame_id;
@@ -249,14 +268,14 @@ int Follower::calculateDistanceOnPath(int _prev_normal_pos_on_path, double _mete
     return pos_equals_dist;
 }
 
-void Follower::prepareDebug(double _search_range, int _normal_pos_on_path, int _pos_look_ahead) {
+void Follower::prepareDebug(double _search_range, int _normal_pos_on_path, int _pos_look_ahead, int _prev_normal) {
     point_normal_.header.frame_id = point_look_ahead_.header.frame_id =
         point_search_normal_begin_.header.frame_id = point_search_normal_end_.header.frame_id =
             target_path_.header.frame_id;
     point_normal_.point = target_path_.poses.at(_normal_pos_on_path).pose.position;
     point_look_ahead_.point = target_path_.poses.at(_pos_look_ahead).pose.position;
-    int start_search_pos_on_path = calculateDistanceOnPath(prev_normal_pos_on_path_, -_search_range);
-    int end_search_pos_on_path = calculateDistanceOnPath(prev_normal_pos_on_path_, _search_range);
+    int start_search_pos_on_path = calculateDistanceOnPath(_prev_normal, -_search_range);
+    int end_search_pos_on_path = calculateDistanceOnPath(_prev_normal, _search_range);
     point_search_normal_begin_.point = target_path_.poses.at(start_search_pos_on_path).pose.position;
     point_search_normal_end_.point = target_path_.poses.at(end_search_pos_on_path).pose.position;
 }
@@ -280,20 +299,27 @@ geometry_msgs::TwistStamped Follower::getVelocity() {
             flag_run_ = true;
         }
         if (flag_run_) {
-            double search_range_normal_pos = look_ahead_ * 1.5;
-            int normal_pos_on_path = calculatePosOnPath(current_point, search_range_normal_pos, prev_normal_pos_on_path_, target_path_);
+            int pos_look_ahead;
             if (follower_mode_ == 1) {
                 double search_range_vel = look_ahead_ * 1.5;
-                int normal_vel_on_path = calculatePosOnPath(current_point, search_range_vel, prev_normal_vel_on_path_, target_vel_path_);
+                int normal_vel_on_path = calculatePosOnPath(current_point, search_range_vel, prev_normal_vel_on_path_, target_path_);
                 prev_normal_vel_on_path_ = normal_vel_on_path;
-                look_ahead_ = changeLookAhead(normal_vel_on_path);
+                look_ahead_ = changeLookAhead(normal_vel_on_path) /* 0.4 */;
+                pos_look_ahead = calculatePosLookAhead(normal_vel_on_path);
+                out_velocity_ = calculateVelocity(current_point, pos_look_ahead, normal_vel_on_path);
+                if (debug_) {
+                    prepareDebug(search_range_vel, normal_vel_on_path, pos_look_ahead, prev_normal_vel_on_path_);
+                }
+            } else {
+                double search_range_normal_pos = look_ahead_ * 1.5;
+                int normal_pos_on_path = calculatePosOnPath(current_point, search_range_normal_pos, prev_normal_pos_on_path_, target_path_);
+                prev_normal_pos_on_path_ = normal_pos_on_path;
+                pos_look_ahead = calculatePosLookAhead(normal_pos_on_path);
+                out_velocity_ = calculateVelocity(current_point, pos_look_ahead);
+                if (debug_) {
+                    prepareDebug(search_range_normal_pos, normal_pos_on_path, pos_look_ahead, prev_normal_pos_on_path_);
+                }
             }
-            int pos_look_ahead = calculatePosLookAhead(normal_pos_on_path);
-            out_velocity_ = calculateVelocity(current_point, pos_look_ahead);
-            if (debug_) {
-                prepareDebug(search_range_normal_pos, normal_pos_on_path, pos_look_ahead);
-            }
-            prev_normal_pos_on_path_ = normal_pos_on_path;
         }
     }
     return out_velocity_;

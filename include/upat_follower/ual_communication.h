@@ -54,7 +54,6 @@ class UALCommunication {
     double vxy_ = 2.0;
     double vz_up_ = 3.0;
     double vz_dn_ = 1.0;
-    // PathGenerator generator_;
     // Callbacks
     void ualStateCallback(const uav_abstraction_layer::State &_ual_state);
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
@@ -79,7 +78,7 @@ class UALCommunication {
     geometry_msgs::PoseStamped ual_pose_;
     geometry_msgs::TwistStamped velocity_;
     uav_abstraction_layer::State ual_state_;
-    std::vector<double> max_vel_percentage_;
+    std::vector<double> times_;
     // Params
     int uav_id_;
     bool save_csv_, trajectory_, use_class_;

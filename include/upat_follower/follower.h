@@ -47,7 +47,7 @@ class Follower {
     void updatePose(const geometry_msgs::PoseStamped &_ual_pose);
     void updatePath(nav_msgs::Path _new_target_path);
     void updateTrajectory(nav_msgs::Path _new_target_path, nav_msgs::Path _new_target_vel_path);
-    nav_msgs::Path prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _max_vel_percentage);
+    nav_msgs::Path prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _times);
     nav_msgs::Path preparePath(nav_msgs::Path _init_path, int _generator_mode = 0, double _look_ahead = 1.2, double _cruising_speed = 1.0);
 
    private:
@@ -63,8 +63,9 @@ class Follower {
     int calculatePosLookAhead(int _pos_on_path);
     int calculateDistanceOnPath(int _prev_normal_pos_on_path, double _meters);
     int calculatePosOnPath(Eigen::Vector3f _current_point, double _search_range, int _prev_normal_pos_on_path, nav_msgs::Path _path_search);
-    void prepareDebug(double _search_range, int _normal_pos_on_path, int _pos_look_ahead);
-    geometry_msgs::TwistStamped calculateVelocity(Eigen::Vector3f _current_p, int _pos_la);
+    void prepareDebug(double _search_range, int _normal_pos_on_path, int _pos_look_ahead, int _prev_normal);
+    geometry_msgs::TwistStamped calculateVelocity(Eigen::Vector3f _current_point, int _pos_look_ahead, int _pos_on_path = 0);
+    std::vector<double> timesToMaxVelPercentage(nav_msgs::Path _init_path, std::vector<double> _times);
     // Node handlers
     ros::NodeHandle nh_, pnh_;
     // Subscribers
@@ -88,7 +89,7 @@ class Follower {
     geometry_msgs::PoseStamped ual_pose_;
     nav_msgs::Path target_path_, target_vel_path_;
     double look_ahead_, cruising_speed_, max_vel_;
-    std::vector<double> generated_max_vel_percentage_;
+    std::vector<double> generated_times_;
     // Params
     int uav_id_;
     bool debug_;

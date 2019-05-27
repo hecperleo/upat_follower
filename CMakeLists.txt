@@ -194,12 +194,16 @@ add_dependencies(ual_communication_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${ca
 
 
 add_library(visualization src/visualization.cpp)
+target_link_libraries(visualization generator ${catkin_LIBRARIES})
 add_dependencies(visualization ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 add_executable(visualization_node src/visualization_node.cpp)
 target_link_libraries(visualization_node visualization ${catkin_LIBRARIES})
 add_dependencies(visualization_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+add_executable(ual_set_pose tests/ual_set_pose.cpp)
+target_link_libraries(ual_set_pose ${catkin_LIBRARIES})
+add_dependencies(ual_set_pose ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 #############
 ## Install ##

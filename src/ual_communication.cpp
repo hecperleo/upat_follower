@@ -48,7 +48,7 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     end_path_ = false;
     // Initialize path
     init_path_ = csvToPath("/" + init_path_name_ + ".csv");
-    max_vel_percentage_ = csvToVector("/velocities.csv");
+    times_ = csvToVector("/times.csv");
     // Save data
     if (save_csv_) {
         std::string pkg_name_path = ros::package::getPath(pkg_name_);
@@ -139,7 +139,14 @@ void UALCommunication::velocityCallback(const geometry_msgs::TwistStamped &_velo
 
 void UALCommunication::saveDataForTesting() {
     static upat_follower::Follower follower_save_data(uav_id_);
-    std::ofstream csv_cubic_loyal, csv_cubic, csv_interp1, csv_init;
+    std::ofstream csv_cubic_loyal, csv_cubic, csv_interp1, csv_init, csv_trajectory;
+    target_path_ = follower_save_data.prepareTrajectory(init_path_, times_);
+    csv_trajectory.open(folder_data_name_ + "/trajectory.csv");
+    csv_trajectory << std::fixed << std::setprecision(5);
+    for (int i = 0; i < target_path_.poses.size(); i++) {
+        csv_trajectory << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
+    }
+    csv_trajectory.close();
     csv_init.open(folder_data_name_ + "/init.csv");
     csv_init << std::fixed << std::setprecision(5);
     for (int i = 0; i < init_path_.poses.size(); i++) {
@@ -187,17 +194,17 @@ void UALCommunication::runMission() {
     if (target_path_.poses.size() < 1) {
         if (save_csv_) saveDataForTesting();
         if (trajectory_) {
-            for (int i = 0; i < max_vel_percentage_.size(); i++) {
+            for (int i = 0; i < times_.size(); i++) {
                 std_msgs::Float32 v_percentage;
-                v_percentage.data = max_vel_percentage_[i];
-                prepare_trajectory.request.max_vel_percentage.push_back(v_percentage);
+                v_percentage.data = times_[i];
+                prepare_trajectory.request.times.push_back(v_percentage);
             }
             prepare_trajectory.request.init_path = init_path_;
             if (!use_class_) {
                 client_prepare_trajectory_.call(prepare_trajectory);
                 target_path_ = prepare_trajectory.response.generated_path;
             }
-            if (use_class_) target_path_ = follower_.prepareTrajectory(init_path_, max_vel_percentage_);
+            if (use_class_) target_path_ = follower_.prepareTrajectory(init_path_, times_);
         } else {
             prepare_path.request.init_path = init_path_;
             prepare_path.request.generator_mode.data = 2;

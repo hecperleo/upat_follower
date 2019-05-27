@@ -54,7 +54,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 <param name="debug" value="$(arg debug)"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
             </node>
-            <node pkg="upat_follower" type="visualization_node" name="visualization" required="true">
+            <node pkg="upat_follower" type="visualization_node" name="visualization" required="true" output="screen">
                 <param name="uav_id" value="1"/>
                 <param name="robot_model" value="$(arg robot_model)"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>

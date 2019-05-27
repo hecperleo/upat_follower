@@ -162,7 +162,7 @@ nav_msgs::Path Generator::generatePath(nav_msgs::Path _init_path, int _generator
     return out_path_;
 }
 
-nav_msgs::Path Generator::generateTrajectory(nav_msgs::Path _init_path, std::vector<double> _max_vel_percentage) {
+nav_msgs::Path Generator::generateTrajectory(nav_msgs::Path _init_path, std::vector<double> _times) {
     std::vector<double> list_pose_x, list_pose_y, list_pose_z;
     for (int i = 0; i < _init_path.poses.size(); i++) {
         list_pose_x.push_back(_init_path.poses.at(i).pose.position.x);
@@ -172,27 +172,27 @@ nav_msgs::Path Generator::generateTrajectory(nav_msgs::Path _init_path, std::vec
     list_pose_x.push_back(list_pose_x.back());
     list_pose_y.push_back(list_pose_y.back());
     list_pose_z.push_back(list_pose_z.back());
-    if (_init_path.poses.size() - 1 == _max_vel_percentage.size()) {
+    if (_init_path.poses.size() - 1 == _times.size()) {
         mode_ = mode_trajectory_;
-        size_vec_percentage_ = _max_vel_percentage.size();
-        out_path_ = createTrajectory(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), _max_vel_percentage);
+        size_vec_percentage_ = _times.size();
+        out_path_ = createTrajectory(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), _times);
         mode_ = mode_interp1_;
         interp1_final_size_ = out_path_.poses.size();
         generated_path_vel_percentage_ = pathManagement(list_pose_x, list_pose_y, list_pose_z);
-        for (int i = 0; i < _max_vel_percentage.size(); i++) {
+        for (int i = 0; i < _times.size(); i++) {
             int j = 0;
-            for (j = 0; j < generated_path_vel_percentage_.poses.size() / (_max_vel_percentage.size() + 1); j++) {
-                generated_max_vel_percentage_.push_back(_max_vel_percentage[i]);
+            for (j = 0; j < generated_path_vel_percentage_.poses.size() / (_times.size() + 1); j++) {
+                generated_times_.push_back(_times[i]);
             }
         }
         // TODO: Why do we still need this?
-        while (out_path_.poses.size() > generated_max_vel_percentage_.size()) {
-            generated_max_vel_percentage_.push_back(_max_vel_percentage.back());
+        while (out_path_.poses.size() > generated_times_.size()) {
+            generated_times_.push_back(_times.back());
         }
-        ROS_WARN_COND(debug_, "Generator -> Path sizes -> spline: %zd, maxVel: %zd, init: %zd", out_path_.poses.size(), generated_max_vel_percentage_.size(), _init_path.poses.size());
+        ROS_WARN_COND(debug_, "Generator -> Path sizes -> spline: %zd, maxVel: %zd, init: %zd", out_path_.poses.size(), generated_times_.size(), _init_path.poses.size());
         max_velocity_ = abs(smallest_max_vel_);
     } else {
-        ROS_ERROR("Time intervals size (%zd) should has one less element than init path size (%zd)", _max_vel_percentage.size(), _init_path.poses.size());
+        ROS_ERROR("Time intervals size (%zd) should has one less element than init path size (%zd)", _times.size(), _init_path.poses.size());
     }
     out_path_.header.frame_id = _init_path.header.frame_id;
 
@@ -208,17 +208,17 @@ bool Generator::generatePathCb(upat_follower::GeneratePath::Request &_req_path,
 
 bool Generator::generateTrajectoryCb(upat_follower::GenerateTrajectory::Request &_req_trajectory,
                                      upat_follower::GenerateTrajectory::Response &_res_trajectory) {
-    std::vector<double> vec_max_vel_percentage;
-    for (int i = 0; i < _req_trajectory.max_vel_percentage.size(); i++) {
-        vec_max_vel_percentage.push_back(_req_trajectory.max_vel_percentage.at(i).data);
+    std::vector<double> vec_times;
+    for (int i = 0; i < _req_trajectory.times.size(); i++) {
+        vec_times.push_back(_req_trajectory.times.at(i).data);
     }
-    _res_trajectory.generated_path = generateTrajectory(_req_trajectory.init_path, vec_max_vel_percentage);
+    _res_trajectory.generated_path = generateTrajectory(_req_trajectory.init_path, vec_times);
     _res_trajectory.generated_path_vel_percentage = generated_path_vel_percentage_;
     _res_trajectory.max_velocity.data = max_velocity_;
-    std_msgs::Float32 temp_generated_max_vel_percentage;
-    for (int i = 0; i < generated_max_vel_percentage_.size(); i++) {
-        temp_generated_max_vel_percentage.data = generated_max_vel_percentage_.at(i);
-        _res_trajectory.generated_max_vel_percentage.push_back(temp_generated_max_vel_percentage);
+    std_msgs::Float32 temp_generated_times;
+    for (int i = 0; i < generated_times_.size(); i++) {
+        temp_generated_times.data = generated_times_.at(i);
+        _res_trajectory.generated_times.push_back(temp_generated_times);
     }
 
     return true;
@@ -327,7 +327,7 @@ nav_msgs::Path Generator::createPathCubicSpline(std::vector<double> _list_x, std
     return cubic_spline_path;
 }
 
-nav_msgs::Path Generator::createTrajectory(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size, std::vector<double> _max_vel_percentage) {
+nav_msgs::Path Generator::createTrajectory(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size, std::vector<double> _times) {
     nav_msgs::Path cubic_spline_path;
     if (_path_size > 1) {
         // Calculate total distance

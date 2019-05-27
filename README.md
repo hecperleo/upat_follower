@@ -53,7 +53,7 @@ $ roslaunch upat_follower mision_ual.launch multi:=false trajectory:=false use_c
 The Follower class is defined in follower.h. You can create one object in your code and use its public methods:
 
 - `updatePose(const geometry_msgs::PoseStamped &_ual_pose)`
-- `prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _max_vel_percentage)`
+- `prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _times)`
 - `preparePath(nav_msgs::Path _init_path, int _generator_mode, double _look_ahead, double _cruising_speed)`
 - `updateTrajectory(nav_msgs::Path _new_target_path, nav_msgs::Path _new_target_vel_path)`
 - `updatePath(nav_msgs::Path _new_target_path)`
@@ -61,7 +61,7 @@ The Follower class is defined in follower.h. You can create one object in your c
 
 The Generator class is defined in generator.h. You can create one object in your code and use its public methods:
 
-- `generateTrajectory(nav_msgs::Path _init_path, std::vector<double> _max_vel_percentage)`
+- `generateTrajectory(nav_msgs::Path _init_path, std::vector<double> _times)`
 - `generatePath(nav_msgs::Path _init_path, int _generator_mode)`
 
 
