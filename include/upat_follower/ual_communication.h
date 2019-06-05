@@ -81,7 +81,7 @@ class UALCommunication {
     std::vector<double> times_;
     // Params
     int uav_id_;
-    bool save_csv_, trajectory_, use_class_;
+    bool save_test_, trajectory_, use_class_;
     double reach_tolerance_;
     std::string init_path_name_;
     std::string pkg_name_ = "upat_follower";

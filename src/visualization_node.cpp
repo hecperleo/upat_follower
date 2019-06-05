@@ -22,9 +22,12 @@
 int main(int _argc, char **_argv) {
     ros::init(_argc, _argv, "visualization_node");
 
+    bool save_experiment_data;
+    ros::param::param<bool>("~save_experiment_data", save_experiment_data, false);
+
     Visualization visual;
-    visual.save_data = false;
-    if (visual.save_data) {
+    visual.save_experiment = save_experiment_data;
+    if (visual.save_experiment) {
         std::string pkg_name_path = ros::package::getPath("upat_follower");
         std::string folder_data_name = pkg_name_path + "/tests/data/plot/";
         visual.csv_normal_distances_.open(folder_data_name + "normal_dist.csv");
@@ -37,7 +40,7 @@ int main(int _argc, char **_argv) {
         visual.pubMsgs();
         if (visual.current_path_.poses.size() > 0) {
             if (visual.ual_state_.state == 4) {
-                if (visual.save_data == true) {
+                if (visual.save_experiment == true) {
                     visual.saveMissionData();
                 }
                 if (do_once) {
@@ -45,7 +48,7 @@ int main(int _argc, char **_argv) {
                     do_once = false;
                 }
             } else {
-                if(!do_once){
+                if (!do_once) {
                     ROS_INFO("Time: %f", ros::Time::now().toSec() - start_time);
                     do_once = true;
                 }
@@ -55,7 +58,7 @@ int main(int _argc, char **_argv) {
         rate.sleep();
     }
 
-    if (visual.save_data) {
+    if (visual.save_experiment) {
         for (int i = 0; visual.current_path_.poses.size(); i++) {
             visual.csv_current_path_
                 << visual.current_path_.poses.at(i).pose.position.x << ", "
