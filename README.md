@@ -1,13 +1,13 @@
 # UAV Path And Trajectory Follower
 
-This repository contains all the code for running the **upat_follower** package on ROS. It is composed of two cpp-classes.
+This repository contains all the code for running this package on ROS. It is composed of two cpp-classes.
 
 - [Generator](https://github.com/hecperleo/upat_follower/blob/master/src/generator.cpp) is responsible for receiving an initial path and generating an improved final path or trajectory. Mainly improves the path using linear or cubic interpolations. If a trajectory must be generated, this node also needs the percentage of maximum speed at every segment of the initial path.
 - [Follower](https://github.com/hecperleo/upat_follower/blob/master/src/follower.cpp) is responsible for receiving a path or trajectory and generating a velocity to follow it.
 
 ## Installation Instructions - Ubuntu 16.04 with ROS Kinetic
 
-1. Follow the [instructions](https://github.com/grvcTeam/grvc-ual/wiki/How-to-build-and-install-grvc-ual) for install and build the [GRVC UAV abstraction layer](https://github.com/grvcTeam/grvc-ual).
+1. Follow the [instructions](https://github.com/grvcTeam/grvc-ual/wiki/How-to-build-and-install-grvc-ual) for install and build the [GRVC UAV abstraction layer](https://github.com/grvcTeam/grvc-ual) on release 2.2.
 2. Clone this repository in your workspace.
 ```
 $ cd ~/catkin_ws/src
@@ -46,7 +46,7 @@ By default, you will see two UAV, if you want to see just one UAV you can turn o
 $ roslaunch upat_follower mision_ual.launch multi:=false trajectory:=false use_class:=false
 ```
 
-> **Note**: Check [ual_communication](https://github.com/hecperleo/upat_follower/blob/master/src/ual_communication.cpp) to see an example.
+> **Note**: Check [ual_communication](https://github.com/hecperleo/upat_follower/blob/robots2019/src/ual_communication.cpp) to see an example.
 
 ## C++ class interface
 
@@ -83,16 +83,15 @@ Generator:
 
 Each service will interact with the corresponding cpp method. Create a client of these services with each corresponding requests and you will be able to interact with it and receive exactly the same response as using the cpp class interface.
 
-## Follower and Generator Modes
-
-Generator:
+## Generator Modes
 
 - `Mode 0`: Generate a path using linear interpolations
+
+![Alt text](data/img/robot2019/mode0.png?raw=true)
 - `Mode 1`: Generate a path using cubic spline interpolations (Step between mode `0` and mode `2`)
+
+![Alt text](data/img/robot2019/mode1.png?raw=true)
 - `Mode 2`: Generate a path using cubic spline interpolations
 - `Mode 3`: Generate a trajectory
 
-Follower:
-
-- `Mode 0`: Follow a path
-- `Mode 1`: Follow a trajectory
+![Alt text](data/img/robot2019/mode2.png?raw=true)

@@ -24,12 +24,13 @@ namespace upat_follower {
 UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     // Parameters
     pnh_.getParam("uav_id", uav_id_);
-    pnh_.getParam("save_csv", save_csv_);
+    pnh_.getParam("save_test_data", save_test_);
     pnh_.getParam("trajectory", trajectory_);
     pnh_.getParam("path", init_path_name_);
     pnh_.getParam("pkg_name", pkg_name_);
     pnh_.getParam("reach_tolerance", reach_tolerance_);
     pnh_.getParam("use_class", use_class_);
+    pnh_.getParam("generator_mode", generator_mode_);
     // Subscriptions
     sub_pose_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/pose", 0, &UALCommunication::ualPoseCallback, this);
     sub_state_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/state", 0, &UALCommunication::ualStateCallback, this);
@@ -50,9 +51,9 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     init_path_ = csvToPath("/" + init_path_name_ + ".csv");
     times_ = csvToVector("/times.csv");
     // Save data
-    if (save_csv_) {
+    if (save_test_) {
         std::string pkg_name_path = ros::package::getPath(pkg_name_);
-        folder_data_name_ = pkg_name_path + "/tests/data";
+        folder_data_name_ = pkg_name_path + "/tests/splines";
     }
 }
 
@@ -79,7 +80,7 @@ nav_msgs::Path UALCommunication::constructPath(std::vector<double> _wps_x, std::
 nav_msgs::Path UALCommunication::csvToPath(std::string _file_name) {
     nav_msgs::Path out_path;
     std::string pkg_name_path = ros::package::getPath(pkg_name_);
-    std::string folder_name = pkg_name_path + "/data" + _file_name;
+    std::string folder_name = pkg_name_path + "/config" + _file_name;
     std::fstream read_csv;
     read_csv.open(folder_name);
     std::vector<double> list_x, list_y, list_z;
@@ -108,7 +109,7 @@ nav_msgs::Path UALCommunication::csvToPath(std::string _file_name) {
 std::vector<double> UALCommunication::csvToVector(std::string _file_name) {
     std::vector<double> out_vector;
     std::string pkg_name_path = ros::package::getPath(pkg_name_);
-    std::string folder_name = pkg_name_path + "/data" + _file_name;
+    std::string folder_name = pkg_name_path + "/config" + _file_name;
     std::fstream read_csv;
     read_csv.open(folder_name);
     if (read_csv.is_open()) {
@@ -138,9 +139,9 @@ void UALCommunication::velocityCallback(const geometry_msgs::TwistStamped &_velo
 }
 
 void UALCommunication::saveDataForTesting() {
-    static upat_follower::Follower follower_save_data(uav_id_);
+    static upat_follower::Follower follower_save_tests(uav_id_);
     std::ofstream csv_cubic_loyal, csv_cubic, csv_interp1, csv_init, csv_trajectory;
-    target_path_ = follower_save_data.prepareTrajectory(init_path_, times_);
+    target_path_ = follower_save_tests.prepareTrajectory(init_path_, times_);
     csv_trajectory.open(folder_data_name_ + "/trajectory.csv");
     csv_trajectory << std::fixed << std::setprecision(5);
     for (int i = 0; i < target_path_.poses.size(); i++) {
@@ -153,21 +154,21 @@ void UALCommunication::saveDataForTesting() {
         csv_init << init_path_.poses.at(i).pose.position.x << ", " << init_path_.poses.at(i).pose.position.y << ", " << init_path_.poses.at(i).pose.position.z << std::endl;
     }
     csv_init.close();
-    target_path_ = follower_save_data.preparePath(init_path_, 0);
+    target_path_ = follower_save_tests.preparePath(init_path_, 0);
     csv_interp1.open(folder_data_name_ + "/interp1.csv");
     csv_interp1 << std::fixed << std::setprecision(5);
     for (int i = 0; i < target_path_.poses.size(); i++) {
         csv_interp1 << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
     }
     csv_interp1.close();
-    target_path_ = follower_save_data.preparePath(init_path_, 1);
+    target_path_ = follower_save_tests.preparePath(init_path_, 1);
     csv_cubic_loyal.open(folder_data_name_ + "/cubic_spline_loyal.csv");
     csv_cubic_loyal << std::fixed << std::setprecision(5);
     for (int i = 0; i < target_path_.poses.size(); i++) {
         csv_cubic_loyal << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
     }
     csv_cubic_loyal.close();
-    target_path_ = follower_save_data.preparePath(init_path_, 2);
+    target_path_ = follower_save_tests.preparePath(init_path_, 2);
     csv_cubic.open(folder_data_name_ + "/cubic_spline.csv");
     csv_cubic << std::fixed << std::setprecision(5);
     for (int i = 0; i < target_path_.poses.size(); i++) {
@@ -192,7 +193,7 @@ void UALCommunication::runMission() {
     upat_follower::PreparePath prepare_path;
     upat_follower::PrepareTrajectory prepare_trajectory;
     if (target_path_.poses.size() < 1) {
-        if (save_csv_) saveDataForTesting();
+        if (save_test_) saveDataForTesting();
         if (trajectory_) {
             for (int i = 0; i < times_.size(); i++) {
                 std_msgs::Float32 v_percentage;
@@ -214,7 +215,7 @@ void UALCommunication::runMission() {
                 client_prepare_path_.call(prepare_path);
                 target_path_ = prepare_path.response.generated_path;
             }
-            if (use_class_) target_path_ = follower_.preparePath(init_path_, 2, 1.2, 1.0);
+            if (use_class_) target_path_ = follower_.preparePath(init_path_, generator_mode_, 0.4, 1.0);
         }
     }
 
@@ -225,7 +226,7 @@ void UALCommunication::runMission() {
     switch (ual_state_.state) {
         case 2:  // Landed armed
             if (!end_path_) {
-                take_off.request.height = 5.0;
+                take_off.request.height = 12.5;
                 take_off.request.blocking = true;
                 client_take_off_.call(take_off);
             }

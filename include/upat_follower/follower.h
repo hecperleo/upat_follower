@@ -77,7 +77,7 @@ class Follower {
     // Variables
     double vxy_ = 2.0;
     double vz_up_ = 3.0;
-    double vz_dn_ = 1.0;
+    double vz_dn_ = 4.0;
     double smallest_max_velocity_;
     std::vector<double> mpc_xy_vel_max_ = {0.0, 20.0};   // Default PX4 parameter limits
     std::vector<double> mpc_z_vel_max_up_ = {0.5, 8.0};  // Default PX4 parameter limits

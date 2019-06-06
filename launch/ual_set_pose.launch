@@ -51,5 +51,5 @@
     <node pkg="upat_follower" type="visualization_node" name="visualization" required="true" output="screen" ns="upat_follower/uav_1">
         <param name="uav_id" value="1"/>
     </node>
-    <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find upat_follower)/rviz/ual_set_pose.rviz" required="true"/>
+    <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find upat_follower)/config/rviz/mision.rviz" required="true"/>
 </launch>

@@ -26,6 +26,7 @@
 #include <visualization_msgs/Marker.h>
 #include <Eigen/Eigen>
 #include <fstream>
+#include <ctime>
 #include "geometry_msgs/PoseStamped.h"
 #include "nav_msgs/Path.h"
 
@@ -34,7 +35,7 @@ class Visualization {
     Visualization();
     ~Visualization();
 
-    bool save_data = false;
+    bool save_experiment = false;
     nav_msgs::Path current_path_;
     uav_abstraction_layer::State ual_state_;
     std::ofstream csv_normal_distances_, csv_current_path_;
