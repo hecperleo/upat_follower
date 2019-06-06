@@ -188,14 +188,18 @@ void UALCommunication::callVisualization() {
 
 std_msgs::String UALCommunication::updateCommState() {
     std_msgs::String out_state;
-    if (!end_path_) {
-        if (!on_path_) {
-            out_state.data = "UAV " + std::to_string(uav_id_) + " not on path";
+    if (!flag_hover_) {
+        if (!end_path_) {
+            if (!on_path_) {
+                out_state.data = "UAV " + std::to_string(uav_id_) + " not on path";
+            } else {
+                out_state.data = "UAV " + std::to_string(uav_id_) + " on path";
+            }
         } else {
-            out_state.data = "UAV " + std::to_string(uav_id_) + " on path";
+            out_state.data = "UAV " + std::to_string(uav_id_) + " completed path";
         }
     } else {
-        out_state.data = "UAV " + std::to_string(uav_id_) + " completed path";
+        out_state.data = "UAV " + std::to_string(uav_id_) + " hovering";
     }
     return out_state;
 }
