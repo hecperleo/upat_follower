@@ -38,6 +38,7 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     // Publishers
     pub_set_pose_ = nh_.advertise<geometry_msgs::PoseStamped>("/uav_" + std::to_string(uav_id_) + "/ual/set_pose", 1000);
     pub_set_velocity_ = nh_.advertise<geometry_msgs::TwistStamped>("/uav_" + std::to_string(uav_id_) + "/ual/set_velocity", 1000);
+    pub_comm_state_ = nh_.advertise<std_msgs::String>("/upat_follower/communication/uav_" + std::to_string(uav_id_) + "/state", 1000);
     // Services
     client_take_off_ = nh_.serviceClient<uav_abstraction_layer::TakeOff>("/uav_" + std::to_string(uav_id_) + "/ual/take_off");
     client_land_ = nh_.serviceClient<uav_abstraction_layer::Land>("/uav_" + std::to_string(uav_id_) + "/ual/land");
@@ -185,6 +186,20 @@ void UALCommunication::callVisualization() {
     client_visualize_.call(visualize);
 }
 
+std_msgs::String UALCommunication::updateCommState() {
+    std_msgs::String out_state;
+    if (!end_path_) {
+        if (!on_path_) {
+            out_state.data = "UAV " + std::to_string(uav_id_) + " not on path";
+        } else {
+            out_state.data = "UAV " + std::to_string(uav_id_) + " on path";
+        }
+    } else {
+        out_state.data = "UAV " + std::to_string(uav_id_) + " completed path";
+    }
+    return out_state;
+}
+
 void UALCommunication::runMission() {
     static upat_follower::Follower follower_(uav_id_);
 
@@ -276,6 +291,7 @@ void UALCommunication::runMission() {
         case 5:  // Landing
             break;
     }
+    pub_comm_state_.publish(updateCommState());
 }
 
 }  // namespace upat_follower
