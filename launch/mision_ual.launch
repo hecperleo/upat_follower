@@ -19,6 +19,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <arg name="trajectory" default="true"/>
     <arg name="reach_tolerance" default="0.1"/>
     <arg name="path" default="cubic"/>
+    <arg name="generator_mode" default="0"/>
     <arg name="pkg_name" default="upat_follower"/>
     <arg name="use_class" default="true" unless="$(arg debug)"/>
     <arg name="use_class" default="false" if="$(arg debug)"/>
@@ -28,8 +29,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 
     <!-- Visualization -->
-    <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find upat_follower)/rviz/mision.rviz" required="true" unless="$(arg debug)"/>
-    <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find upat_follower)/rviz/debug.rviz" required="true" if="$(arg debug)"/>
+    <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find upat_follower)/config/rviz/mision.rviz" required="true" unless="$(arg debug)"/>
+    <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find upat_follower)/config/rviz/debug.rviz" required="true" if="$(arg debug)"/>
 
     <!-- UAL Server -->
     <include file="$(find upat_follower)/launch/server_ual.launch">
@@ -49,6 +50,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 <param name="path" value="$(arg path)"/>
                 <param name="reach_tolerance" value="$(arg reach_tolerance)"/>
                 <param name="use_class" value="$(arg use_class)"/>
+                <param name="generator_mode" value="$(arg generator_mode)"/>
             </node>
             <node pkg="upat_follower" type="follower_node" name="follower" output="screen" required="true" unless="$(arg use_class)">
                 <param name="uav_id" value="1"/>
@@ -60,6 +62,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 <param name="robot_model" value="$(arg robot_model)"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
                 <param name="save_experiment_data" value="$(arg save_experiment_data)"/>
+                <param name="trajectory" value="$(arg trajectory)"/>
             </node>
         </group>
 
@@ -72,6 +75,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 <param name="path" value="$(arg path)"/>
                 <param name="reach_tolerance" value="$(arg reach_tolerance)"/>
                 <param name="use_class" value="$(arg use_class)"/>
+                <param name="generator_mode" value="$(arg generator_mode)"/>
             </node>
             <node pkg="upat_follower" type="follower_node" name="follower" required="true" unless="$(arg use_class)">
                 <param name="uav_id" value="2"/>

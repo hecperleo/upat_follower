@@ -30,6 +30,7 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     pnh_.getParam("pkg_name", pkg_name_);
     pnh_.getParam("reach_tolerance", reach_tolerance_);
     pnh_.getParam("use_class", use_class_);
+    pnh_.getParam("generator_mode", generator_mode_);
     // Subscriptions
     sub_pose_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/pose", 0, &UALCommunication::ualPoseCallback, this);
     sub_state_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/state", 0, &UALCommunication::ualStateCallback, this);
@@ -52,7 +53,7 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     // Save data
     if (save_test_) {
         std::string pkg_name_path = ros::package::getPath(pkg_name_);
-        folder_data_name_ = pkg_name_path + "/tests/data";
+        folder_data_name_ = pkg_name_path + "/tests/splines";
     }
 }
 
@@ -79,7 +80,7 @@ nav_msgs::Path UALCommunication::constructPath(std::vector<double> _wps_x, std::
 nav_msgs::Path UALCommunication::csvToPath(std::string _file_name) {
     nav_msgs::Path out_path;
     std::string pkg_name_path = ros::package::getPath(pkg_name_);
-    std::string folder_name = pkg_name_path + "/data" + _file_name;
+    std::string folder_name = pkg_name_path + "/config" + _file_name;
     std::fstream read_csv;
     read_csv.open(folder_name);
     std::vector<double> list_x, list_y, list_z;
@@ -108,7 +109,7 @@ nav_msgs::Path UALCommunication::csvToPath(std::string _file_name) {
 std::vector<double> UALCommunication::csvToVector(std::string _file_name) {
     std::vector<double> out_vector;
     std::string pkg_name_path = ros::package::getPath(pkg_name_);
-    std::string folder_name = pkg_name_path + "/data" + _file_name;
+    std::string folder_name = pkg_name_path + "/config" + _file_name;
     std::fstream read_csv;
     read_csv.open(folder_name);
     if (read_csv.is_open()) {
@@ -214,7 +215,7 @@ void UALCommunication::runMission() {
                 client_prepare_path_.call(prepare_path);
                 target_path_ = prepare_path.response.generated_path;
             }
-            if (use_class_) target_path_ = follower_.preparePath(init_path_, 0, 0.4, 1.0);
+            if (use_class_) target_path_ = follower_.preparePath(init_path_, generator_mode_, 0.4, 1.0);
         }
     }
 

@@ -4,33 +4,36 @@ from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 ''' Get directory '''
-dir_data = '/home/hector/ros/tfm_ws/src/upat_follower/tests/data/'
-dir_test = dir_data + 'plot/la_0-4_spd_1/'
-dir_save_data = '/home/hector/ros/tfm_ws/src/upat_follower/tests/data/plot/overleaf/'
+dir_default_splines = '/home/hector/ros/tfm_ws/src/upat_follower/tests/splines/' 
+dir_data = '/home/hector/ros/tfm_ws/src/upat_follower/data/'
+experiment_name = 'robot2019'
+case_name = 'la_0-4_spd_1'
+dir_experiment = dir_data + 'log/' + experiment_name + '/' + case_name + '/'
+dir_save_data = dir_data + 'img/' + experiment_name + '/'
 ''' Get csv files '''
-default_init_path = pd.read_csv(dir_data + 'init.csv', names=['x', 'y', 'z'])
+default_init_path = pd.read_csv(dir_default_splines + 'init.csv', names=['x', 'y', 'z'])
 default_cubic_spline_loyal_path = pd.read_csv(
-    dir_data + 'cubic_spline_loyal.csv', names=['x', 'y', 'z'])
+    dir_default_splines + 'cubic_spline_loyal.csv', names=['x', 'y', 'z'])
 default_cubic_spline_path = pd.read_csv(
-    dir_data + 'cubic_spline.csv', names=['x', 'y', 'z'])
+    dir_default_splines + 'cubic_spline.csv', names=['x', 'y', 'z'])
 default_trajectory = pd.read_csv(
-    dir_data + 'trajectory.csv', names=['x', 'y', 'z'])
+    dir_default_splines + 'trajectory.csv', names=['x', 'y', 'z'])
 normal_dist_linear_interp = pd.read_csv(
-    dir_test + 'normal_dist_linear_interp.csv', names=['Time', 'Spline', 'Linear'])
+    dir_experiment + 'normal_dist_linear_interp.csv', names=['Time', 'Spline', 'Linear'])
 normal_dist_cubic_spline = pd.read_csv(
-    dir_test + 'normal_dist_cubic_spline.csv', names=['Time', 'Spline', 'Linear'])
+    dir_experiment + 'normal_dist_cubic_spline.csv', names=['Time', 'Spline', 'Linear'])
 normal_dist_cubic_loyal = pd.read_csv(
-    dir_test + 'normal_dist_cubic_loyal_spline.csv', names=['Time', 'Spline', 'Linear'])
+    dir_experiment + 'normal_dist_cubic_loyal_spline.csv', names=['Time', 'Spline', 'Linear'])
 normal_dist_trajectory = pd.read_csv(
-    dir_test + 'normal_dist_trajectory.csv', names=['Time', 'Spline', 'Linear'])
+    dir_experiment + 'normal_dist_trajectory.csv', names=['Time', 'Spline', 'Linear'])
 current_path_linear_interp = pd.read_csv(
-    dir_test + 'current_path_linear_interp.csv', names=['x', 'y', 'z'])
+    dir_experiment + 'current_path_linear_interp.csv', names=['x', 'y', 'z'])
 current_path_cubic_spline = pd.read_csv(
-    dir_test + 'current_path_cubic_spline.csv', names=['x', 'y', 'z'])
+    dir_experiment + 'current_path_cubic_spline.csv', names=['x', 'y', 'z'])
 current_path_cubic_loyal = pd.read_csv(
-    dir_test + 'current_path_cubic_loyal_spline.csv', names=['x', 'y', 'z'])
+    dir_experiment + 'current_path_cubic_loyal_spline.csv', names=['x', 'y', 'z'])
 current_trajectory = pd.read_csv(
-    dir_test + 'current_trajectory.csv', names=['x', 'y', 'z'])
+    dir_experiment + 'current_trajectory.csv', names=['x', 'y', 'z'])
 
 ''' Plot linear interpolation '''
 fig1 = plt.figure(num="Linear interpolation 3D behavior")
@@ -127,28 +130,29 @@ print('----------------------------------------------------------------------')
 ''' PX4 vs UPAT: Diagonal and horizontal Line'''
 
 ''' Get directory '''
-dir_test = dir_data + 'plot/compare_line/'
+case_name = 'compare_line'
+dir_experiment = dir_data + 'log/' + experiment_name + '/' + case_name + '/'
 ''' Get csv files '''
 default_horizontal = pd.read_csv(
-    dir_test + 'horizontal.csv', names=['x', 'y', 'z'])
+    dir_experiment + 'horizontal.csv', names=['x', 'y', 'z'])
 default_diagonal = pd.read_csv(
-    dir_test + 'diagonal.csv', names=['x', 'y', 'z'])
+    dir_experiment + 'diagonal.csv', names=['x', 'y', 'z'])
 ual_current_horizontal = pd.read_csv(
-    dir_test + 'ual_current_horizontal.csv', names=['x', 'y', 'z'])
+    dir_experiment + 'ual_current_horizontal.csv', names=['x', 'y', 'z'])
 upat_current_horizontal = pd.read_csv(
-    dir_test + 'upat_current_horizontal.csv', names=['x', 'y', 'z'])
+    dir_experiment + 'upat_current_horizontal.csv', names=['x', 'y', 'z'])
 ual_current_diagonal = pd.read_csv(
-    dir_test + 'ual_current_diagonal.csv', names=['x', 'y', 'z'])
+    dir_experiment + 'ual_current_diagonal.csv', names=['x', 'y', 'z'])
 upat_current_diagonal = pd.read_csv(
-    dir_test + 'upat_current_diagonal.csv', names=['x', 'y', 'z'])
+    dir_experiment + 'upat_current_diagonal.csv', names=['x', 'y', 'z'])
 ual_normal_horizontal = pd.read_csv(
-    dir_test + 'ual_normal_horizontal.csv', names=['Time', 'Linear'])
+    dir_experiment + 'ual_normal_horizontal.csv', names=['Time', 'Linear'])
 upat_normal_horizontal = pd.read_csv(
-    dir_test + 'upat_normal_horizontal.csv', names=['Time', 'Spline', 'Linear'])
+    dir_experiment + 'upat_normal_horizontal.csv', names=['Time', 'Spline', 'Linear'])
 ual_normal_diagonal = pd.read_csv(
-    dir_test + 'ual_normal_diagonal.csv', names=['Time', 'Linear'])
+    dir_experiment + 'ual_normal_diagonal.csv', names=['Time', 'Linear'])
 upat_normal_diagonal = pd.read_csv(
-    dir_test + 'upat_normal_diagonal.csv', names=['Time', 'Spline', 'Linear'])
+    dir_experiment + 'upat_normal_diagonal.csv', names=['Time', 'Spline', 'Linear'])
 ''' Plot horizontal line '''
 fig4 = plt.figure()
 ax4 = Axes3D(fig4)
@@ -208,16 +212,16 @@ print('Dia UPAT-> max: {:.3f}, min: {:.3f}, mean: {:.3f}, std: {:.3f}, var: {:.3
 print('----------------------------------------------------------------------')
 
 ''' PX4 vs UPAT: Waypoint list '''
-
-dir_test = dir_data + 'plot/ual_reach_wp/'
+case_name = 'ual_reach_wp'
+dir_experiment = dir_data + 'log/' + experiment_name + '/' + case_name + '/'
 ''' Get csv files '''
-default_init_path = pd.read_csv(dir_data + 'init.csv', names=['x', 'y', 'z'])
+default_init_path = pd.read_csv(dir_default_splines + 'init.csv', names=['x', 'y', 'z'])
 # current_path_linear_interp = pd.read_csv(
-#     dir_test + 'current_path_linear_interp.csv', names=['x', 'y', 'z'])
+#     dir_experiment + 'current_path_linear_interp.csv', names=['x', 'y', 'z'])
 px4_normal_dist_linear_interp = pd.read_csv(
-    dir_test + 'normal_dist_linear_interp.csv', names=['Time', 'Linear'])
+    dir_experiment + 'normal_dist_linear_interp.csv', names=['Time', 'Linear'])
 px4_current_path_linear_interp = pd.read_csv(
-    dir_test + 'current_path_linear_interp.csv', names=['x', 'y', 'z'])
+    dir_experiment + 'current_path_linear_interp.csv', names=['x', 'y', 'z'])
 ''' Plot PX4 vs Follower on linear interpolation '''
 fig7 = plt.figure()
 ax7 = Axes3D(fig7)
@@ -249,18 +253,18 @@ print('----------------------------------------------------------------------')
 
 
 
-# ''' Plot trajectory '''
-# fig = plt.figure(num="Trajectory 3D behavior")
-# ax = Axes3D(fig)
-# ax.plot(default_trajectory.x, default_trajectory.y, default_trajectory.z)
-# ax.plot(current_trajectory.x, current_trajectory.y, current_trajectory.z)
-# plt.show()
-# plt.figure(num="Trajectory normal distance")
-# plt.plot(normal_dist_trajectory.Time, normal_dist_trajectory.Spline)
-# plt.plot(normal_dist_trajectory.Time, normal_dist_trajectory.Linear)
-# plt.xlabel('Time (s)')
-# plt.ylabel('Distance (m)')
-# plt.show()
-# print('Traject -> max: {:.3f}, min: {:.3f}, mean: {:.3f}, std: {:.3f}, var: {:.3f}'.format(np.max(normal_dist_trajectory.Linear), np.min(
-#     normal_dist_trajectory.Linear), np.mean(normal_dist_trajectory.Linear), np.std(normal_dist_trajectory.Linear), np.var(normal_dist_trajectory.Linear)))
-# print('----------------------------------------------------------------------')
+# # ''' Plot trajectory '''
+# # fig = plt.figure(num="Trajectory 3D behavior")
+# # ax = Axes3D(fig)
+# # ax.plot(default_trajectory.x, default_trajectory.y, default_trajectory.z)
+# # ax.plot(current_trajectory.x, current_trajectory.y, current_trajectory.z)
+# # plt.show()
+# # plt.figure(num="Trajectory normal distance")
+# # plt.plot(normal_dist_trajectory.Time, normal_dist_trajectory.Spline)
+# # plt.plot(normal_dist_trajectory.Time, normal_dist_trajectory.Linear)
+# # plt.xlabel('Time (s)')
+# # plt.ylabel('Distance (m)')
+# # plt.show()
+# # print('Traject -> max: {:.3f}, min: {:.3f}, mean: {:.3f}, std: {:.3f}, var: {:.3f}'.format(np.max(normal_dist_trajectory.Linear), np.min(
+# #     normal_dist_trajectory.Linear), np.mean(normal_dist_trajectory.Linear), np.std(normal_dist_trajectory.Linear), np.var(normal_dist_trajectory.Linear)))
+# # print('----------------------------------------------------------------------')

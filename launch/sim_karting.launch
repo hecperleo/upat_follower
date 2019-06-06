@@ -8,7 +8,7 @@
     <arg name="path" default="cubic"/>
     <arg name="reach_tolerance" default="0.1"/>
 
-    <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find upat_follower)/rviz/mision.rviz" required="true"/>
+    <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find upat_follower)/config/rviz/mision.rviz" required="true"/>
 
     <!-- Launch Gazebo simulation -->
     <rosparam param="/use_sim_time">true</rosparam>

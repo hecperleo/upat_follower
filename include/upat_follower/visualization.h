@@ -26,6 +26,7 @@
 #include <visualization_msgs/Marker.h>
 #include <Eigen/Eigen>
 #include <fstream>
+#include <ctime>
 #include "geometry_msgs/PoseStamped.h"
 #include "nav_msgs/Path.h"
 

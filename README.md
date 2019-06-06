@@ -7,7 +7,7 @@ This repository contains all the code for running this package on ROS. It is com
 
 ## Installation Instructions - Ubuntu 16.04 with ROS Kinetic
 
-1. Follow the [instructions](https://github.com/grvcTeam/grvc-ual/wiki/How-to-build-and-install-grvc-ual) for install and build the [GRVC UAV abstraction layer](https://github.com/grvcTeam/grvc-ual).
+1. Follow the [instructions](https://github.com/grvcTeam/grvc-ual/wiki/How-to-build-and-install-grvc-ual) for install and build the [GRVC UAV abstraction layer](https://github.com/grvcTeam/grvc-ual) on release 2.2.
 2. Clone this repository in your workspace.
 ```
 $ cd ~/catkin_ws/src
@@ -85,18 +85,13 @@ Each service will interact with the corresponding cpp method. Create a client of
 
 ## Generator Modes
 
-Generator:
-
 - `Mode 0`: Generate a path using linear interpolations
 
-![Alt text](tests/data/plot/overleaf/mode0.png?raw=true)
+![Alt text](data/img/robot2019/mode0.png?raw=true)
 - `Mode 1`: Generate a path using cubic spline interpolations (Step between mode `0` and mode `2`)
 
-![Alt text](tests/data/plot/overleaf/mode1.png?raw=true)
+![Alt text](data/img/robot2019/mode1.png?raw=true)
 - `Mode 2`: Generate a path using cubic spline interpolations
 - `Mode 3`: Generate a trajectory
 
-![Alt text](tests/data/plot/overleaf/mode2.png?raw=true)
-
-- `Mode 0`: Follow a path
-- `Mode 1`: Follow a trajectory
+![Alt text](data/img/robot2019/mode2.png?raw=true)
