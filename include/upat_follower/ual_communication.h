@@ -49,6 +49,9 @@ class UALCommunication {
     void runMission();
     void callVisualization();
     bool flag_hover_ = false;
+    bool flag_redo_ = true;
+    bool flag_land_ = true;
+    nav_msgs::Path init_path_;
 
    private:
     double vxy_ = 2.0;
@@ -74,7 +77,7 @@ class UALCommunication {
     // Variables
     std::string folder_data_name_;
     bool on_path_, end_path_;
-    nav_msgs::Path target_path_, vel_percentage_path_, init_path_, current_path_;
+    nav_msgs::Path target_path_, vel_percentage_path_, /* init_path_, */ current_path_;
     geometry_msgs::PoseStamped ual_pose_;
     geometry_msgs::TwistStamped velocity_;
     uav_abstraction_layer::State ual_state_;
