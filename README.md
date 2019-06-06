@@ -83,15 +83,25 @@ Generator:
 
 Each service will interact with the corresponding cpp method. Create a client of these services with each corresponding requests and you will be able to interact with it and receive exactly the same response as using the cpp class interface.
 
-## Generator Modes
+## Generator and Follower Modes
+
+Generator:
 
 - `Mode 0`: Generate a path using linear interpolations
 
 ![Alt text](data/img/robot2019/mode0.png?raw=true)
+
 - `Mode 1`: Generate a path using cubic spline interpolations (Step between mode `0` and mode `2`)
 
 ![Alt text](data/img/robot2019/mode1.png?raw=true)
+
 - `Mode 2`: Generate a path using cubic spline interpolations
-- `Mode 3`: Generate a trajectory
 
 ![Alt text](data/img/robot2019/mode2.png?raw=true)
+
+- `Mode 3`: Generate a trajectory
+
+Follower:
+
+- `Mode 0`: Follow a path
+- `Mode 1`: Follow a trajectory
