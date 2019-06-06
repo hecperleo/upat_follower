@@ -22,6 +22,7 @@
 
 #include <ros/package.h>
 #include <ros/ros.h>
+#include <std_msgs/String.h>
 #include <uav_abstraction_layer/Land.h>
 #include <uav_abstraction_layer/State.h>
 #include <uav_abstraction_layer/TakeOff.h>
@@ -63,12 +64,13 @@ class UALCommunication {
     std::vector<double> csvToVector(std::string _file_name);
     nav_msgs::Path constructPath(std::vector<double> _wps_x, std::vector<double> _wps_y, std::vector<double> _wps_z, std::string frame_id);
     void saveDataForTesting();
+    std_msgs::String updateCommState();
     // Node handlers
     ros::NodeHandle nh_, pnh_;
     // Subscribers
     ros::Subscriber sub_pose_, sub_state_, sub_velocity_;
     // Publishers
-    ros::Publisher pub_set_velocity_, pub_set_pose_;
+    ros::Publisher pub_set_velocity_, pub_set_pose_, pub_comm_state_;
     // Services
     ros::ServiceClient client_take_off_, client_land_, client_generate_path_, client_prepare_path_, client_prepare_trajectory_, client_visualize_;
     // Variables
