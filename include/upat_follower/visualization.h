@@ -70,5 +70,5 @@ class Visualization {
     int prev_normal_pos_on_generated_path_ = 0;
     // Params
     int uav_id_;
-    std::string model_;
+    std::string model_, ns_prefix_;
 };

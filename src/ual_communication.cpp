@@ -24,6 +24,7 @@ namespace upat_follower {
 UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     // Parameters
     pnh_.getParam("uav_id", uav_id_);
+    pnh_.getParam("ns_prefix", ns_prefix_);
     pnh_.getParam("save_test_data", save_test_);
     pnh_.getParam("trajectory", trajectory_);
     pnh_.getParam("path", init_path_name_);
@@ -32,19 +33,19 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     pnh_.getParam("use_class", use_class_);
     pnh_.getParam("generator_mode", generator_mode_);
     // Subscriptions
-    sub_pose_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/pose", 0, &UALCommunication::ualPoseCallback, this);
-    sub_state_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/state", 0, &UALCommunication::ualStateCallback, this);
-    sub_velocity_ = nh_.subscribe("/upat_follower/follower/uav_" + std::to_string(uav_id_) + "/output_vel", 0, &UALCommunication::velocityCallback, this);
+    sub_pose_ = nh_.subscribe("/" + ns_prefix_ + std::to_string(uav_id_) + "/ual/pose", 0, &UALCommunication::ualPoseCallback, this);
+    sub_state_ = nh_.subscribe("/" + ns_prefix_ + std::to_string(uav_id_) + "/ual/state", 0, &UALCommunication::ualStateCallback, this);
+    sub_velocity_ = nh_.subscribe("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/follower/output_vel", 0, &UALCommunication::velocityCallback, this);
     // Publishers
-    pub_set_pose_ = nh_.advertise<geometry_msgs::PoseStamped>("/uav_" + std::to_string(uav_id_) + "/ual/set_pose", 1000);
-    pub_set_velocity_ = nh_.advertise<geometry_msgs::TwistStamped>("/uav_" + std::to_string(uav_id_) + "/ual/set_velocity", 1000);
-    pub_comm_state_ = nh_.advertise<std_msgs::String>("/upat_follower/communication/uav_" + std::to_string(uav_id_) + "/state", 1000);
+    pub_set_pose_ = nh_.advertise<geometry_msgs::PoseStamped>("/" + ns_prefix_ + std::to_string(uav_id_) + "/ual/set_pose", 1000);
+    pub_set_velocity_ = nh_.advertise<geometry_msgs::TwistStamped>("/" + ns_prefix_ + std::to_string(uav_id_) + "/ual/set_velocity", 1000);
+    pub_comm_state_ = nh_.advertise<std_msgs::String>("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/communication/state", 1000);
     // Services
-    client_take_off_ = nh_.serviceClient<uav_abstraction_layer::TakeOff>("/uav_" + std::to_string(uav_id_) + "/ual/take_off");
-    client_land_ = nh_.serviceClient<uav_abstraction_layer::Land>("/uav_" + std::to_string(uav_id_) + "/ual/land");
-    client_prepare_path_ = nh_.serviceClient<upat_follower::PreparePath>("/upat_follower/follower/uav_" + std::to_string(uav_id_) + "/prepare_path");
-    client_prepare_trajectory_ = nh_.serviceClient<upat_follower::PrepareTrajectory>("/upat_follower/follower/uav_" + std::to_string(uav_id_) + "/prepare_trajectory");
-    client_visualize_ = nh_.serviceClient<upat_follower::Visualize>("/upat_follower/visualization/uav_" + std::to_string(uav_id_) + "/visualize");
+    client_take_off_ = nh_.serviceClient<uav_abstraction_layer::TakeOff>("/" + ns_prefix_ + std::to_string(uav_id_) + "/ual/take_off");
+    client_land_ = nh_.serviceClient<uav_abstraction_layer::Land>("/" + ns_prefix_ + std::to_string(uav_id_) + "/ual/land");
+    client_prepare_path_ = nh_.serviceClient<upat_follower::PreparePath>("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/follower/prepare_path");
+    client_prepare_trajectory_ = nh_.serviceClient<upat_follower::PrepareTrajectory>("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/follower/prepare_trajectory");
+    client_visualize_ = nh_.serviceClient<upat_follower::Visualize>("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/visualization/visualize");
     // Flags
     on_path_ = false;
     end_path_ = false;
@@ -104,7 +105,7 @@ nav_msgs::Path UALCommunication::csvToPath(std::string _file_name) {
         }
     }
 
-    return constructPath(list_x, list_y, list_z, "uav_" + std::to_string(uav_id_) + "_home");
+    return constructPath(list_x, list_y, list_z, ns_prefix_ + std::to_string(uav_id_) + "/odom");
 }
 
 std::vector<double> UALCommunication::csvToVector(std::string _file_name) {

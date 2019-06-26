@@ -25,20 +25,21 @@ namespace upat_follower {
 Follower::Follower() : nh_(), pnh_("~") {
     // Parameters
     pnh_.getParam("uav_id", uav_id_);
+    pnh_.getParam("ns_prefix", ns_prefix_);
     pnh_.getParam("debug", debug_);
     // Subscriptions
-    sub_pose_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/pose", 0, &Follower::ualPoseCallback, this);
+    sub_pose_ = nh_.subscribe("/" + ns_prefix_ + std::to_string(uav_id_) + "/ual/pose", 0, &Follower::ualPoseCallback, this);
     // Publishers
-    pub_output_velocity_ = nh_.advertise<geometry_msgs::TwistStamped>("/upat_follower/follower/uav_" + std::to_string(uav_id_) + "/output_vel", 1000);
+    pub_output_velocity_ = nh_.advertise<geometry_msgs::TwistStamped>("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/follower/output_vel", 1000);
     // Services
-    server_prepare_path_ = nh_.advertiseService("/upat_follower/follower/uav_" + std::to_string(uav_id_) + "/prepare_path", &Follower::preparePathCb, this);
-    server_prepare_trajectory_ = nh_.advertiseService("/upat_follower/follower/uav_" + std::to_string(uav_id_) + "/prepare_trajectory", &Follower::prepareTrajectoryCb, this);
+    server_prepare_path_ = nh_.advertiseService("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/follower/prepare_path", &Follower::preparePathCb, this);
+    server_prepare_trajectory_ = nh_.advertiseService("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/follower/prepare_trajectory", &Follower::prepareTrajectoryCb, this);
     // Debug follower
     if (debug_) {
-        pub_point_look_ahead_ = nh_.advertise<geometry_msgs::PointStamped>("/upat_follower/follower/uav_" + std::to_string(uav_id_) + "/debug_point_look_ahead", 1000);
-        pub_point_normal_ = nh_.advertise<geometry_msgs::PointStamped>("/upat_follower/follower/uav_" + std::to_string(uav_id_) + "/debug_point_normal", 1000);
-        pub_point_search_normal_begin_ = nh_.advertise<geometry_msgs::PointStamped>("/upat_follower/follower/uav_" + std::to_string(uav_id_) + "/debug_point_search_begin", 1000);
-        pub_point_search_normal_end_ = nh_.advertise<geometry_msgs::PointStamped>("/upat_follower/follower/uav_" + std::to_string(uav_id_) + "/debug_point_search_end", 1000);
+        pub_point_look_ahead_ = nh_.advertise<geometry_msgs::PointStamped>("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/follower/debug_point_look_ahead", 1000);
+        pub_point_normal_ = nh_.advertise<geometry_msgs::PointStamped>("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/follower/debug_point_normal", 1000);
+        pub_point_search_normal_begin_ = nh_.advertise<geometry_msgs::PointStamped>("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/follower/debug_point_search_begin", 1000);
+        pub_point_search_normal_end_ = nh_.advertise<geometry_msgs::PointStamped>("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/follower/debug_point_search_end", 1000);
     }
     capMaxVelocities();
 }

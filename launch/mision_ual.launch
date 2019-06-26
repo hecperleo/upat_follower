@@ -40,10 +40,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     </include>
 
     <!-- UAV Path Manager nodes -->
-    <group ns="upat_follower">
-        <group ns="$(arg ns_prefix)1">
+    <group ns="$(arg ns_prefix)1">
+        <group ns="upat_follower">
             <node pkg="upat_follower" type="ual_communication_node" name="ual_communication" output="screen" required="true">
                 <param name="uav_id" value="1"/>
+                <param name="ns_prefix" value="$(arg ns_prefix)"/>
                 <param name="save_test_data" value="$(arg save_test_data)"/>
                 <param name="trajectory" value="$(arg trajectory)"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
@@ -54,22 +55,27 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             </node>
             <node pkg="upat_follower" type="follower_node" name="follower" output="screen" required="true" unless="$(arg use_class)">
                 <param name="uav_id" value="1"/>
+                <param name="ns_prefix" value="$(arg ns_prefix)"/>
                 <param name="debug" value="$(arg debug)"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
             </node>
             <node pkg="upat_follower" type="visualization_node" name="visualization" required="true" output="screen">
                 <param name="uav_id" value="1"/>
+                <param name="ns_prefix" value="$(arg ns_prefix)"/>
                 <param name="robot_model" value="$(arg robot_model)"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
                 <param name="save_experiment_data" value="$(arg save_experiment_data)"/>
                 <param name="trajectory" value="$(arg trajectory)"/>
             </node>
         </group>
+    </group>
 
-        <!-- Add one more UAV and nodes to manage it -->
-        <group if="$(arg multi)" ns="$(arg ns_prefix)2">
+    <!-- Add one more UAV and nodes to manage it -->
+    <group if="$(arg multi)" ns="$(arg ns_prefix)2">
+        <group ns="upat_follower">
             <node pkg="upat_follower" type="ual_communication_node" name="ual_communication" required="true" output="screen">
                 <param name="uav_id" value="2"/>
+                <param name="ns_prefix" value="$(arg ns_prefix)"/>
                 <param name="trajectory" value="$(arg trajectory)"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
                 <param name="path" value="$(arg path)"/>
@@ -79,10 +85,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             </node>
             <node pkg="upat_follower" type="follower_node" name="follower" required="true" unless="$(arg use_class)">
                 <param name="uav_id" value="2"/>
+                <param name="ns_prefix" value="$(arg ns_prefix)"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
             </node>
             <node pkg="upat_follower" type="visualization_node" name="visualization" required="true">
                 <param name="uav_id" value="2"/>
+                <param name="ns_prefix" value="$(arg ns_prefix)"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
                 <param name="robot_model" value="$(arg robot_model)"/>
             </node>

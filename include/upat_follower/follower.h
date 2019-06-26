@@ -93,6 +93,7 @@ class Follower {
     // Params
     int uav_id_;
     bool debug_;
+    std::string ns_prefix_;
     // Debug
     geometry_msgs::PointStamped point_look_ahead_, point_normal_, point_search_normal_begin_, point_search_normal_end_;
 };

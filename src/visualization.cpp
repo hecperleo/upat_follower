@@ -22,18 +22,19 @@
 Visualization::Visualization() : nh_(), pnh_("~") {
     // Parameters
     pnh_.getParam("uav_id", uav_id_);
+    pnh_.getParam("ns_prefix", ns_prefix_);
     std::string robot_model;
     pnh_.getParam("robot_model", robot_model);
     // Subscriptions
-    sub_pose_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/pose", 0, &Visualization::ualPoseCallback, this);
-    sub_state_ = nh_.subscribe("/uav_" + std::to_string(uav_id_) + "/ual/state", 0, &Visualization::ualStateCallback, this);
+    sub_pose_ = nh_.subscribe("/" + ns_prefix_ + std::to_string(uav_id_) + "/ual/pose", 0, &Visualization::ualPoseCallback, this);
+    sub_state_ = nh_.subscribe("/" + ns_prefix_ + std::to_string(uav_id_) + "/ual/state", 0, &Visualization::ualStateCallback, this);
     // Publishers
-    pub_init_path_ = nh_.advertise<nav_msgs::Path>("/upat_follower/visualization/uav_" + std::to_string(uav_id_) + "/init_path", 1);
-    pub_generated_path_ = nh_.advertise<nav_msgs::Path>("/upat_follower/visualization/uav_" + std::to_string(uav_id_) + "/generated_path", 1);
-    pub_current_path_ = nh_.advertise<nav_msgs::Path>("/upat_follower/visualization/uav_" + std::to_string(uav_id_) + "/current_path", 1);
-    pub_uav_model_ = nh_.advertise<visualization_msgs::Marker>("/upat_follower/visualization/uav_" + std::to_string(uav_id_) + "/uav_model", 1);
+    pub_init_path_ = nh_.advertise<nav_msgs::Path>("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/visualization/init_path", 1);
+    pub_generated_path_ = nh_.advertise<nav_msgs::Path>("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/visualization/generated_path", 1);
+    pub_current_path_ = nh_.advertise<nav_msgs::Path>("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/visualization/current_path", 1);
+    pub_uav_model_ = nh_.advertise<visualization_msgs::Marker>("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/visualization/uav_model", 1);
     // Services
-    server_visualize_ = nh_.advertiseService("/upat_follower/visualization/uav_" + std::to_string(uav_id_) + "/visualize", &Visualization::visualCallback, this);
+    server_visualize_ = nh_.advertiseService("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/visualization/visualize", &Visualization::visualCallback, this);
 
     uav_model_ = readModel(robot_model);
 }
