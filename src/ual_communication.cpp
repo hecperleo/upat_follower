@@ -32,6 +32,16 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     pnh_.getParam("reach_tolerance", reach_tolerance_);
     pnh_.getParam("use_class", use_class_);
     pnh_.getParam("generator_mode", generator_mode_);
+    // ros::param::param<int>("uav_id", uav_id_, 1);
+    // ros::param::param<std::string>("ns_prefix", ns_prefix_, "uav_");
+    // ros::param::param<bool>("save_test_data", save_test_, "false");
+    // ros::param::param<bool>("trajectory", trajectory_, "false");
+    // ros::param::param<std::string>("path", init_path_name_);
+    // ros::param::param<std::string>("pkg_name", pkg_name_);
+    // ros::param::param<double>("reach_tolerance", reach_tolerance_, 0.1);
+    // ros::param::param<bool>("use_class", use_class_, true);
+    // ros::param::param<int>("generator_mode", generator_mode_, 0);
+    ros::param::param<bool>("~debug", debug_, false);
     // Subscriptions
     sub_pose_ = nh_.subscribe("/" + ns_prefix_ + std::to_string(uav_id_) + "/ual/pose", 0, &UALCommunication::ualPoseCallback, this);
     sub_state_ = nh_.subscribe("/" + ns_prefix_ + std::to_string(uav_id_) + "/ual/state", 0, &UALCommunication::ualStateCallback, this);
@@ -202,7 +212,7 @@ std_msgs::String UALCommunication::updateCommState() {
 }
 
 void UALCommunication::runMission() {
-    static upat_follower::Follower follower_(uav_id_);
+    static upat_follower::Follower follower_(uav_id_, debug_);
 
     uav_abstraction_layer::TakeOff take_off;
     uav_abstraction_layer::Land land;
@@ -267,6 +277,7 @@ void UALCommunication::runMission() {
                         if (use_class_) {
                             follower_.updatePose(ual_pose_);
                             velocity_ = follower_.getVelocity();
+                            if(debug_) follower_.pubMsgs();
                         }
                         pub_set_velocity_.publish(velocity_);
                         current_path_.header.frame_id = ual_pose_.header.frame_id;

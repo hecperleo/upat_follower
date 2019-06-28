@@ -16,21 +16,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <arg name="debug" default="false"/>
     <arg name="save_test_data" default="false"/>
     <arg name="save_experiment_data" default="false"/>
-    <arg name="trajectory" default="true"/>
+    <arg name="trajectory" default="false"/>
     <arg name="reach_tolerance" default="0.1"/>
     <arg name="path" default="cubic"/>
     <arg name="generator_mode" default="0"/>
     <arg name="pkg_name" default="upat_follower"/>
-    <arg name="use_class" default="true" unless="$(arg debug)"/>
-    <arg name="use_class" default="false" if="$(arg debug)"/>
-    <arg name="multi" default="true" unless="$(arg debug)"/>
-    <arg name="multi" default="false" if="$(arg debug)"/>
-
-
+    <arg name="use_class" default="true"/>
+    <arg name="multi" default="false"/>
 
     <!-- Visualization -->
-    <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find upat_follower)/config/rviz/mision.rviz" required="true" unless="$(arg debug)"/>
-    <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find upat_follower)/config/rviz/debug.rviz" required="true" if="$(arg debug)"/>
+    <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find upat_follower)/config/rviz/mision.rviz" required="true"/>
 
     <!-- UAL Server -->
     <include file="$(find upat_follower)/launch/server_ual.launch">
@@ -52,6 +47,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 <param name="reach_tolerance" value="$(arg reach_tolerance)"/>
                 <param name="use_class" value="$(arg use_class)"/>
                 <param name="generator_mode" value="$(arg generator_mode)"/>
+                <param name="debug" value="$(arg debug)"/>
             </node>
             <node pkg="upat_follower" type="follower_node" name="follower" output="screen" required="true" unless="$(arg use_class)">
                 <param name="uav_id" value="1"/>
@@ -82,6 +78,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 <param name="reach_tolerance" value="$(arg reach_tolerance)"/>
                 <param name="use_class" value="$(arg use_class)"/>
                 <param name="generator_mode" value="$(arg generator_mode)"/>
+                <param name="debug" value="$(arg debug)"/>
             </node>
             <node pkg="upat_follower" type="follower_node" name="follower" required="true" unless="$(arg use_class)">
                 <param name="uav_id" value="2"/>
