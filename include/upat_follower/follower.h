@@ -92,8 +92,9 @@ class Follower {
     std::vector<double> generated_times_;
     // Params
     int uav_id_;
-    bool debug_;
-    std::string ns_prefix_;
+    bool debug_ = false;
+    bool debug_class_ = false;
+    std::string ns_prefix_ = "uav_";
     // Debug
     geometry_msgs::PointStamped point_look_ahead_, point_normal_, point_search_normal_begin_, point_search_normal_end_;
 };

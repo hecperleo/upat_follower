@@ -45,8 +45,14 @@ Follower::Follower() : nh_(), pnh_("~") {
 }
 
 Follower::Follower(int _uav_id, bool _debug) {
-    debug_ = _debug;
+    debug_ = debug_class_ = _debug;
     uav_id_ = _uav_id;
+    if (debug_class_) {
+        pub_point_look_ahead_ = nh_.advertise<geometry_msgs::PointStamped>("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/follower/debug_point_look_ahead", 1000);
+        pub_point_normal_ = nh_.advertise<geometry_msgs::PointStamped>("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/follower/debug_point_normal", 1000);
+        pub_point_search_normal_begin_ = nh_.advertise<geometry_msgs::PointStamped>("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/follower/debug_point_search_begin", 1000);
+        pub_point_search_normal_end_ = nh_.advertise<geometry_msgs::PointStamped>("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/follower/debug_point_search_end", 1000);
+    }
     capMaxVelocities();
 }
 
@@ -189,7 +195,6 @@ int Follower::calculatePosLookAhead(int _pos_on_path) {
 }
 
 double Follower::changeLookAhead(int _pos_on_path) {
-    // ROS_WARN("la: %f, max: %f, %: %f", max_vel_ * generated_times_[_pos_on_path], max_vel_, generated_times_[_pos_on_path]);
     return max_vel_ * generated_times_[_pos_on_path];
 }
 
@@ -282,7 +287,7 @@ void Follower::prepareDebug(double _search_range, int _normal_pos_on_path, int _
 }
 
 void Follower::pubMsgs() {
-    pub_output_velocity_.publish(out_velocity_);
+    if (!debug_class_) pub_output_velocity_.publish(out_velocity_);
     if (debug_) {
         pub_point_look_ahead_.publish(point_look_ahead_);
         pub_point_normal_.publish(point_normal_);
@@ -298,6 +303,7 @@ geometry_msgs::TwistStamped Follower::getVelocity() {
         target_path0_point = Eigen::Vector3f(target_path_.poses.at(0).pose.position.x, target_path_.poses.at(0).pose.position.y, target_path_.poses.at(0).pose.position.z);
         if ((current_point - target_path0_point).norm() < 1) {
             flag_run_ = true;
+            prev_normal_vel_on_path_ = prev_normal_pos_on_path_ = 0;
         }
         if (flag_run_) {
             int pos_look_ahead;
