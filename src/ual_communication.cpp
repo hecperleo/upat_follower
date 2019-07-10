@@ -266,7 +266,12 @@ void UALCommunication::runMission() {
                         pub_set_pose_.publish(target_path_.poses.at(0));
                     } else if (reach_tolerance_ > (current_p - path0_p).norm() && !flag_hover_) {
                         pub_set_pose_.publish(target_path_.poses.front());
-                        on_path_ = true;
+                        static float start_wait = ros::Time::now().toSec();
+                        if (ros::Time::now().toSec() - start_wait > 10.0) {
+                            on_path_ = true;
+                        } else {
+                            ROS_INFO("Waiting to start [%.2f] ...", 10.0 - (ros::Time::now().toSec() - start_wait));
+                        }
                     }
                 } else {
                     if (reach_tolerance_ * 2 > (current_p - path_end_p).norm()) {
@@ -277,7 +282,7 @@ void UALCommunication::runMission() {
                         if (use_class_) {
                             follower_.updatePose(ual_pose_);
                             velocity_ = follower_.getVelocity();
-                            if(debug_) follower_.pubMsgs();
+                            if (debug_) follower_.pubMsgs();
                         }
                         pub_set_velocity_.publish(velocity_);
                         current_path_.header.frame_id = ual_pose_.header.frame_id;
