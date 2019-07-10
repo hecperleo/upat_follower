@@ -62,6 +62,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 <param name="pub_rate" value="$(arg pub_rate)"/>
                 <param name="save_experiment_data" value="$(arg save_experiment_data)"/>
                 <param name="trajectory" value="$(arg trajectory)"/>
+                <param name="generator_mode" value="$(arg generator_mode)"/>
             </node>
         </group>
     </group>
