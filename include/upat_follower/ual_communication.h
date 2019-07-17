@@ -61,7 +61,9 @@ class UALCommunication {
     // Methods
     nav_msgs::Path csvToPath(std::string _file_name);
     std::vector<double> csvToVector(std::string _file_name);
-    nav_msgs::Path constructPath(std::vector<double> _wps_x, std::vector<double> _wps_y, std::vector<double> _wps_z, std::string frame_id);
+    nav_msgs::Path constructPath(std::vector<double> _wps_x, std::vector<double> _wps_y, std::vector<double> _wps_z,
+                                 std::vector<double> _wps_ox, std::vector<double> _wps_oy, std::vector<double> _wps_oz,
+                                 std::vector<double> _wps_ow, std::string frame_id);
     void saveDataForTesting();
     // Node handlers
     ros::NodeHandle nh_, pnh_;

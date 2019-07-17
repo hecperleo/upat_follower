@@ -60,7 +60,9 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
 UALCommunication::~UALCommunication() {
 }
 
-nav_msgs::Path UALCommunication::constructPath(std::vector<double> _wps_x, std::vector<double> _wps_y, std::vector<double> _wps_z, std::string frame_id) {
+nav_msgs::Path UALCommunication::constructPath(std::vector<double> _wps_x, std::vector<double> _wps_y, std::vector<double> _wps_z,
+                                               std::vector<double> _wps_ox, std::vector<double> _wps_oy, std::vector<double> _wps_oz,
+                                               std::vector<double> _wps_ow, std::string frame_id) {
     nav_msgs::Path out_path;
     std::vector<geometry_msgs::PoseStamped> poses(_wps_x.size());
     out_path.header.frame_id = frame_id;
@@ -68,10 +70,10 @@ nav_msgs::Path UALCommunication::constructPath(std::vector<double> _wps_x, std::
         poses.at(i).pose.position.x = _wps_x[i];
         poses.at(i).pose.position.y = _wps_y[i];
         poses.at(i).pose.position.z = _wps_z[i];
-        poses.at(i).pose.orientation.x = 0;
-        poses.at(i).pose.orientation.y = 0;
-        poses.at(i).pose.orientation.z = 0;
-        poses.at(i).pose.orientation.w = 1;
+        poses.at(i).pose.orientation.x = _wps_ox[i];
+        poses.at(i).pose.orientation.y = _wps_oy[i];
+        poses.at(i).pose.orientation.z = _wps_oz[i];
+        poses.at(i).pose.orientation.w = _wps_ow[i];
     }
     out_path.poses = poses;
     return out_path;
@@ -83,27 +85,43 @@ nav_msgs::Path UALCommunication::csvToPath(std::string _file_name) {
     std::string folder_name = pkg_name_path + "/config" + _file_name;
     std::fstream read_csv;
     read_csv.open(folder_name);
-    std::vector<double> list_x, list_y, list_z;
+    std::vector<double> list_x, list_y, list_z, list_ox, list_oy, list_oz, list_ow;
     if (read_csv.is_open()) {
         while (read_csv.good()) {
-            std::string x, y, z;
-            double dx, dy, dz;
+            std::string x, y, z, ox, oy, oz, ow;
+            double dx, dy, dz, dox, doy, doz, dow;
             getline(read_csv, x, ',');
             getline(read_csv, y, ',');
-            getline(read_csv, z, '\n');
+            getline(read_csv, z, ',');
+            getline(read_csv, ox, ',');
+            getline(read_csv, oy, ',');
+            getline(read_csv, oz, ',');
+            getline(read_csv, ow, '\n');
             std::stringstream sx(x);
             std::stringstream sy(y);
             std::stringstream sz(z);
+            std::stringstream sox(ox);
+            std::stringstream soy(oy);
+            std::stringstream soz(oz);
+            std::stringstream sow(ow);
             sx >> dx;
             sy >> dy;
             sz >> dz;
+            sox >> dox;
+            soy >> doy;
+            soz >> doz;
+            sow >> dow;
             list_x.push_back(dx);
             list_y.push_back(dy);
             list_z.push_back(dz);
+            list_ox.push_back(dox);
+            list_oy.push_back(doy);
+            list_oz.push_back(doz);
+            list_ow.push_back(dow);
         }
     }
 
-    return constructPath(list_x, list_y, list_z, "uav_" + std::to_string(uav_id_) + "_home");
+    return constructPath(list_x, list_y, list_z, list_ox, list_oy, list_oz, list_ow, "uav_" + std::to_string(uav_id_) + "_home");
 }
 
 std::vector<double> UALCommunication::csvToVector(std::string _file_name) {

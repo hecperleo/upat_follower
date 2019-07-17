@@ -126,16 +126,25 @@ std::vector<double> Generator::linealInterp1(std::vector<double> &_x, std::vecto
 }
 
 nav_msgs::Path Generator::generatePath(nav_msgs::Path _init_path, int _generator_mode) {
-    std::vector<double> list_pose_x, list_pose_y, list_pose_z;
+    std::vector<double> list_pose_x, list_pose_y, list_pose_z, list_orient_x, list_orient_y, list_orient_z, list_orient_w;
     for (int i = 0; i < _init_path.poses.size(); i++) {
         list_pose_x.push_back(_init_path.poses.at(i).pose.position.x);
         list_pose_y.push_back(_init_path.poses.at(i).pose.position.y);
         list_pose_z.push_back(_init_path.poses.at(i).pose.position.z);
+        list_orient_x.push_back(_init_path.poses.at(i).pose.orientation.x);
+        list_orient_y.push_back(_init_path.poses.at(i).pose.orientation.y);
+        list_orient_z.push_back(_init_path.poses.at(i).pose.orientation.z);
+        list_orient_w.push_back(_init_path.poses.at(i).pose.orientation.w);
     }
     list_pose_x.push_back(list_pose_x.back());
     list_pose_y.push_back(list_pose_y.back());
     list_pose_z.push_back(list_pose_z.back());
+    list_orient_x.push_back(list_orient_x.back());
+    list_orient_y.push_back(list_orient_y.back());
+    list_orient_z.push_back(list_orient_z.back());
+    list_orient_w.push_back(list_orient_w.back());
     int total_distance = 0;
+    int k = 0;
     switch (_generator_mode) {
         case 0:
             mode_ = mode_interp1_;
@@ -147,6 +156,16 @@ nav_msgs::Path Generator::generatePath(nav_msgs::Path _init_path, int _generator
             }
             interp1_final_size_ = total_distance / 0.02;
             out_path_ = pathManagement(list_pose_x, list_pose_y, list_pose_z);
+            // Add orientation
+            for (int i = 0; i < _init_path.poses.size() - 1; i++) {
+                for (int j = 0; j < (out_path_.poses.size() / (_init_path.poses.size())); j++) {
+                    out_path_.poses.at(k).pose.orientation.x = list_orient_x[i];
+                    out_path_.poses.at(k).pose.orientation.y = list_orient_y[i];
+                    out_path_.poses.at(k).pose.orientation.z = list_orient_z[i];
+                    out_path_.poses.at(k).pose.orientation.w = list_orient_w[i];
+                    k++;
+                }
+            }
             break;
         case 1:
             mode_ = mode_cubic_spline_loyal_;
