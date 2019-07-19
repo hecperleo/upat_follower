@@ -248,6 +248,9 @@ void UALCommunication::runMission() {
             if (use_class_) target_path_ = follower_.preparePath(init_path_, generator_mode_, 0.4, 1.0);
         }
         flag_redo_ = false;
+    } else if (flag_update_) {
+        follower_.updatePath(target_path_);
+        flag_update_ = false;
     }
 
     Eigen::Vector3f current_p, path0_p, path_end_p;
