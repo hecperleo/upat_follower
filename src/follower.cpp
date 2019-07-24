@@ -297,6 +297,7 @@ geometry_msgs::TwistStamped Follower::getVelocity() {
         target_path0_point = Eigen::Vector3f(target_path_.poses.at(0).pose.position.x, target_path_.poses.at(0).pose.position.y, target_path_.poses.at(0).pose.position.z);
         if ((current_point - target_path0_point).norm() < 1) {
             flag_run_ = true;
+            prev_normal_vel_on_path_ = prev_normal_pos_on_path_ = 0;
         }
         if (flag_run_) {
             int pos_look_ahead;
