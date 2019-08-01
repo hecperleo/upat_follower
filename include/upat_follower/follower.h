@@ -85,7 +85,6 @@ class Follower {
     int follower_mode_;
     int prev_normal_pos_on_path_ = 0;
     int prev_normal_vel_on_path_ = 0;
-    bool flag_run_ = false;
     geometry_msgs::PoseStamped ual_pose_;
     nav_msgs::Path target_path_, target_vel_path_;
     double look_ahead_, cruising_speed_, max_vel_;
