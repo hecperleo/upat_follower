@@ -272,6 +272,8 @@ void UALCommunication::runMission() {
                         } else {
                             ROS_INFO("Waiting to start [%.2f] ...", 10.0 - (ros::Time::now().toSec() - start_wait));
                         }
+                    } else {
+                        pub_set_pose_.publish(target_path_.poses.front());
                     }
                 } else {
                     if (reach_tolerance_ * 2 > (current_p - path_end_p).norm()) {
