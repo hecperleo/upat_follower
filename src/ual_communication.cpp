@@ -276,6 +276,8 @@ void UALCommunication::runMission() {
                         } else if (reach_tolerance_ > (current_p - path0_p).norm()) {
                             pub_set_pose_.publish(target_path_.poses.front());
                             on_path_ = true;
+                        } else {
+                            pub_set_pose_.publish(target_path_.poses.front());
                         }
                     } else {
                         if (reach_tolerance_ * 2 > (current_p - path_end_p).norm()) {
