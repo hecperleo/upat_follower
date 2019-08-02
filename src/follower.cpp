@@ -175,6 +175,8 @@ int Follower::calculatePosOnPath(Eigen::Vector3f _current_point, double _search_
     auto smallest_distance = std::min_element(vec_distances.begin(), vec_distances.end());
     int pos_on_path = smallest_distance - vec_distances.begin();
 
+    position_on_path_ = pos_on_path + start_search_pos_on_path;
+
     return pos_on_path + start_search_pos_on_path;
 }
 

@@ -49,6 +49,7 @@ class Follower {
     void updateTrajectory(nav_msgs::Path _new_target_path, nav_msgs::Path _new_target_vel_path);
     nav_msgs::Path prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _times);
     nav_msgs::Path preparePath(nav_msgs::Path _init_path, int _generator_mode = 0, double _look_ahead = 1.2, double _cruising_speed = 1.0);
+    int position_on_path_ = 0;
 
    private:
     // Callbacks

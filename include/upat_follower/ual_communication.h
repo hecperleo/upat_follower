@@ -53,6 +53,7 @@ class UALCommunication {
     bool flag_hover_ = false;
     bool flag_redo_ = true;
     bool flag_land_ = true;
+    int position_on_path_ = 0;
     nav_msgs::Path init_path_, target_path_;
 
    private:

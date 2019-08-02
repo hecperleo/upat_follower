@@ -260,7 +260,7 @@ void UALCommunication::runMission() {
     switch (ual_state_.state) {
         case 2:  // Landed armed
             if (!end_path_) {
-                take_off.request.height = 20.0;
+                take_off.request.height = 10.0;
                 take_off.request.blocking = true;
                 client_take_off_.call(take_off);
             }
@@ -289,6 +289,7 @@ void UALCommunication::runMission() {
                                 follower_.updatePose(ual_pose_);
                                 velocity_ = follower_.getVelocity();
                                 if (debug_) follower_.pubMsgs();
+                                position_on_path_ = follower_.position_on_path_;
                             }
                             pub_set_velocity_.publish(velocity_);
                             current_path_.header.frame_id = ual_pose_.header.frame_id;
