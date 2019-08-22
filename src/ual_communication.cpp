@@ -215,6 +215,26 @@ std_msgs::String UALCommunication::updateCommState() {
     return out_state;
 }
 
+void UALCommunication::switchState(state_t new_state) {
+    state_ = new_state;
+    switch (state_) {
+        case hover_:
+            ROS_INFO("[UPAT] State switched to hover.");
+            break;
+        case go_to_start_:
+            ROS_INFO("[UPAT] State switched to go_to_start.");
+            break;
+        case go_to_end_:
+            ROS_INFO("[UPAT] State switched to go_to_end.");
+            break;
+        case execute_path_:
+            ROS_INFO("[UPAT] State switched to execute_path.");
+            break;
+        default:
+            break;
+    }
+}
+
 void UALCommunication::runMission() {
     static upat_follower::Follower follower_(uav_id_, debug_);
 
@@ -222,7 +242,7 @@ void UALCommunication::runMission() {
     uav_abstraction_layer::Land land;
     upat_follower::PreparePath prepare_path;
     upat_follower::PrepareTrajectory prepare_trajectory;
-    if (/* target_path_.poses.size() < 1 */ flag_redo_) {
+    if (flag_redo_) {
         if (save_test_) saveDataForTesting();
         if (trajectory_) {
             for (int i = 0; i < times_.size(); i++) {
@@ -245,7 +265,7 @@ void UALCommunication::runMission() {
                 client_prepare_path_.call(prepare_path);
                 target_path_ = prepare_path.response.generated_path;
             }
-            if (use_class_) target_path_ = follower_.preparePath(init_path_, generator_mode_, 2.0, 1.0);
+            if (use_class_) target_path_ = follower_.preparePath(init_path_, generator_mode_, 2.0, 4.0);
         }
         flag_redo_ = false;
     } else if (flag_update_) {
@@ -259,55 +279,48 @@ void UALCommunication::runMission() {
     path_end_p = Eigen::Vector3f(target_path_.poses.back().pose.position.x, target_path_.poses.back().pose.position.y, target_path_.poses.back().pose.position.z);
     switch (ual_state_.state) {
         case 2:  // Landed armed
-            if (!end_path_) {
-                take_off.request.height = 10.0;
-                take_off.request.blocking = true;
-                client_take_off_.call(take_off);
-            }
             break;
         case 3:  // Taking of
             break;
         case 4:  // Flying auto
-            if (!flag_hover_) {
-                if (!end_path_) {
-                    if (!on_path_) {
-                        if ((current_p - path0_p).norm() > reach_tolerance_ * 2) {
-                            pub_set_pose_.publish(target_path_.poses.at(0));
-                        } else if (reach_tolerance_ > (current_p - path0_p).norm()) {
-                            pub_set_pose_.publish(target_path_.poses.front());
-                            on_path_ = true;
-                        } else {
-                            pub_set_pose_.publish(target_path_.poses.front());
-                        }
+            switch (state_) {
+                case hover_:
+                    break;
+                case go_to_start_:
+                    if ((current_p - path0_p).norm() > reach_tolerance_ * 2) {
+                        pub_set_pose_.publish(target_path_.poses.at(0));
+                    } else if (reach_tolerance_ > (current_p - path0_p).norm()) {
+                        pub_set_pose_.publish(target_path_.poses.front());
+                        switchState(execute_path_);
                     } else {
-                        if (reach_tolerance_ * 2 > (current_p - path_end_p).norm()) {
-                            pub_set_pose_.publish(target_path_.poses.back());
-                            on_path_ = false;
-                            end_path_ = true;
-                        } else {
-                            if (use_class_) {
-                                follower_.updatePose(ual_pose_);
-                                velocity_ = follower_.getVelocity();
-                                if (debug_) follower_.pubMsgs();
-                                position_on_path_ = follower_.position_on_path_;
-                            }
-                            pub_set_velocity_.publish(velocity_);
-                            current_path_.header.frame_id = ual_pose_.header.frame_id;
-                            current_path_.poses.push_back(ual_pose_);
-                        }
+                        pub_set_pose_.publish(target_path_.poses.front());
                     }
-                } else {
+                    break;
+                case execute_path_:
+                    if (reach_tolerance_ * 2 > (current_p - path_end_p).norm()) {
+                        pub_set_pose_.publish(target_path_.poses.back());
+                        switchState(go_to_end_);
+                    } else {
+                        if (use_class_) {
+                            follower_.updatePose(ual_pose_);
+                            velocity_ = follower_.getVelocity();
+                            if (debug_) follower_.pubMsgs();
+                            position_on_path_ = follower_.position_on_path_;
+                        }
+                        pub_set_velocity_.publish(velocity_);
+                        current_path_.header.frame_id = ual_pose_.header.frame_id;
+                        current_path_.poses.push_back(ual_pose_);
+                    }
+                    break;
+                case go_to_end_:
                     if (reach_tolerance_ * 2 > (current_p - path_end_p).norm() && (current_p - path_end_p).norm() > reach_tolerance_) {
                         pub_set_pose_.publish(target_path_.poses.back());
-                    } else if (!flag_land_) {
-                        on_path_ = true;
-                        end_path_ = false;
-                        flag_hover_ = true;
                     } else {
-                        land.request.blocking = true;
-                        client_land_.call(land);
+                        switchState(hover_);
                     }
-                }
+                    break;
+                default:
+                    break;
             }
             break;
         case 5:  // Landing

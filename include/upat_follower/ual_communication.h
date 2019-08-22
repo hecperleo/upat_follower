@@ -57,6 +57,12 @@ class UALCommunication {
     bool end_path_ = false;
     int position_on_path_ = 0;
     nav_msgs::Path init_path_, target_path_;
+    enum state_t { hover_,
+                   go_to_start_,
+                   go_to_end_,
+                   execute_path_ };
+    state_t state_ = go_to_start_;
+    void switchState(state_t new_state);
 
    private:
     double vxy_ = 2.0;
