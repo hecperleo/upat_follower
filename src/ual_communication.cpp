@@ -230,6 +230,9 @@ void UALCommunication::switchState(state_t new_state) {
         case execute_path_:
             ROS_INFO("[UPAT] State switched to execute_path.");
             break;
+        case hover_emergency_:
+            ROS_WARN("[UPAT] State switched to hover_emergency.");
+            break;
         default:
             break;
     }
@@ -319,7 +322,8 @@ void UALCommunication::runMission() {
                         switchState(hover_);
                     }
                     break;
-                default:
+                case hover_emergency_:
+                    pub_set_pose_.publish(hover_emergency_pose_);
                     break;
             }
             break;

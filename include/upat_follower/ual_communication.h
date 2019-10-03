@@ -60,9 +60,11 @@ class UALCommunication {
     enum state_t { hover_,
                    go_to_start_,
                    go_to_end_,
-                   execute_path_ };
+                   execute_path_,
+                   hover_emergency_};
     state_t state_ = go_to_start_;
     void switchState(state_t new_state);
+    geometry_msgs::PoseStamped hover_emergency_pose_;
 
    private:
     double vxy_ = 2.0;
