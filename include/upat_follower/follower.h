@@ -76,8 +76,8 @@ class Follower {
     // Services
     ros::ServiceServer server_prepare_path_, server_prepare_trajectory_;
     // Variables
-    double vxy_ = 2.0;
-    double vz_up_ = 3.0;
+    double vxy_ = 4.0;
+    double vz_up_ = 4.0;
     double vz_dn_ = 4.0;
     double smallest_max_velocity_;
     std::vector<double> mpc_xy_vel_max_ = {0.0, 20.0};   // Default PX4 parameter limits
@@ -86,9 +86,10 @@ class Follower {
     int follower_mode_;
     int prev_normal_pos_on_path_ = 0;
     int prev_normal_vel_on_path_ = 0;
+    int increase_vel_count_ = 1;
     geometry_msgs::PoseStamped ual_pose_;
     nav_msgs::Path target_path_, target_vel_path_;
-    double look_ahead_, cruising_speed_, max_vel_;
+    double look_ahead_, cruising_speed_, max_vel_, increase_vel_;
     std::vector<double> generated_times_;
     // Params
     int uav_id_;
