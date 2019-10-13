@@ -87,7 +87,7 @@ nav_msgs::Path Follower::preparePath(nav_msgs::Path _init_path, int _generator_m
     cruising_speed_ = _cruising_speed;
     if (_cruising_speed > smallest_max_velocity_) cruising_speed_ = smallest_max_velocity_;
     if (_cruising_speed <= 0) cruising_speed_ = 0.1;
-    double acc_time = 6.0;
+    double acc_time = cruising_speed_ * 2;
     double f_node = 30.0;
     increase_vel_count_ = 1;
     increase_vel_ = cruising_speed_ / acc_time / f_node;
