@@ -268,7 +268,7 @@ void UALCommunication::runMission() {
                 client_prepare_path_.call(prepare_path);
                 target_path_ = prepare_path.response.generated_path;
             }
-            if (use_class_) target_path_ = follower_.preparePath(init_path_, generator_mode_, 2.0, 4.0);
+            if (use_class_) target_path_ = follower_.preparePath(init_path_, generator_mode_, 2.0, 1.0);
         }
         flag_redo_ = false;
     } else if (flag_update_) {

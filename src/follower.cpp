@@ -87,11 +87,11 @@ nav_msgs::Path Follower::preparePath(nav_msgs::Path _init_path, int _generator_m
     cruising_speed_ = _cruising_speed;
     if (_cruising_speed > smallest_max_velocity_) cruising_speed_ = smallest_max_velocity_;
     if (_cruising_speed <= 0) cruising_speed_ = 0.1;
-    double acc_time = 6.0;
-    double f_node = 30.0;
-    increase_vel_count_ = 1;
-    increase_vel_ = cruising_speed_ / acc_time / f_node;
     target_path_ = generator.out_path_;
+    double acc_time = cruising_speed_ * 2.0;              // This is
+    double f_node = 30.0;                                 // needed for
+    increase_vel_count_ = 1;                              // smooth
+    increase_vel_ = cruising_speed_ / acc_time / f_node;  // acceleration
     return generator.out_path_;
 }
 
@@ -208,19 +208,34 @@ double Follower::changeLookAhead(int _pos_on_path) {
 
 geometry_msgs::TwistStamped Follower::calculateVelocity(Eigen::Vector3f _current_point, int _pos_look_ahead, int _pos_on_path) {
     geometry_msgs::TwistStamped out_vel;
-    Eigen::Vector3f target_p, unit_vec, hypo_vec;
+    Eigen::Vector3f target_p, unit_vec, hypo_vec, last_p;
     target_p = Eigen::Vector3f(target_path_.poses.at(_pos_look_ahead).pose.position.x, target_path_.poses.at(_pos_look_ahead).pose.position.y, target_path_.poses.at(_pos_look_ahead).pose.position.z);
+    last_p = Eigen::Vector3f(target_path_.poses.back().pose.position.x, target_path_.poses.back().pose.position.y, target_path_.poses.back().pose.position.z);
     double distance = (target_p - _current_point).norm();
+    double distance_to_end = (last_p - _current_point).norm();
+    double decrease_vel = 0.2;
+    double vel_magnitude;
+    deceleration_dist_ = 0.5 * last_vel_commanded_ * last_vel_commanded_ / decrease_vel;
+    // std::cout << "END_d: " << distance_to_end << ", DEC_d: " << deceleration_dist_ << ", v: " << last_vel_commanded_ << std::endl;
     switch (follower_mode_) {
         case 0:
             unit_vec = (target_p - _current_point) / distance;
             unit_vec = unit_vec / unit_vec.norm();
-            out_vel.twist.linear.x = unit_vec(0) * increase_vel_ * increase_vel_count_;
-            out_vel.twist.linear.y = unit_vec(1) * increase_vel_ * increase_vel_count_;
-            out_vel.twist.linear.z = unit_vec(2) * increase_vel_ * increase_vel_count_;
-            if (cruising_speed_ > increase_vel_ * increase_vel_count_) {
-                increase_vel_count_++;
-            } 
+            if (distance_to_end > deceleration_dist_) {
+                vel_magnitude = increase_vel_ * increase_vel_count_;
+                if (cruising_speed_ > increase_vel_ * increase_vel_count_) {
+                    increase_vel_count_++;
+                    std::cout << "Accelerating ..." << std::endl;
+                }
+            } else {
+                // vel_magnitude = last_vel_commanded_ - decrease_vel*2;
+                vel_magnitude = 1;
+                if (vel_magnitude < 0) vel_magnitude = 0;
+                std::cout << "Decelerating ..." << std::endl;
+            }
+            out_vel.twist.linear.x = unit_vec(0) * vel_magnitude;
+            out_vel.twist.linear.y = unit_vec(1) * vel_magnitude;
+            out_vel.twist.linear.z = unit_vec(2) * vel_magnitude;
             break;
         case 1:
             // hypo_vec = (target_p - _current_point);
@@ -235,6 +250,9 @@ geometry_msgs::TwistStamped Follower::calculateVelocity(Eigen::Vector3f _current
             break;
     }
     out_vel.header.frame_id = target_path_.header.frame_id;
+    last_vel_commanded_ = sqrt(out_vel.twist.linear.x * out_vel.twist.linear.x +
+                               out_vel.twist.linear.y * out_vel.twist.linear.y +
+                               out_vel.twist.linear.z * out_vel.twist.linear.z);
 
     return out_vel;
 }

@@ -79,6 +79,8 @@ class Follower {
     double vxy_ = 4.0;
     double vz_up_ = 4.0;
     double vz_dn_ = 4.0;
+    double deceleration_dist_;
+    double last_vel_commanded_;
     double smallest_max_velocity_;
     std::vector<double> mpc_xy_vel_max_ = {0.0, 20.0};   // Default PX4 parameter limits
     std::vector<double> mpc_z_vel_max_up_ = {0.5, 8.0};  // Default PX4 parameter limits
@@ -87,6 +89,7 @@ class Follower {
     int prev_normal_pos_on_path_ = 0;
     int prev_normal_vel_on_path_ = 0;
     int increase_vel_count_ = 1;
+    int decrease_vel_count_ = 0;
     geometry_msgs::PoseStamped ual_pose_;
     nav_msgs::Path target_path_, target_vel_path_;
     double look_ahead_, cruising_speed_, max_vel_, increase_vel_;
