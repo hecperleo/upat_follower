@@ -1,0 +1,30 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <model name="basket">
+    <static>true</static>
+    <link name="floor">
+      <collision name="collision">
+        <geometry>
+          <box>
+            <size>57.18 57.5 .1</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <cast_shadows>false</cast_shadows>
+        <geometry>
+          <box>
+            <size>57.18 57.5 .1</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>model://basket/materials/scripts</uri>
+            <uri>model://basket/materials/textures</uri>
+            <name>basket</name>
+          </script>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>

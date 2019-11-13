@@ -1,0 +1,24 @@
+<launch>
+    <arg name="usb" default="0"/>
+    <arg name="ns_prefix" default="uav_"/>
+    <arg name="uav_id" default="1"/>
+    <!-- karting: pose_frame_id = map -->
+    <arg name="pose_frame_id" default="map"/>
+
+    <!-- Launch robot id=1 -->
+    <include file="$(find px4_bringup)/launch/spawn_robot.launch" ns="$(arg ns_prefix)$(arg id)">
+        <arg name="id" value="$(arg id)"/>
+        <arg name="mode" value="custom"/>
+        <arg name="fcu_url" value="serial:///dev/ttyUSB$(arg usb):921600"/>
+    </include>
+
+    <group ns="$(arg ns_prefix)$(arg uav_id)">
+        <node pkg="uav_abstraction_layer" type="server" name="ual" output="screen" required="true">
+            <param name="uav_id" value="$(arg uav_id)"/>
+            <param name="pose_frame_id" value="$(arg pose_frame_id)"/>
+            <rosparam param="map_origin_geo">[37.41036, -6.002353, 6.48]</rosparam>
+            <!-- <rosparam param="home_pose">[0, 0, 0]</rosparam>             -->
+        </node>
+    </group>
+
+</launch>
