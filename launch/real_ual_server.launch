@@ -6,10 +6,11 @@
     <arg name="pose_frame_id" default="map"/>
 
     <!-- Launch robot id=1 -->
-    <include file="$(find px4_bringup)/launch/spawn_robot.launch" ns="$(arg ns_prefix)$(arg id)">
-        <arg name="id" value="$(arg id)"/>
+    <include file="$(find px4_bringup)/launch/spawn_robot.launch" ns="$(arg ns_prefix)$(arg uav_id)">
+        <arg name="id" value="$(arg uav_id)"/>
         <arg name="mode" value="custom"/>
         <arg name="fcu_url" value="serial:///dev/ttyUSB$(arg usb):921600"/>
+        <arg name="rtcm_topic" value="/rtcm_stream"/>
     </include>
 
     <group ns="$(arg ns_prefix)$(arg uav_id)">
