@@ -9,6 +9,7 @@ add_compile_options(-std=c++11)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roscpp 
+  roslib
   geometry_msgs 
   nav_msgs
   std_msgs
@@ -116,7 +117,7 @@ add_service_files(
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES upat_follower
-  CATKIN_DEPENDS geometry_msgs nav_msgs roscpp uav_abstraction_layer std_msgs ecl_geometry message_runtime
+  CATKIN_DEPENDS roslib geometry_msgs nav_msgs roscpp uav_abstraction_layer std_msgs ecl_geometry message_runtime
   DEPENDS EIGEN3
 )
 
