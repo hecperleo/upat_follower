@@ -12,13 +12,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <!-- Arguments -->
     <arg name="ns_prefix" default="uav_"/>
     <arg name="robot_model" default="iris"/>
-    <arg name="pub_rate" default="50.0"/>
+    <arg name="pub_rate" default="30.0"/>
     <arg name="debug" default="false"/>
     <arg name="save_test_data" default="false"/>
     <arg name="save_experiment_data" default="false"/>
     <arg name="trajectory" default="false"/>
-    <arg name="reach_tolerance" default="0.1"/>
-    <arg name="path" default="cubic"/>
+    <arg name="reach_tolerance" default="1.0"/>
+    <arg name="path" default="atlas_pista"/>
     <arg name="generator_mode" default="0"/>
     <arg name="pkg_name" default="upat_follower"/>
     <arg name="use_class" default="true"/>

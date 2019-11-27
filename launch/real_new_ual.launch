@@ -17,8 +17,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <arg name="ual_pub_rate" default="30.0"/>
 
     <arg name="mode" default="custom"/>
-    <arg name="fcu_url" default="serial:///dev/ttyUSB$(arg usb):921600"/>
-    <arg name="gcs_url" default=""/>
+    <arg name="fcu_url" default="/dev/ttyACM0:57600"/>
+    <arg name="gcs_url" default="udp://@192.168.1.101"/>
     <arg name="rtcm_topic" default="/rtcm_stream"/>
     <arg name="pose_frame_id" default="map"/>
     <!-- To publish ual/pose in other frame than local, e.g. map -->

@@ -26,6 +26,7 @@
 #include <uav_abstraction_layer/Land.h>
 #include <uav_abstraction_layer/State.h>
 #include <uav_abstraction_layer/TakeOff.h>
+#include <uav_abstraction_layer/GoToWaypoint.h>
 #include <uav_abstraction_layer/ual.h>
 #include <upat_follower/GeneratePath.h>
 #include <upat_follower/PreparePath.h>
@@ -87,7 +88,7 @@ class UALCommunication {
     // Publishers
     ros::Publisher pub_set_velocity_, pub_set_pose_, pub_comm_state_;
     // Services
-    ros::ServiceClient client_take_off_, client_land_, client_generate_path_, client_prepare_path_, client_prepare_trajectory_, client_visualize_;
+    ros::ServiceClient client_go_to_waypoint_, client_take_off_, client_land_, client_generate_path_, client_prepare_path_, client_prepare_trajectory_, client_visualize_;
     // Variables
     std::string folder_data_name_;
     nav_msgs::Path /* target_path_, */ vel_percentage_path_, /* init_path_, */ current_path_;
