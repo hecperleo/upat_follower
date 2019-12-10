@@ -9,11 +9,13 @@ add_compile_options(-std=c++11)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roscpp 
+  roslib
   geometry_msgs 
   nav_msgs
   std_msgs
   message_generation
   uav_abstraction_layer
+  ual_backend_mavros
   ecl_geometry
 )
 find_package(Eigen3 REQUIRED)
@@ -115,7 +117,7 @@ add_service_files(
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES upat_follower
-  CATKIN_DEPENDS geometry_msgs nav_msgs roscpp uav_abstraction_layer std_msgs ecl_geometry message_runtime
+  CATKIN_DEPENDS roslib geometry_msgs nav_msgs roscpp uav_abstraction_layer std_msgs ecl_geometry message_runtime
   DEPENDS EIGEN3
 )
 
@@ -201,9 +203,9 @@ add_executable(visualization_node src/visualization_node.cpp)
 target_link_libraries(visualization_node visualization ${catkin_LIBRARIES})
 add_dependencies(visualization_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-add_executable(ual_set_pose tests/ual_set_pose.cpp)
-target_link_libraries(ual_set_pose ${catkin_LIBRARIES})
-add_dependencies(ual_set_pose ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_executable(ual_set_pose tests/ual_set_pose.cpp)
+# target_link_libraries(ual_set_pose ${catkin_LIBRARIES})
+# add_dependencies(ual_set_pose ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 #############
 ## Install ##
@@ -256,10 +258,10 @@ add_dependencies(ual_set_pose ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPOR
 # catkin_add_gtest(generator-test tests/tests_generator.cpp)
 # target_link_libraries(generator-test generator ${catkin_LIBRARIES})
 
-if(CATKIN_ENABLE_TESTING)
-  find_package(rostest REQUIRED)
-  # add_rostest_gtest(tests_mynode test/mynode.test src/test/test_mynode.cpp [more cpp files])
-  # target_link_libraries(tests_mynode ${catkin_LIBRARIES})
-  catkin_add_gtest(generator-test launch/tests_run.test tests/tests_generator.cpp)
-  target_link_libraries(generator-test generator ${catkin_LIBRARIES})
-  endif()
+# if(CATKIN_ENABLE_TESTING)
+#   find_package(rostest REQUIRED)
+#   # add_rostest_gtest(tests_mynode test/mynode.test src/test/test_mynode.cpp [more cpp files])
+#   # target_link_libraries(tests_mynode ${catkin_LIBRARIES})
+#   catkin_add_gtest(generator-test launch/tests_run.test tests/tests_generator.cpp)
+#   target_link_libraries(generator-test generator ${catkin_LIBRARIES})
+#   endif()

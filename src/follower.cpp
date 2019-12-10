@@ -87,6 +87,10 @@ nav_msgs::Path Follower::preparePath(nav_msgs::Path _init_path, int _generator_m
     cruising_speed_ = _cruising_speed;
     if (_cruising_speed > smallest_max_velocity_) cruising_speed_ = smallest_max_velocity_;
     if (_cruising_speed <= 0) cruising_speed_ = 0.1;
+    double acc_time = cruising_speed_ * 2;
+    double f_node = 30.0;
+    increase_vel_count_ = 1;
+    increase_vel_ = cruising_speed_ / acc_time / f_node;
     target_path_ = generator.out_path_;
     return generator.out_path_;
 }
@@ -175,6 +179,8 @@ int Follower::calculatePosOnPath(Eigen::Vector3f _current_point, double _search_
     auto smallest_distance = std::min_element(vec_distances.begin(), vec_distances.end());
     int pos_on_path = smallest_distance - vec_distances.begin();
 
+    position_on_path_ = pos_on_path + start_search_pos_on_path;
+
     return pos_on_path + start_search_pos_on_path;
 }
 
@@ -209,9 +215,12 @@ geometry_msgs::TwistStamped Follower::calculateVelocity(Eigen::Vector3f _current
         case 0:
             unit_vec = (target_p - _current_point) / distance;
             unit_vec = unit_vec / unit_vec.norm();
-            out_vel.twist.linear.x = unit_vec(0) * cruising_speed_;
-            out_vel.twist.linear.y = unit_vec(1) * cruising_speed_;
-            out_vel.twist.linear.z = unit_vec(2) * cruising_speed_;
+            out_vel.twist.linear.x = unit_vec(0) * increase_vel_ * increase_vel_count_;
+            out_vel.twist.linear.y = unit_vec(1) * increase_vel_ * increase_vel_count_;
+            out_vel.twist.linear.z = unit_vec(2) * increase_vel_ * increase_vel_count_;
+            if (cruising_speed_ > increase_vel_ * increase_vel_count_) {
+                increase_vel_count_++;
+            } 
             break;
         case 1:
             // hypo_vec = (target_p - _current_point);

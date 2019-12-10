@@ -80,9 +80,12 @@ visualization_msgs::Marker Visualization::readModel(std::string _model) {
     model_.mesh_use_embedded_materials = true;
     switch (uav_id_) {
         case 1:
-            model_.color.r = 0.0;
-            model_.color.g = 1.0;
-            model_.color.b = 1.0;
+            // model_.color.r = 0.0;
+            // model_.color.g = 1.0;
+            // model_.color.b = 1.0;
+                        model_.color.r = 1.0;
+            model_.color.g = 0.0;
+            model_.color.b = 0.0;
             break;
         case 2:
             model_.color.r = 0.541;
@@ -166,7 +169,7 @@ void Visualization::saveMissionData() {
         flag_once = false;
     }
     Eigen::Vector3f current_point = Eigen::Vector3f(ual_pose_.pose.position.x, ual_pose_.pose.position.y, ual_pose_.pose.position.z);
-    csv_normal_distances_ << ros::Time::now().toSec() - begin << "," ;
+    csv_normal_distances_ << ros::Time::now().toSec() - begin << ",";
     if (generated_path_.poses.size() > 1) {
         int normal_pos_on_generated_path = calculateNormalDistance(current_point, 2.0, prev_normal_pos_on_generated_path_, generated_path_);
         normal_dist_generated_path_.push_back(normal_distance_);

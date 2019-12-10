@@ -64,21 +64,8 @@ int main(int _argc, char **_argv) {
     ros::Rate rate(50);
     while (ros::ok()) {
         visual.pubMsgs();
-        if (visual.current_path_.poses.size() > 0) {
-            if (visual.ual_state_.state == 4) {
-                if (visual.save_experiment == true) {
-                    visual.saveMissionData();
-                }
-                if (do_once) {
-                    start_time = ros::Time::now().toSec();
-                    do_once = false;
-                }
-            } else {
-                if (!do_once) {
-                    ROS_INFO("Time: %f", ros::Time::now().toSec() - start_time);
-                    do_once = true;
-                }
-            }
+        if (visual.current_path_.poses.size() > 0 && visual.ual_state_.state == 4 && visual.save_experiment == true) {
+            visual.saveMissionData();
         }
         ros::spinOnce();
         rate.sleep();
