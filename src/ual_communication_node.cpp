@@ -19,13 +19,32 @@
 
 #include <upat_follower/ual_communication.h>
 
+uav_abstraction_layer::State ual_state_;
+
+void ualStateCb(const uav_abstraction_layer::State msg) {
+    ual_state_.state = msg.state;
+}
+
 int main(int _argc, char **_argv) {
     ros::init(_argc, _argv, "ual_communication_node");
 
     upat_follower::UALCommunication ual_communication;
-    int pub_rate_;
-    ros::param::param<int>("~pub_rate", pub_rate_, 30);
-    ros::Rate rate(pub_rate_);
+    int pub_rate, uav_id;
+    std::string ns_prefix;
+    ros::param::param<int>("~uav_id", uav_id, 1);
+    ros::param::param<std::string>("~ns_prefix", ns_prefix, "uav_");
+    ros::param::param<int>("~pub_rate", pub_rate, 30);
+    ros::Rate rate(pub_rate);
+    ros::NodeHandle nh;
+    ros::Subscriber sub_state_ = nh.subscribe("/" + ns_prefix + std::to_string(uav_id) + "/ual/state", 0, ualStateCb);
+
+    // Let UAL and MAVROS get ready
+    while (!ros::service::exists("/" + ns_prefix + std::to_string(uav_id) + "/mavros/param/get", false) || ual_state_.state == 0) {
+        ros::spinOnce();
+        sleep(1.0);
+    }
+    sleep(1.0);
+
     while (ros::ok()) {
         ual_communication.runMission();
         ual_communication.callVisualization();

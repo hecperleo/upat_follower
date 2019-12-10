@@ -19,6 +19,7 @@
 
     <include file="$(find upat_follower)/launch/sim_server_ual.launch">
         <arg name="multi" value="$(arg multi)"/>
+        <arg name="robot_model" value="$(arg robot_model)"/>
     </include>
 
     <!-- UAV Path Manager nodes -->
