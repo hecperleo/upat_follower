@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <model name="basketball_hoop">
+    <static>true</static>
+    <link name="link">
+      <collision name="collision">
+        <geometry>
+          <mesh>
+            <uri>model://basketball_hoop/meshes/basketball_hoop.obj</uri>
+            <scale>0.0002 0.0002 0.0002</scale>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <geometry>
+          <mesh>
+            <uri>model://basketball_hoop/meshes/basketball_hoop.obj</uri>
+            <scale>0.0002 0.0002 0.0002</scale>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>

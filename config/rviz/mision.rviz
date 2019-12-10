@@ -4,6 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Global Options1
         - /Grid1/Offset1
         - /TF1/Frames1
       Splitter Ratio: 0.563169181
@@ -55,19 +56,25 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        fcu:
-          Value: false
-        fcu_frd:
-          Value: false
-        local_origin:
-          Value: false
-        local_origin_ned:
-          Value: false
+        base_link:
+          Value: true
+        base_link_frd:
+          Value: true
         map:
+          Value: true
+        map_ned:
+          Value: true
+        odom:
+          Value: true
+        odom_ned:
           Value: true
         uav_1/base_link:
           Value: true
         uav_1/odom:
+          Value: true
+        uav_2/base_link:
+          Value: true
+        uav_2/odom:
           Value: true
       Marker Scale: 1
       Name: TF
@@ -76,8 +83,13 @@ Visualization Manager:
       Show Names: true
       Tree:
         map:
+          map_ned:
+            {}
           uav_1/odom:
             uav_1/base_link:
+              {}
+          uav_2/odom:
+            uav_2/base_link:
               {}
       Update Interval: 0
       Value: true
@@ -240,7 +252,7 @@ Visualization Manager:
       Marker Topic: /uav_2/upat_follower/visualization/uav_model
       Name: /uav_2/model
       Namespaces:
-        {}
+        "": true
       Queue Size: 100
       Value: true
     - Alpha: 1
@@ -287,7 +299,7 @@ Visualization Manager:
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: map
+    Fixed Frame: uav_1/odom
     Frame Rate: 30
   Name: root
   Tools:
@@ -308,25 +320,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 39.5046921
+      Distance: 44.4505653
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 11.3163586
-        Y: 3.57423353
-        Z: 6.56388569
+        X: 8.71952438
+        Y: 7.2166481
+        Z: 3.27982473
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.530399144
+      Pitch: 0.580399156
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.17677116
+      Yaw: 3.78678823
     Saved: ~
 Window Geometry:
   Displays:

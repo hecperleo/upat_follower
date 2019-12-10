@@ -51,6 +51,7 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     pub_set_velocity_ = nh_.advertise<geometry_msgs::TwistStamped>("/" + ns_prefix_ + std::to_string(uav_id_) + "/ual/set_velocity", 1000);
     pub_comm_state_ = nh_.advertise<std_msgs::String>("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/communication/state", 1000);
     // Services
+    client_go_to_waypoint_ = nh_.serviceClient<uav_abstraction_layer::GoToWaypoint>("/" + ns_prefix_ + std::to_string(uav_id_) + "/ual/go_to_waypoint");
     client_take_off_ = nh_.serviceClient<uav_abstraction_layer::TakeOff>("/" + ns_prefix_ + std::to_string(uav_id_) + "/ual/take_off");
     client_land_ = nh_.serviceClient<uav_abstraction_layer::Land>("/" + ns_prefix_ + std::to_string(uav_id_) + "/ual/land");
     client_prepare_path_ = nh_.serviceClient<upat_follower::PreparePath>("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/follower/prepare_path");
@@ -228,6 +229,7 @@ void UALCommunication::switchState(state_t new_state) {
             ROS_INFO("[UPAT] State switched to go_to_end.");
             break;
         case execute_path_:
+            start_count_time_ = ros::Time::now().toSec();
             ROS_INFO("[UPAT] State switched to execute_path.");
             break;
         case hover_emergency_:
@@ -243,6 +245,9 @@ void UALCommunication::runMission() {
 
     uav_abstraction_layer::TakeOff take_off;
     uav_abstraction_layer::Land land;
+    uav_abstraction_layer::GoToWaypoint go_to_waypoint_back;
+    uav_abstraction_layer::GoToWaypoint go_to_waypoint_front;
+    uav_abstraction_layer::GoToWaypoint go_to_waypoint_hover;
     upat_follower::PreparePath prepare_path;
     upat_follower::PrepareTrajectory prepare_trajectory;
     if (flag_redo_) {
@@ -268,7 +273,7 @@ void UALCommunication::runMission() {
                 client_prepare_path_.call(prepare_path);
                 target_path_ = prepare_path.response.generated_path;
             }
-            if (use_class_) target_path_ = follower_.preparePath(init_path_, generator_mode_, 2.0, 1.0);
+            if (use_class_) target_path_ = follower_.preparePath(init_path_, generator_mode_, 1.0, 1.0);
         }
         flag_redo_ = false;
     } else if (flag_update_) {
@@ -276,10 +281,19 @@ void UALCommunication::runMission() {
         flag_update_ = false;
     }
 
+    go_to_waypoint_back.request.waypoint.header = target_path_.poses.back().header;
+    go_to_waypoint_back.request.waypoint.pose = target_path_.poses.back().pose;
+    go_to_waypoint_back.request.blocking = true;
+    go_to_waypoint_front.request.waypoint.header = target_path_.poses.front().header;
+    go_to_waypoint_front.request.waypoint.pose = target_path_.poses.front().pose;
+    go_to_waypoint_front.request.blocking = true;
+    go_to_waypoint_hover.request.waypoint.header = hover_emergency_pose_.header;
+    go_to_waypoint_hover.request.waypoint.pose = hover_emergency_pose_.pose;
     Eigen::Vector3f current_p, path0_p, path_end_p;
     current_p = Eigen::Vector3f(ual_pose_.pose.position.x, ual_pose_.pose.position.y, ual_pose_.pose.position.z);
     path0_p = Eigen::Vector3f(target_path_.poses.front().pose.position.x, target_path_.poses.front().pose.position.y, target_path_.poses.front().pose.position.z);
     path_end_p = Eigen::Vector3f(target_path_.poses.back().pose.position.x, target_path_.poses.back().pose.position.y, target_path_.poses.back().pose.position.z);
+
     switch (ual_state_.state) {
         case 2:  // Landed armed
             break;
@@ -290,18 +304,11 @@ void UALCommunication::runMission() {
                 case hover_:
                     break;
                 case go_to_start_:
-                    if ((current_p - path0_p).norm() > reach_tolerance_ * 2) {
-                        pub_set_pose_.publish(target_path_.poses.at(0));
-                    } else if (reach_tolerance_ > (current_p - path0_p).norm()) {
-                        pub_set_pose_.publish(target_path_.poses.front());
-                        switchState(execute_path_);
-                    } else {
-                        pub_set_pose_.publish(target_path_.poses.front());
-                    }
+                    client_go_to_waypoint_.call(go_to_waypoint_front);
+                    switchState(execute_path_);
                     break;
                 case execute_path_:
                     if (reach_tolerance_ * 2 > (current_p - path_end_p).norm()) {
-                        pub_set_pose_.publish(target_path_.poses.back());
                         switchState(go_to_end_);
                     } else {
                         if (use_class_) {
@@ -316,11 +323,10 @@ void UALCommunication::runMission() {
                     }
                     break;
                 case go_to_end_:
-                    if (reach_tolerance_ * 2 > (current_p - path_end_p).norm() && (current_p - path_end_p).norm() > reach_tolerance_) {
-                        pub_set_pose_.publish(target_path_.poses.back());
-                    } else {
-                        switchState(hover_);
-                    }
+                    client_go_to_waypoint_.call(go_to_waypoint_back);
+                    switchState(hover_);
+                    ROS_INFO("TIME: %f", ros::Time::now().toSec() - start_count_time_);
+
                     break;
                 case hover_emergency_:
                     pub_set_pose_.publish(hover_emergency_pose_);
