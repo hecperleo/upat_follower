@@ -71,6 +71,7 @@ class UALCommunication {
     double vxy_ = 2.0;
     double vz_up_ = 3.0;
     double vz_dn_ = 1.0;
+    double start_count_time_;
     // Callbacks
     void ualStateCallback(const uav_abstraction_layer::State &_ual_state);
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);

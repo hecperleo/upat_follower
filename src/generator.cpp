@@ -31,7 +31,7 @@ Generator::Generator() : nh_(), pnh_("~") {
     server_generate_path_ = nh_.advertiseService("/upat_follower/generator/generate_path", &Generator::generatePathCb, this);
     server_generate_trajectory_ = nh_.advertiseService("/upat_follower/generator/generate_trajectory", &Generator::generateTrajectoryCb, this);
     // Client to get parameters from mavros and required default values
-    get_param_client_ = nh_.serviceClient<mavros_msgs::ParamGet>("mavros/param/get");
+    get_param_client_ = nh_.serviceClient<mavros_msgs::ParamGet>("/uav_1/mavros/param/get");
     mavros_params_["MPC_XY_VEL_MAX"] = vxy;
     mavros_params_["MPC_Z_VEL_MAX_UP"] = vz_up;
     mavros_params_["MPC_Z_VEL_MAX_DN"] = vz_dn;
@@ -39,7 +39,7 @@ Generator::Generator() : nh_(), pnh_("~") {
 
 Generator::Generator(double _vxy, double _vz_up, double _vz_dn, bool _debug) {
     debug_ = _debug;
-    get_param_client_ = nh_.serviceClient<mavros_msgs::ParamGet>("mavros/param/get");
+    get_param_client_ = nh_.serviceClient<mavros_msgs::ParamGet>("/uav_1/mavros/param/get");
     mavros_params_["MPC_XY_VEL_MAX"] = _vxy;
     mavros_params_["MPC_Z_VEL_MAX_UP"] = _vz_up;
     mavros_params_["MPC_Z_VEL_MAX_DN"] = _vz_dn;
