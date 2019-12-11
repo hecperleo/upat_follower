@@ -23,6 +23,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <arg name="pkg_name" default="upat_follower"/>
     <arg name="use_class" default="true"/>
     <arg name="multi" default="false"/>
+    <arg name="cruising_speed" default="1.0"/>
+    <arg name="look_ahead" default="1.0"/>
 
     <!-- Visualization -->
     <!-- <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find upat_follower)/config/rviz/mision.rviz" required="true"/> -->
@@ -41,6 +43,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
                 <param name="use_class" value="$(arg use_class)"/>
                 <param name="generator_mode" value="$(arg generator_mode)"/>
                 <param name="debug" value="$(arg debug)"/>
+                <param name="cruising_speed" value="$(arg cruising_speed)"/>
+                <param name="look_ahead" value="$(arg look_ahead)"/>
             </node>
             <node pkg="upat_follower" type="follower_node" name="follower" output="screen" required="true" unless="$(arg use_class)">
                 <param name="uav_id" value="1"/>

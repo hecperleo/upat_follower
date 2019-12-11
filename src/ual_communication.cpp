@@ -32,6 +32,8 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     pnh_.getParam("reach_tolerance", reach_tolerance_);
     pnh_.getParam("use_class", use_class_);
     pnh_.getParam("generator_mode", generator_mode_);
+    pnh_.getParam("cruising_speed", cruising_speed_);
+    pnh_.getParam("look_ahead", look_ahead_);
     // ros::param::param<int>("uav_id", uav_id_, 1);
     // ros::param::param<std::string>("ns_prefix", ns_prefix_, "uav_");
     // ros::param::param<bool>("save_test_data", save_test_, "false");
@@ -267,13 +269,13 @@ void UALCommunication::runMission() {
         } else {
             prepare_path.request.init_path = init_path_;
             prepare_path.request.generator_mode.data = 2;
-            prepare_path.request.look_ahead.data = 1.2;
-            prepare_path.request.cruising_speed.data = 1.0;
+            prepare_path.request.look_ahead.data = look_ahead_;
+            prepare_path.request.cruising_speed.data = cruising_speed_;
             if (!use_class_) {
                 client_prepare_path_.call(prepare_path);
                 target_path_ = prepare_path.response.generated_path;
             }
-            if (use_class_) target_path_ = follower_.preparePath(init_path_, generator_mode_, 1.0, 1.0);
+            if (use_class_) target_path_ = follower_.preparePath(init_path_, generator_mode_, look_ahead_, cruising_speed_);
         }
         flag_redo_ = false;
     } else if (flag_update_) {
@@ -323,9 +325,9 @@ void UALCommunication::runMission() {
                     }
                     break;
                 case go_to_end_:
+                    ROS_INFO("TIME: %f", ros::Time::now().toSec() - start_count_time_);
                     client_go_to_waypoint_.call(go_to_waypoint_back);
                     switchState(hover_);
-                    ROS_INFO("TIME: %f", ros::Time::now().toSec() - start_count_time_);
 
                     break;
                 case hover_emergency_:
