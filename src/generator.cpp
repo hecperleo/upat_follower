@@ -175,14 +175,21 @@ nav_msgs::Path Generator::generateTrajectory(nav_msgs::Path _init_path, std::vec
     if (_init_path.poses.size() - 1 == _times.size()) {
         mode_ = mode_trajectory_;
         size_vec_percentage_ = _times.size();
-        out_path_ = createTrajectory(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), _times);
+        // out_path_ = createTrajectory(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size(), _times);
+        out_path_ = createPathSmoothSpline(list_pose_x, list_pose_y, list_pose_z, list_pose_x.size());
         mode_ = mode_interp1_;
         interp1_final_size_ = out_path_.poses.size();
         generated_path_vel_percentage_ = pathManagement(list_pose_x, list_pose_y, list_pose_z);
+        max_velocity_ = abs(checkSmallestMaxVel());
         for (int i = 0; i < _times.size(); i++) {
+            std::cout << _times[i] << std::endl;
             int j = 0;
             for (j = 0; j < generated_path_vel_percentage_.poses.size() / (_times.size() + 1); j++) {
-                generated_times_.push_back(_times[i]);
+                if (_times[i] > max_velocity_) {
+                    generated_times_.push_back(max_velocity_);  // Cap velocity to the maximum
+                } else {
+                    generated_times_.push_back(_times[i]);
+                }
             }
         }
         // TODO: Why do we still need this?
@@ -190,7 +197,6 @@ nav_msgs::Path Generator::generateTrajectory(nav_msgs::Path _init_path, std::vec
             generated_times_.push_back(_times.back());
         }
         ROS_WARN_COND(debug_, "Generator -> Path sizes -> spline: %zd, maxVel: %zd, init: %zd", out_path_.poses.size(), generated_times_.size(), _init_path.poses.size());
-        max_velocity_ = abs(smallest_max_vel_);
     } else {
         ROS_ERROR("Time intervals size (%zd) should has one less element than init path size (%zd)", _times.size(), _init_path.poses.size());
     }
@@ -275,7 +281,7 @@ nav_msgs::Path Generator::createPathInterp1(std::vector<double> _list_x, std::ve
 
 nav_msgs::Path Generator::createPathSmoothSpline(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size) {
     nav_msgs::Path smooth_spline_path;
-    double max_curvature = 10.0; // PX4 Default Max Acceleration
+    double max_curvature = 10.0;  // PX4 Default Max Acceleration
     if (_path_size > 1) {
         // Calculate total distance
         int total_distance = 0;
@@ -300,9 +306,7 @@ nav_msgs::Path Generator::createPathSmoothSpline(std::vector<double> _list_x, st
             z_set[i] = interp1_list_z[i];
             t_set[i] = (double)i;
         }
-        ecl::SmoothLinearSpline spline_x;
-        ecl::SmoothLinearSpline spline_y;
-        ecl::SmoothLinearSpline spline_z;
+        ecl::SmoothLinearSpline spline_x, spline_y, spline_z;
         bool interp_done = false;
         int try_chances = 200;
         int try_count = 0;
@@ -320,7 +324,7 @@ nav_msgs::Path Generator::createPathSmoothSpline(std::vector<double> _list_x, st
                 max_curvature = max_curvature + 0.1;
             }
         }
-        ROS_ERROR_COND(try_count == try_chances, "[Generator] Check max_curvature.");
+        ROS_ERROR_COND(try_count == try_chances, "Check max_curvature. Generator tried to solve it %d times.", try_chances);
         // Change format: ecl::CubicSpline -> std::vector
         double sp_pts = total_distance;
         int _amount_of_points = (interp1_list_x.size() - 1) * sp_pts;
@@ -393,6 +397,7 @@ nav_msgs::Path Generator::createPathCubicSpline(std::vector<double> _list_x, std
 
 nav_msgs::Path Generator::createTrajectory(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size, std::vector<double> _times) {
     nav_msgs::Path cubic_spline_path;
+    double max_curvature = 10.0;  // PX4 Default Max Acceleration
     if (_path_size > 1) {
         // Calculate total distance
         // TODO: Use or not use total_distance (?)
@@ -404,52 +409,51 @@ nav_msgs::Path Generator::createTrajectory(std::vector<double> _list_x, std::vec
             total_distance = total_distance + (point_2 - point_1).norm();
         }
         // Calculate number of joints
-        int num_joints = _path_size;
+        int num_joints = _path_size - 1;
         bool try_fit_spline = true;
         smallest_max_vel_ = checkSmallestMaxVel();
-        while (try_fit_spline) {
-            // Lineal interpolation
-            std::vector<double> interp1_list_x, interp1_list_y, interp1_list_z;
-            interp1_list_x = interpWaypointList(_list_x, num_joints);
-            interp1_list_y = interpWaypointList(_list_y, num_joints);
-            interp1_list_z = interpWaypointList(_list_z, num_joints);
-            // Prepare sets for each cubic spline
-            ecl::Array<double> t_set(interp1_list_x.size()), x_set(interp1_list_x.size()), y_set(interp1_list_x.size()), z_set(interp1_list_x.size());
-            for (int i = 0; i < interp1_list_x.size(); i++) {
-                x_set[i] = interp1_list_x[i];
-                y_set[i] = interp1_list_y[i];
-                z_set[i] = interp1_list_z[i];
-                t_set[i] = (double)i;
-            }
-            // // Create a cubic spline per axis
-            ecl::CubicSpline spline_x = ecl::CubicSpline::Natural(t_set, x_set);
-            ecl::CubicSpline spline_y = ecl::CubicSpline::Natural(t_set, y_set);
-            ecl::CubicSpline spline_z = ecl::CubicSpline::Natural(t_set, z_set);
-            // Change format: ecl::CubicSpline -> std::vector
-            double sp_pts = total_distance;
-            int _amount_of_points = (interp1_list_x.size() - 1) * sp_pts;
-            std::vector<double> spline_list_x(_amount_of_points), spline_list_y(_amount_of_points), spline_list_z(_amount_of_points);
-            std::vector<double> vec_check_vel;
-            for (int i = 0; i < _amount_of_points; i++) {
-                spline_list_x[i] = spline_x(i / sp_pts);
-                spline_list_y[i] = spline_y(i / sp_pts);
-                spline_list_z[i] = spline_z(i / sp_pts);
-                vec_check_vel.push_back(spline_x.derivative(i / sp_pts));
-                vec_check_vel.push_back(spline_y.derivative(i / sp_pts));
-                vec_check_vel.push_back(spline_z.derivative(i / sp_pts));
-            }
-            // Check max and min velocity
-            double spline_max_vel = *std::max_element(vec_check_vel.begin(), vec_check_vel.end());
-            double spline_min_vel = *std::min_element(vec_check_vel.begin(), vec_check_vel.end());
-            std::div_t temp_div = std::div(spline_list_x.size(), size_vec_percentage_);
-            if (spline_max_vel > smallest_max_vel_ || fabs(spline_min_vel) > smallest_max_vel_ || temp_div.rem != 0) {
-                num_joints++;
-            } else {
-                ROS_WARN_COND(debug_, "Generator -> Spline done in %d iterations! Spline max velocities: %f and %f", num_joints - _path_size, spline_max_vel, spline_min_vel);
-                cubic_spline_path = constructPath(spline_list_x, spline_list_y, spline_list_z);
-                try_fit_spline = false;
+        // Lineal interpolation
+        std::vector<double> interp1_list_x, interp1_list_y, interp1_list_z;
+        interp1_list_x = interpWaypointList(_list_x, num_joints);
+        interp1_list_y = interpWaypointList(_list_y, num_joints);
+        interp1_list_z = interpWaypointList(_list_z, num_joints);
+        // Prepare sets for each cubic spline
+        ecl::Array<double> t_set(interp1_list_x.size()), x_set(interp1_list_x.size()), y_set(interp1_list_x.size()), z_set(interp1_list_x.size());
+        for (int i = 0; i < interp1_list_x.size(); i++) {
+            x_set[i] = interp1_list_x[i];
+            y_set[i] = interp1_list_y[i];
+            z_set[i] = interp1_list_z[i];
+            t_set[i] = (double)i;
+        }
+        // Create a cubic spline per axis
+        ecl::SmoothLinearSpline spline_x, spline_y, spline_z;
+        bool interp_done = false;
+        int try_chances = 200;
+        int try_count = 0;
+        while (!interp_done && try_count < try_chances) {
+            try {
+                ecl::SmoothLinearSpline try_x(t_set, x_set, max_curvature);
+                ecl::SmoothLinearSpline try_y(t_set, y_set, max_curvature);
+                ecl::SmoothLinearSpline try_z(t_set, z_set, max_curvature);
+                spline_x = try_x;
+                spline_y = try_y;
+                spline_z = try_z;
+                interp_done = true;
+            } catch (const std::exception &e) {
+                try_count++;
+                max_curvature = max_curvature + 0.1;
             }
         }
+        // Change format: ecl::CubicSpline -> std::vector
+        double sp_pts = total_distance;
+        int _amount_of_points = (interp1_list_x.size() - 1) * sp_pts;
+        std::vector<double> spline_list_x(_amount_of_points), spline_list_y(_amount_of_points), spline_list_z(_amount_of_points);
+        for (int i = 0; i < _amount_of_points; i++) {
+            spline_list_x[i] = spline_x(i / sp_pts);
+            spline_list_y[i] = spline_y(i / sp_pts);
+            spline_list_z[i] = spline_z(i / sp_pts);
+        }
+        cubic_spline_path = constructPath(spline_list_x, spline_list_y, spline_list_z);
     }
 
     return cubic_spline_path;
