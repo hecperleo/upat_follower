@@ -39,9 +39,8 @@ class Generator {
 
     double max_velocity_;
     nav_msgs::Path out_path_;
-    nav_msgs::Path generated_path_vel_percentage_;
     std::vector<double> generated_times_;
-    nav_msgs::Path generateTrajectory(nav_msgs::Path _init_path, std::vector<double> _times);
+    nav_msgs::Path generateTrajectory(nav_msgs::Path _init_path, std::vector<double> _times, int _generator_mode = 0);
     nav_msgs::Path generatePath(nav_msgs::Path _init_path, int _generator_mode = 0);
 
    private:
@@ -59,10 +58,8 @@ class Generator {
     nav_msgs::Path createPathCubicSpline(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size);
     nav_msgs::Path createPathSmoothSpline(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size);
     nav_msgs::Path createPathInterp1(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size, int _new_path_size);
-    nav_msgs::Path createTrajectory(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size, std::vector<double> _times);
     // Node handlers
-    ros::NodeHandle nh_;
-    ros::NodeHandle pnh_;
+    ros::NodeHandle nh_, pnh_;
     // Services
     ros::ServiceClient get_param_client_;
     ros::ServiceServer server_generate_path_, server_generate_trajectory_;
@@ -71,13 +68,13 @@ class Generator {
     int size_vec_percentage_ = 0;
     int interp1_final_size_ = 10000;
     enum mode_t { mode_interp1_,
-                  mode_cubic_spline_loyal_,
+                  mode_smooth_spline_,
                   mode_cubic_spline_,
                   mode_trajectory_,
                   mode_idle_ };
     mode_t mode_ = mode_idle_;
     // Params
-    bool debug_;
+    bool debug_ = false;
     std::map<std::string, double> mavros_params_;
 };
 

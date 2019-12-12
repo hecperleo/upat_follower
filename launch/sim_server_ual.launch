@@ -42,7 +42,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <!-- Launch robot id=1 -->
     <include file="$(find px4_bringup)/launch/spawn_robot.launch" ns="$(arg ns_prefix)1">
         <arg name="id" value="1"/>
-        <arg name="material" value="Orange"/>
+        <arg name="material" value="Blue"/>
         <arg name="mode" value="$(arg mode)"/>
         <arg name="x" value="0"/>
         <arg name="y" value="0"/>
@@ -53,7 +53,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <!-- Launch robot id=2 -->
     <include file="$(find px4_bringup)/launch/spawn_robot.launch" ns="$(arg ns_prefix)2" if="$(arg multi)">
         <arg name="id" value="2"/>
-        <arg name="material" value="Blue"/>
+        <arg name="material" value="Green"/>
         <arg name="mode" value="$(arg mode)"/>
         <arg name="x" value="0"/>
         <arg name="y" value="10"/>

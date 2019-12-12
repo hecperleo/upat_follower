@@ -63,9 +63,8 @@ void Follower::updatePath(nav_msgs::Path _new_target_path) {
     target_path_ = _new_target_path;
 }
 
-void Follower::updateTrajectory(nav_msgs::Path _new_target_path, nav_msgs::Path _new_target_vel_path) {
+void Follower::updateTrajectory(nav_msgs::Path _new_target_path) {
     target_path_ = _new_target_path;
-    target_vel_path_ = _new_target_vel_path;
 }
 
 bool Follower::updatePathCb(upat_follower::UpdatePath::Request &_req_path, upat_follower::UpdatePath::Response &_res_path) {
@@ -74,7 +73,7 @@ bool Follower::updatePathCb(upat_follower::UpdatePath::Request &_req_path, upat_
 }
 
 bool Follower::updateTrajectoryCb(upat_follower::UpdateTrajectory::Request &_req_trajectory, upat_follower::UpdateTrajectory::Response &_res_trajectory) {
-    updateTrajectory(_req_trajectory.new_target_path, _req_trajectory.new_target_vel_path);
+    updateTrajectory(_req_trajectory.new_target_path);
     return true;
 }
 
@@ -112,14 +111,12 @@ std::vector<double> Follower::timesToMaxVelPercentage(nav_msgs::Path _init_path,
     return out_vector;
 }
 
-nav_msgs::Path Follower::prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _times) {
+nav_msgs::Path Follower::prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _times, int _generator_mode) {
     follower_mode_ = 1;
     prev_normal_vel_on_path_ = prev_normal_pos_on_path_ = 0;
     timesToMaxVelPercentage(_init_path, _times);
     upat_follower::Generator generator(vxy_, vz_up_, vz_dn_, debug_);
-    generator.generateTrajectory(_init_path, timesToMaxVelPercentage(_init_path, _times));
-    target_vel_path_ = generator.generated_path_vel_percentage_;
-    target_vel_path_.header.frame_id = generator.out_path_.header.frame_id;
+    generator.generateTrajectory(_init_path, timesToMaxVelPercentage(_init_path, _times), _generator_mode);
     for (int i = 0; i < generator.generated_times_.size(); i++) {
         generated_times_.push_back(generator.generated_times_.at(i));
     }
