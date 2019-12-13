@@ -3,6 +3,7 @@
 #include <ros/package.h>
 #include <ros/ros.h>
 #include <upat_follower/generator.h>
+#include <upat_follower/follower.h>
 #include <fstream>
 #include <string>
 #include <thread>
@@ -65,6 +66,27 @@ nav_msgs::Path csvToPath(std::string file_name) {
     return constructPath(list_x, list_y, list_z);
 }
 
+std::vector<double> csvToVector(std::string _file_name) {
+    std::vector<double> out_vector;
+    std::string pkg_name_path = ros::package::getPath("upat_follower");
+    std::string folder_name = pkg_name_path + "/tests/splines" + _file_name;
+    std::fstream read_csv;
+    read_csv.open(folder_name);
+    if (read_csv.is_open()) {
+        while (read_csv.good()) {
+            std::string x;
+            double dx;
+            getline(read_csv, x, '\n');
+            std::stringstream sx(x);
+            sx >> dx;
+            out_vector.push_back(dx);
+        }
+    }
+    out_vector.pop_back();
+
+    return out_vector;
+}
+
 TEST_F(MyTestSuite, interp1) {
     upat_follower::Generator generator_(2.0, 3.0, 1.0);
     nav_msgs::Path init_path = csvToPath("/init.csv");
@@ -78,10 +100,10 @@ TEST_F(MyTestSuite, interp1) {
     }
 }
 
-TEST_F(MyTestSuite, cubicSplineLoyal) {
+TEST_F(MyTestSuite, smoothSpline) {
     upat_follower::Generator generator_(2.0, 3.0, 1.0);
     nav_msgs::Path init_path = csvToPath("/init.csv");
-    nav_msgs::Path ref_path = csvToPath("/cubic_spline_loyal.csv");
+    nav_msgs::Path ref_path = csvToPath("/smooth_spline.csv");
     nav_msgs::Path act_path = generator_.generatePath(init_path, 1);
     ASSERT_EQ(ref_path.poses.size(), act_path.poses.size());
     for (int i = 0; i < ref_path.poses.size(); i++) {
@@ -96,6 +118,54 @@ TEST_F(MyTestSuite, cubicSpline) {
     nav_msgs::Path init_path = csvToPath("/init.csv");
     nav_msgs::Path ref_path = csvToPath("/cubic_spline.csv");
     nav_msgs::Path act_path = generator_.generatePath(init_path, 2);
+    ASSERT_EQ(ref_path.poses.size(), act_path.poses.size());
+    for (int i = 0; i < ref_path.poses.size(); i++) {
+        EXPECT_NEAR(ref_path.poses.at(i).pose.position.x, act_path.poses.at(i).pose.position.x, tolerance);
+        EXPECT_NEAR(ref_path.poses.at(i).pose.position.y, act_path.poses.at(i).pose.position.y, tolerance);
+        EXPECT_NEAR(ref_path.poses.at(i).pose.position.z, act_path.poses.at(i).pose.position.z, tolerance);
+    }
+}
+
+TEST_F(MyTestSuite, trajectoryM0) {
+    upat_follower::Follower follower(1, 0);
+    upat_follower::Generator generator_(2.0, 3.0, 1.0);
+    nav_msgs::Path init_path = csvToPath("/init.csv");
+    nav_msgs::Path ref_path = csvToPath("/trajectory_m0.csv");
+    std::vector<double> times = csvToVector("/trajectory_t.csv");
+    // nav_msgs::Path act_path = generator_.generateTrajectory(init_path, times, 0);
+    nav_msgs::Path act_path = follower.prepareTrajectory(init_path, times, 0);
+    ASSERT_EQ(ref_path.poses.size(), act_path.poses.size());
+    for (int i = 0; i < ref_path.poses.size(); i++) {
+        EXPECT_NEAR(ref_path.poses.at(i).pose.position.x, act_path.poses.at(i).pose.position.x, tolerance);
+        EXPECT_NEAR(ref_path.poses.at(i).pose.position.y, act_path.poses.at(i).pose.position.y, tolerance);
+        EXPECT_NEAR(ref_path.poses.at(i).pose.position.z, act_path.poses.at(i).pose.position.z, tolerance);
+    }
+}
+
+TEST_F(MyTestSuite, trajectoryM1) {
+    upat_follower::Follower follower(1, 0);
+    upat_follower::Generator generator_(2.0, 3.0, 1.0);
+    nav_msgs::Path init_path = csvToPath("/init.csv");
+    nav_msgs::Path ref_path = csvToPath("/trajectory_m0.csv");
+    std::vector<double> times = csvToVector("/trajectory_t.csv");
+    // nav_msgs::Path act_path = generator_.generateTrajectory(init_path, times, 1);
+    nav_msgs::Path act_path = follower.prepareTrajectory(init_path, times, 0);
+    ASSERT_EQ(ref_path.poses.size(), act_path.poses.size());
+    for (int i = 0; i < ref_path.poses.size(); i++) {
+        EXPECT_NEAR(ref_path.poses.at(i).pose.position.x, act_path.poses.at(i).pose.position.x, tolerance);
+        EXPECT_NEAR(ref_path.poses.at(i).pose.position.y, act_path.poses.at(i).pose.position.y, tolerance);
+        EXPECT_NEAR(ref_path.poses.at(i).pose.position.z, act_path.poses.at(i).pose.position.z, tolerance);
+    }
+}
+
+TEST_F(MyTestSuite, trajectoryM2) {
+    upat_follower::Follower follower(1, 0);
+    upat_follower::Generator generator_(2.0, 3.0, 1.0);
+    nav_msgs::Path init_path = csvToPath("/init.csv");
+    nav_msgs::Path ref_path = csvToPath("/trajectory_m0.csv");
+    std::vector<double> times = csvToVector("/trajectory_t.csv");
+    // nav_msgs::Path act_path = generator_.generateTrajectory(init_path, times, 2);
+    nav_msgs::Path act_path = follower.prepareTrajectory(init_path, times, 0);
     ASSERT_EQ(ref_path.poses.size(), act_path.poses.size());
     for (int i = 0; i < ref_path.poses.size(); i++) {
         EXPECT_NEAR(ref_path.poses.at(i).pose.position.x, act_path.poses.at(i).pose.position.x, tolerance);

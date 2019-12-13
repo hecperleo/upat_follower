@@ -155,20 +155,43 @@ void UALCommunication::velocityCallback(const geometry_msgs::TwistStamped &_velo
 
 void UALCommunication::saveDataForTesting() {
     static upat_follower::Follower follower_save_tests(uav_id_);
-    std::ofstream csv_smooth_spline, csv_cubic_spline, csv_interp1, csv_init, csv_trajectory;
-    target_path_ = follower_save_tests.prepareTrajectory(init_path_, times_, generator_mode_);
-    csv_trajectory.open(folder_data_name_ + "/trajectory.csv");
-    csv_trajectory << std::fixed << std::setprecision(5);
-    for (int i = 0; i < target_path_.poses.size(); i++) {
-        csv_trajectory << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
-    }
-    csv_trajectory.close();
+    std::ofstream csv_smooth_spline, csv_cubic_spline, csv_interp1, csv_init, csv_trajectory_m0, csv_trajectory_m1, csv_trajectory_m2, csv_trajectory_t;
     csv_init.open(folder_data_name_ + "/init.csv");
     csv_init << std::fixed << std::setprecision(5);
     for (int i = 0; i < init_path_.poses.size(); i++) {
         csv_init << init_path_.poses.at(i).pose.position.x << ", " << init_path_.poses.at(i).pose.position.y << ", " << init_path_.poses.at(i).pose.position.z << std::endl;
     }
     csv_init.close();
+    csv_trajectory_t.open(folder_data_name_ + "/trajectory_t.csv");
+    csv_trajectory_t << std::fixed << std::setprecision(5);
+    std::cout << "T: ";
+    for (int i = 0; i < times_.size(); i++) {
+        std::cout << times_.at(i) << " ";
+        csv_trajectory_t << times_.at(i) << std::endl;
+    }
+    std::cout << std::endl;
+    csv_trajectory_t.close();
+    target_path_ = follower_save_tests.prepareTrajectory(init_path_, times_, 0);
+    csv_trajectory_m0.open(folder_data_name_ + "/trajectory_m0.csv");
+    csv_trajectory_m0 << std::fixed << std::setprecision(5);
+    for (int i = 0; i < target_path_.poses.size(); i++) {
+        csv_trajectory_m0 << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
+    }
+    csv_trajectory_m0.close();
+    target_path_ = follower_save_tests.prepareTrajectory(init_path_, times_, 1);
+    csv_trajectory_m1.open(folder_data_name_ + "/trajectory_m1.csv");
+    csv_trajectory_m1 << std::fixed << std::setprecision(5);
+    for (int i = 0; i < target_path_.poses.size(); i++) {
+        csv_trajectory_m1 << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
+    }
+    csv_trajectory_m1.close();
+    target_path_ = follower_save_tests.prepareTrajectory(init_path_, times_, 2);
+    csv_trajectory_m2.open(folder_data_name_ + "/trajectory_m2.csv");
+    csv_trajectory_m2 << std::fixed << std::setprecision(5);
+    for (int i = 0; i < target_path_.poses.size(); i++) {
+        csv_trajectory_m2 << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
+    }
+    csv_trajectory_m2.close();
     target_path_ = follower_save_tests.preparePath(init_path_, 0);
     csv_interp1.open(folder_data_name_ + "/interp1.csv");
     csv_interp1 << std::fixed << std::setprecision(5);
