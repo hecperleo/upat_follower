@@ -46,9 +46,9 @@ class Follower {
     geometry_msgs::TwistStamped getVelocity();
     void updatePose(const geometry_msgs::PoseStamped &_ual_pose);
     void updatePath(nav_msgs::Path _new_target_path);
-    void updateTrajectory(nav_msgs::Path _new_target_path, nav_msgs::Path _new_target_vel_path);
-    nav_msgs::Path prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _times);
-    nav_msgs::Path preparePath(nav_msgs::Path _init_path, int _generator_mode = 0, double _look_ahead = 1.2, double _cruising_speed = 1.0);
+    void updateTrajectory(nav_msgs::Path _new_target_path);
+    nav_msgs::Path prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _times, int _generator_mode = 0);
+    nav_msgs::Path preparePath(nav_msgs::Path _init_path, int _generator_mode = 0, double _look_ahead = 1.0, double _cruising_speed = 1.0);
     int position_on_path_ = 0;
 
    private:
@@ -88,7 +88,7 @@ class Follower {
     int prev_normal_vel_on_path_ = 0;
     int increase_vel_count_ = 1;
     geometry_msgs::PoseStamped ual_pose_;
-    nav_msgs::Path target_path_, target_vel_path_;
+    nav_msgs::Path target_path_;
     double look_ahead_, cruising_speed_, max_vel_, increase_vel_;
     std::vector<double> generated_times_;
     // Params

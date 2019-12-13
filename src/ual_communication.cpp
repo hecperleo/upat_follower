@@ -155,20 +155,43 @@ void UALCommunication::velocityCallback(const geometry_msgs::TwistStamped &_velo
 
 void UALCommunication::saveDataForTesting() {
     static upat_follower::Follower follower_save_tests(uav_id_);
-    std::ofstream csv_cubic_loyal, csv_cubic, csv_interp1, csv_init, csv_trajectory;
-    target_path_ = follower_save_tests.prepareTrajectory(init_path_, times_);
-    csv_trajectory.open(folder_data_name_ + "/trajectory.csv");
-    csv_trajectory << std::fixed << std::setprecision(5);
-    for (int i = 0; i < target_path_.poses.size(); i++) {
-        csv_trajectory << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
-    }
-    csv_trajectory.close();
+    std::ofstream csv_smooth_spline, csv_cubic_spline, csv_interp1, csv_init, csv_trajectory_m0, csv_trajectory_m1, csv_trajectory_m2, csv_trajectory_t;
     csv_init.open(folder_data_name_ + "/init.csv");
     csv_init << std::fixed << std::setprecision(5);
     for (int i = 0; i < init_path_.poses.size(); i++) {
         csv_init << init_path_.poses.at(i).pose.position.x << ", " << init_path_.poses.at(i).pose.position.y << ", " << init_path_.poses.at(i).pose.position.z << std::endl;
     }
     csv_init.close();
+    csv_trajectory_t.open(folder_data_name_ + "/trajectory_t.csv");
+    csv_trajectory_t << std::fixed << std::setprecision(5);
+    std::cout << "T: ";
+    for (int i = 0; i < times_.size(); i++) {
+        std::cout << times_.at(i) << " ";
+        csv_trajectory_t << times_.at(i) << std::endl;
+    }
+    std::cout << std::endl;
+    csv_trajectory_t.close();
+    target_path_ = follower_save_tests.prepareTrajectory(init_path_, times_, 0);
+    csv_trajectory_m0.open(folder_data_name_ + "/trajectory_m0.csv");
+    csv_trajectory_m0 << std::fixed << std::setprecision(5);
+    for (int i = 0; i < target_path_.poses.size(); i++) {
+        csv_trajectory_m0 << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
+    }
+    csv_trajectory_m0.close();
+    target_path_ = follower_save_tests.prepareTrajectory(init_path_, times_, 1);
+    csv_trajectory_m1.open(folder_data_name_ + "/trajectory_m1.csv");
+    csv_trajectory_m1 << std::fixed << std::setprecision(5);
+    for (int i = 0; i < target_path_.poses.size(); i++) {
+        csv_trajectory_m1 << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
+    }
+    csv_trajectory_m1.close();
+    target_path_ = follower_save_tests.prepareTrajectory(init_path_, times_, 2);
+    csv_trajectory_m2.open(folder_data_name_ + "/trajectory_m2.csv");
+    csv_trajectory_m2 << std::fixed << std::setprecision(5);
+    for (int i = 0; i < target_path_.poses.size(); i++) {
+        csv_trajectory_m2 << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
+    }
+    csv_trajectory_m2.close();
     target_path_ = follower_save_tests.preparePath(init_path_, 0);
     csv_interp1.open(folder_data_name_ + "/interp1.csv");
     csv_interp1 << std::fixed << std::setprecision(5);
@@ -177,19 +200,19 @@ void UALCommunication::saveDataForTesting() {
     }
     csv_interp1.close();
     target_path_ = follower_save_tests.preparePath(init_path_, 1);
-    csv_cubic_loyal.open(folder_data_name_ + "/cubic_spline_loyal.csv");
-    csv_cubic_loyal << std::fixed << std::setprecision(5);
+    csv_smooth_spline.open(folder_data_name_ + "/smooth_spline.csv");
+    csv_smooth_spline << std::fixed << std::setprecision(5);
     for (int i = 0; i < target_path_.poses.size(); i++) {
-        csv_cubic_loyal << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
+        csv_smooth_spline << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
     }
-    csv_cubic_loyal.close();
+    csv_smooth_spline.close();
     target_path_ = follower_save_tests.preparePath(init_path_, 2);
-    csv_cubic.open(folder_data_name_ + "/cubic_spline.csv");
-    csv_cubic << std::fixed << std::setprecision(5);
+    csv_cubic_spline.open(folder_data_name_ + "/cubic_spline.csv");
+    csv_cubic_spline << std::fixed << std::setprecision(5);
     for (int i = 0; i < target_path_.poses.size(); i++) {
-        csv_cubic << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
+        csv_cubic_spline << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
     }
-    csv_cubic.close();
+    csv_cubic_spline.close();
 }
 
 void UALCommunication::callVisualization() {
@@ -222,20 +245,20 @@ void UALCommunication::switchState(state_t new_state) {
     state_ = new_state;
     switch (state_) {
         case hover_:
-            ROS_INFO("[UPAT] State switched to hover.");
+            ROS_INFO("[%d][UPAT] State switched to hover.", uav_id_);
             break;
         case go_to_start_:
-            ROS_INFO("[UPAT] State switched to go_to_start.");
+            ROS_INFO("[%d][UPAT] State switched to go_to_start.", uav_id_);
             break;
         case go_to_end_:
-            ROS_INFO("[UPAT] State switched to go_to_end.");
+            ROS_INFO("[%d][UPAT] State switched to go_to_end.", uav_id_);
             break;
         case execute_path_:
             start_count_time_ = ros::Time::now().toSec();
-            ROS_INFO("[UPAT] State switched to execute_path.");
+            ROS_INFO("[%d][UPAT] State switched to execute_path.", uav_id_);
             break;
         case hover_emergency_:
-            ROS_WARN("[UPAT] State switched to hover_emergency.");
+            ROS_WARN("[%d][UPAT] State switched to hover_emergency.", uav_id_);
             break;
         default:
             break;
@@ -261,14 +284,15 @@ void UALCommunication::runMission() {
                 prepare_trajectory.request.times.push_back(v_percentage);
             }
             prepare_trajectory.request.init_path = init_path_;
+            prepare_trajectory.request.generator_mode.data = generator_mode_;
             if (!use_class_) {
                 client_prepare_trajectory_.call(prepare_trajectory);
                 target_path_ = prepare_trajectory.response.generated_path;
             }
-            if (use_class_) target_path_ = follower_.prepareTrajectory(init_path_, times_);
+            if (use_class_) target_path_ = follower_.prepareTrajectory(init_path_, times_, generator_mode_);
         } else {
             prepare_path.request.init_path = init_path_;
-            prepare_path.request.generator_mode.data = 2;
+            prepare_path.request.generator_mode.data = generator_mode_;
             prepare_path.request.look_ahead.data = look_ahead_;
             prepare_path.request.cruising_speed.data = cruising_speed_;
             if (!use_class_) {
@@ -310,7 +334,7 @@ void UALCommunication::runMission() {
                     switchState(execute_path_);
                     break;
                 case execute_path_:
-                    if (reach_tolerance_ * 2 > (current_p - path_end_p).norm()) {
+                    if (reach_tolerance_ > (current_p - path_end_p).norm()) {
                         switchState(go_to_end_);
                     } else {
                         if (use_class_) {
@@ -325,7 +349,7 @@ void UALCommunication::runMission() {
                     }
                     break;
                 case go_to_end_:
-                    ROS_INFO("TIME: %f", ros::Time::now().toSec() - start_count_time_);
+                    ROS_INFO_COND(trajectory_, "[%d][UPAT] Path executed in %.2f seconds.", uav_id_, ros::Time::now().toSec() - start_count_time_);
                     client_go_to_waypoint_.call(go_to_waypoint_back);
                     switchState(hover_);
 

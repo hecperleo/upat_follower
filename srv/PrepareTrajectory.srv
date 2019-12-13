@@ -1,4 +1,5 @@
 nav_msgs/Path init_path
+std_msgs/Int8 generator_mode
 std_msgs/Float32[] times
 ---
 nav_msgs/Path generated_path

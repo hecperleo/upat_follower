@@ -1,7 +1,7 @@
 nav_msgs/Path init_path
+std_msgs/Int8 generator_mode
 std_msgs/Float32[] times
 ---
 nav_msgs/Path generated_path
-nav_msgs/Path generated_path_vel_percentage
 std_msgs/Float32 max_velocity
 std_msgs/Float32[] generated_times
