@@ -51,12 +51,9 @@ class UALCommunication {
     void runMission();
     void callVisualization();
     bool flag_update_ = false;
-    bool flag_hover_ = false;
     bool flag_redo_ = true;
-    bool flag_land_ = true;
-    bool on_path_ = false;
-    bool end_path_ = false;
     int position_on_path_ = 0;
+    std::string pkg_name_ = "upat_follower";
     nav_msgs::Path init_path_, target_path_;
     enum state_t { hover_,
                    go_to_start_,
@@ -65,6 +62,7 @@ class UALCommunication {
                    hover_emergency_};
     state_t state_ = go_to_start_;
     void switchState(state_t new_state);
+    nav_msgs::Path csvToPath(std::string _file_name);
     geometry_msgs::PoseStamped hover_emergency_pose_;
 
    private:
@@ -77,17 +75,15 @@ class UALCommunication {
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
     void velocityCallback(const geometry_msgs::TwistStamped &_velocity);
     // Methods
-    nav_msgs::Path csvToPath(std::string _file_name);
     std::vector<double> csvToVector(std::string _file_name);
     nav_msgs::Path constructPath(std::vector<double> _wps_x, std::vector<double> _wps_y, std::vector<double> _wps_z, std::string frame_id);
     void saveDataForTesting();
-    std_msgs::String updateCommState();
     // Node handlers
     ros::NodeHandle nh_, pnh_;
     // Subscribers
     ros::Subscriber sub_pose_, sub_state_, sub_velocity_;
     // Publishers
-    ros::Publisher pub_set_velocity_, pub_set_pose_, pub_comm_state_;
+    ros::Publisher pub_set_velocity_, pub_set_pose_;
     // Services
     ros::ServiceClient client_go_to_waypoint_, client_take_off_, client_land_, client_generate_path_, client_prepare_path_, client_prepare_trajectory_, client_visualize_;
     // Variables
@@ -102,7 +98,6 @@ class UALCommunication {
     bool save_test_, trajectory_, use_class_, debug_;
     double reach_tolerance_, cruising_speed_, look_ahead_;
     std::string init_path_name_, ns_prefix_;
-    std::string pkg_name_ = "upat_follower";
 };
 
 }  // namespace upat_follower

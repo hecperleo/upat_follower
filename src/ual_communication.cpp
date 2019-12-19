@@ -51,7 +51,6 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     // Publishers
     pub_set_pose_ = nh_.advertise<geometry_msgs::PoseStamped>("/" + ns_prefix_ + std::to_string(uav_id_) + "/ual/set_pose", 1000);
     pub_set_velocity_ = nh_.advertise<geometry_msgs::TwistStamped>("/" + ns_prefix_ + std::to_string(uav_id_) + "/ual/set_velocity", 1000);
-    pub_comm_state_ = nh_.advertise<std_msgs::String>("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/communication/state", 1000);
     // Services
     client_go_to_waypoint_ = nh_.serviceClient<uav_abstraction_layer::GoToWaypoint>("/" + ns_prefix_ + std::to_string(uav_id_) + "/ual/go_to_waypoint");
     client_take_off_ = nh_.serviceClient<uav_abstraction_layer::TakeOff>("/" + ns_prefix_ + std::to_string(uav_id_) + "/ual/take_off");
@@ -59,12 +58,9 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     client_prepare_path_ = nh_.serviceClient<upat_follower::PreparePath>("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/follower/prepare_path");
     client_prepare_trajectory_ = nh_.serviceClient<upat_follower::PrepareTrajectory>("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/follower/prepare_trajectory");
     client_visualize_ = nh_.serviceClient<upat_follower::Visualize>("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/visualization/visualize");
-    // Flags
-    on_path_ = false;
-    end_path_ = false;
     // Initialize path
-    init_path_ = csvToPath("/" + init_path_name_ + ".csv");
-    times_ = csvToVector("/times.csv");
+    init_path_ = csvToPath("/config/" + init_path_name_ + ".csv");
+    times_ = csvToVector("/config/times.csv");
     // Save data
     if (save_test_) {
         std::string pkg_name_path = ros::package::getPath(pkg_name_);
@@ -95,7 +91,7 @@ nav_msgs::Path UALCommunication::constructPath(std::vector<double> _wps_x, std::
 nav_msgs::Path UALCommunication::csvToPath(std::string _file_name) {
     nav_msgs::Path out_path;
     std::string pkg_name_path = ros::package::getPath(pkg_name_);
-    std::string folder_name = pkg_name_path + "/config" + _file_name;
+    std::string folder_name = pkg_name_path + _file_name;
     std::fstream read_csv;
     read_csv.open(folder_name);
     std::vector<double> list_x, list_y, list_z;
@@ -124,7 +120,7 @@ nav_msgs::Path UALCommunication::csvToPath(std::string _file_name) {
 std::vector<double> UALCommunication::csvToVector(std::string _file_name) {
     std::vector<double> out_vector;
     std::string pkg_name_path = ros::package::getPath(pkg_name_);
-    std::string folder_name = pkg_name_path + "/config" + _file_name;
+    std::string folder_name = pkg_name_path + _file_name;
     std::fstream read_csv;
     read_csv.open(folder_name);
     if (read_csv.is_open()) {
@@ -221,24 +217,6 @@ void UALCommunication::callVisualization() {
     visualize.request.generated_path = target_path_;
     visualize.request.current_path = current_path_;
     client_visualize_.call(visualize);
-}
-
-std_msgs::String UALCommunication::updateCommState() {
-    std_msgs::String out_state;
-    if (!flag_hover_) {
-        if (!end_path_) {
-            if (!on_path_) {
-                out_state.data = "UAV " + std::to_string(uav_id_) + " not on path";
-            } else {
-                out_state.data = "UAV " + std::to_string(uav_id_) + " on path";
-            }
-        } else {
-            out_state.data = "UAV " + std::to_string(uav_id_) + " completed path";
-        }
-    } else {
-        out_state.data = "UAV " + std::to_string(uav_id_) + " hovering";
-    }
-    return out_state;
 }
 
 void UALCommunication::switchState(state_t new_state) {
@@ -362,7 +340,6 @@ void UALCommunication::runMission() {
         case 5:  // Landing
             break;
     }
-    pub_comm_state_.publish(updateCommState());
 }
 
 }  // namespace upat_follower
