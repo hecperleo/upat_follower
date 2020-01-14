@@ -60,7 +60,7 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     client_visualize_ = nh_.serviceClient<upat_follower::Visualize>("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/visualization/visualize");
     // Initialize path
     init_path_ = csvToPath("/config/" + init_path_name_ + ".csv");
-    times_ = csvToVector("/config/times.csv");
+    times_ = csvToVector("/config/" + init_path_name_ + "_t.csv");
     // Save data
     if (save_test_) {
         std::string pkg_name_path = ros::package::getPath(pkg_name_);
@@ -150,6 +150,7 @@ void UALCommunication::velocityCallback(const geometry_msgs::TwistStamped &_velo
 }
 
 void UALCommunication::saveDataForTesting() {
+    ROS_WARN("Saving Data For Testing ...");
     static upat_follower::Follower follower_save_tests(uav_id_);
     std::ofstream csv_smooth_spline, csv_cubic_spline, csv_interp1, csv_init, csv_trajectory_m0, csv_trajectory_m1, csv_trajectory_m2, csv_trajectory_t;
     csv_init.open(folder_data_name_ + "/init.csv");
@@ -318,6 +319,7 @@ void UALCommunication::runMission() {
                         if (use_class_) {
                             follower_.updatePose(ual_pose_);
                             velocity_ = follower_.getVelocity();
+                            std::cout << "|V| = " << sqrt(velocity_.twist.linear.x * velocity_.twist.linear.x + velocity_.twist.linear.y * velocity_.twist.linear.y + velocity_.twist.linear.z * velocity_.twist.linear.z) << std::endl;
                             if (debug_) follower_.pubMsgs();
                             position_on_path_ = follower_.position_on_path_;
                         }

@@ -40,8 +40,8 @@ int main(int _argc, char **_argv) {
         std::string folder_data_name = pkg_name_path + "/data/log/" + oss.str();
         if (mkdir((folder_data_name).c_str(), 0777) == -1) ROS_WARN("Directory creation failed");
         if (trajectory) {
-            visual.csv_normal_distances_.open(folder_data_name + "/normal_dist_trajectory.csv");
-            visual.csv_current_path_.open(folder_data_name + "/current_trajectory.csv");
+            visual.csv_normal_distances_.open(folder_data_name + "/normal_dist_trajectory_m" + std::to_string(generator_mode) + ".csv");
+            visual.csv_current_path_.open(folder_data_name + "/current_trajectory_m" + std::to_string(generator_mode) + ".csv");
         } else {
             switch (generator_mode) {
                 case 0:
@@ -49,8 +49,8 @@ int main(int _argc, char **_argv) {
                     visual.csv_current_path_.open(folder_data_name + "/current_path_linear_interp.csv");
                     break;
                 case 1:
-                    visual.csv_normal_distances_.open(folder_data_name + "/normal_dist_cubic_loyal_spline.csv");
-                    visual.csv_current_path_.open(folder_data_name + "/current_path_cubic_loyal_spline.csv");
+                    visual.csv_normal_distances_.open(folder_data_name + "/normal_dist_smooth_spline.csv");
+                    visual.csv_current_path_.open(folder_data_name + "/current_path_smooth_spline.csv");
                     break;
                 case 2:
                     visual.csv_normal_distances_.open(folder_data_name + "/normal_dist_cubic_spline.csv");

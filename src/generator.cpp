@@ -263,7 +263,7 @@ nav_msgs::Path Generator::createPathInterp1(std::vector<double> _list_x, std::ve
 
 nav_msgs::Path Generator::createPathSmoothSpline(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size) {
     nav_msgs::Path smooth_spline_path;
-    double max_curvature = 10.0;  // PX4 Default Max Acceleration
+    double max_curvature = 40.0;  // PX4 Default Max Acceleration = 10.0
     if (_path_size > 1) {
         // Calculate total distance
         int total_distance = 0;
