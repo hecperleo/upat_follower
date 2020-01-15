@@ -94,29 +94,11 @@ nav_msgs::Path Follower::preparePath(nav_msgs::Path _init_path, int _generator_m
     return generator.out_path_;
 }
 
-std::vector<double> Follower::timesToMaxVelPercentage(nav_msgs::Path _init_path, std::vector<double> _times) {
-    std::vector<double> out_vector;
-    for (int i = 0; i < _init_path.poses.size() - 1; i++) {
-        Eigen::Vector3f point_1, point_2;
-        point_1 = Eigen::Vector3f(_init_path.poses.at(i).pose.position.x, _init_path.poses.at(i).pose.position.y, _init_path.poses.at(i).pose.position.z);
-        point_2 = Eigen::Vector3f(_init_path.poses.at(i + 1).pose.position.x, _init_path.poses.at(i + 1).pose.position.y, _init_path.poses.at(i + 1).pose.position.z);
-        double temp_distance = (point_2 - point_1).norm();
-        double temp_time = _times.at(i + 1) - _times.at(i);
-        double temp_percentage = temp_distance / temp_time / smallest_max_velocity_;
-        // if (temp_percentage > 1) temp_percentage = 1;
-        // if (temp_percentage < 0) temp_percentage = 1;  // TODO: substraction of times must be positive. Hot fix. Try to avoid this with another method.
-        out_vector.push_back(temp_percentage);
-    }
-
-    return out_vector;
-}
-
 nav_msgs::Path Follower::prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _times, int _generator_mode) {
     follower_mode_ = 1;
     prev_normal_vel_on_path_ = prev_normal_pos_on_path_ = 0;
-    timesToMaxVelPercentage(_init_path, _times);
     upat_follower::Generator generator(vxy_, vz_up_, vz_dn_, debug_);
-    generator.generateTrajectory(_init_path, timesToMaxVelPercentage(_init_path, _times), _generator_mode);
+    generator.generateTrajectory(_init_path, _times, _generator_mode);
     for (int i = 0; i < generator.generated_times_.size(); i++) {
         generated_times_.push_back(generator.generated_times_.at(i));
     }
@@ -205,9 +187,12 @@ double Follower::changeLookAhead(int _pos_on_path) {
 
 geometry_msgs::TwistStamped Follower::calculateVelocity(Eigen::Vector3f _current_point, int _pos_look_ahead, int _pos_on_path) {
     geometry_msgs::TwistStamped out_vel;
-    Eigen::Vector3f target_p, unit_vec, hypo_vec;
+    Eigen::Vector3f target_p, unit_vec, hypo_vec, projection_p;
+    projection_p = Eigen::Vector3f(target_path_.poses.at(_pos_on_path).pose.position.x, target_path_.poses.at(_pos_on_path).pose.position.y, target_path_.poses.at(_pos_on_path).pose.position.z);
     target_p = Eigen::Vector3f(target_path_.poses.at(_pos_look_ahead).pose.position.x, target_path_.poses.at(_pos_look_ahead).pose.position.y, target_path_.poses.at(_pos_look_ahead).pose.position.z);
     double distance = (target_p - _current_point).norm();
+    double dist_target_projection = (target_p - projection_p).norm();
+    double mod_vel;
     switch (follower_mode_) {
         case 0:
             unit_vec = (target_p - _current_point) / distance;
@@ -220,9 +205,14 @@ geometry_msgs::TwistStamped Follower::calculateVelocity(Eigen::Vector3f _current
         case 1:
             unit_vec = (target_p - _current_point) / distance;
             unit_vec = unit_vec / unit_vec.norm();
-            out_vel.twist.linear.x = unit_vec(0) * generated_times_[_pos_on_path];
-            out_vel.twist.linear.y = unit_vec(1) * generated_times_[_pos_on_path];
-            out_vel.twist.linear.z = unit_vec(2) * generated_times_[_pos_on_path];
+            mod_vel = (dist_target_projection) / ((generated_times_[_pos_look_ahead] - actual_time_));
+            // std::cout << std::fixed << std::setprecision(3) << "|v| = " << dist_target_projection << " / (" << generated_times_[_pos_look_ahead] << "(" << _pos_look_ahead << ") - " << actual_time_ << ") = " << mod_vel;
+            if(mod_vel > max_vel_) mod_vel = max_vel_;
+            if(mod_vel < 0) mod_vel = max_vel_;
+            // std::cout << " -> " << mod_vel << std::endl;
+            out_vel.twist.linear.x = unit_vec(0) * mod_vel;
+            out_vel.twist.linear.y = unit_vec(1) * mod_vel;
+            out_vel.twist.linear.z = unit_vec(2) * mod_vel;
             break;
     }
     out_vel.header.frame_id = target_path_.header.frame_id;
@@ -304,7 +294,7 @@ geometry_msgs::TwistStamped Follower::getVelocity() {
         current_point = Eigen::Vector3f(ual_pose_.pose.position.x, ual_pose_.pose.position.y, ual_pose_.pose.position.z);
         target_path0_point = Eigen::Vector3f(target_path_.poses.at(0).pose.position.x, target_path_.poses.at(0).pose.position.y, target_path_.poses.at(0).pose.position.z);
         int pos_look_ahead;
-        if (follower_mode_ == 1) {
+        if (follower_mode_ == 1) { // Trajectory
             double search_range_vel = look_ahead_ * 1.5;
             int normal_vel_on_path = calculatePosOnPath(current_point, search_range_vel, prev_normal_vel_on_path_, target_path_);
             prev_normal_vel_on_path_ = normal_vel_on_path;
@@ -312,7 +302,7 @@ geometry_msgs::TwistStamped Follower::getVelocity() {
             pos_look_ahead = calculatePosLookAhead(normal_vel_on_path);
             out_velocity_ = calculateVelocity(current_point, pos_look_ahead, normal_vel_on_path);
             if (debug_) prepareDebug(search_range_vel, normal_vel_on_path, pos_look_ahead, prev_normal_vel_on_path_);
-        } else {
+        } else { // Path
             double search_range_normal_pos = look_ahead_ * 1.5;
             int normal_pos_on_path = calculatePosOnPath(current_point, search_range_normal_pos, prev_normal_pos_on_path_, target_path_);
             prev_normal_pos_on_path_ = normal_pos_on_path;

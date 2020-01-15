@@ -318,8 +318,10 @@ void UALCommunication::runMission() {
                     } else {
                         if (use_class_) {
                             follower_.updatePose(ual_pose_);
+                            static double start_time = ros::Time::now().toSec();
+                            if (trajectory_) follower_.actual_time_ = ros::Time::now().toSec() - start_time;
                             velocity_ = follower_.getVelocity();
-                            std::cout << "|V| = " << sqrt(velocity_.twist.linear.x * velocity_.twist.linear.x + velocity_.twist.linear.y * velocity_.twist.linear.y + velocity_.twist.linear.z * velocity_.twist.linear.z) << std::endl;
+                            // std::cout << "|V| = " << sqrt(velocity_.twist.linear.x * velocity_.twist.linear.x + velocity_.twist.linear.y * velocity_.twist.linear.y + velocity_.twist.linear.z * velocity_.twist.linear.z) << std::endl;
                             if (debug_) follower_.pubMsgs();
                             position_on_path_ = follower_.position_on_path_;
                         }
