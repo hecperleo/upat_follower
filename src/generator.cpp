@@ -132,9 +132,6 @@ nav_msgs::Path Generator::generatePath(nav_msgs::Path _init_path, int _generator
         list_pose_y.push_back(_init_path.poses.at(i).pose.position.y);
         list_pose_z.push_back(_init_path.poses.at(i).pose.position.z);
     }
-    list_pose_x.push_back(list_pose_x.back());
-    list_pose_y.push_back(list_pose_y.back());
-    list_pose_z.push_back(list_pose_z.back());
     int total_distance = 0;
     switch (_generator_mode) {
         case 0:
@@ -163,26 +160,14 @@ nav_msgs::Path Generator::generatePath(nav_msgs::Path _init_path, int _generator
 }
 
 nav_msgs::Path Generator::generateTrajectory(nav_msgs::Path _init_path, std::vector<double> _times, int _generator_mode) {
-    if (_init_path.poses.size() - 1 == _times.size()) {
+    if (_init_path.poses.size() == _times.size()) {
         out_path_ = generatePath(_init_path, _generator_mode);
         max_velocity_ = abs(checkSmallestMaxVel());
-        for (int i = 0; i < _times.size(); i++) {
-            int j = 0;
-            for (j = 0; j < out_path_.poses.size() / (_times.size() + 1); j++) {
-                if (_times[i] > max_velocity_) {
-                    generated_times_.push_back(max_velocity_);  // Cap velocity to the maximum
-                } else {
-                    generated_times_.push_back(_times[i]);
-                }
-            }
-        }
-        // TODO: Why do we still need this?
-        while (out_path_.poses.size() > generated_times_.size()) {
-            generated_times_.push_back(_times.back());
-        }
-        ROS_WARN_COND(debug_, "Generator -> Path sizes -> spline: %zd, maxVel: %zd, init: %zd", out_path_.poses.size(), generated_times_.size(), _init_path.poses.size());
+        mode_ = mode_interp1_;
+        generated_times_ = interpWaypointList(_times, out_path_.poses.size());
+        ROS_WARN_COND(debug_, "Generator -> Path sizes -> spline: %zd, times: %zd, init: %zd", out_path_.poses.size(), generated_times_.size(), _init_path.poses.size());
     } else {
-        ROS_ERROR("Time intervals size (%zd) should has one less element than init path size (%zd)", _times.size(), _init_path.poses.size());
+        ROS_ERROR("Time intervals size (%zd) should match init path size (%zd)", _times.size(), _init_path.poses.size());
     }
 
     return out_path_;
@@ -215,8 +200,14 @@ bool Generator::generateTrajectoryCb(upat_follower::GenerateTrajectory::Request 
 std::vector<double> Generator::interpWaypointList(std::vector<double> _list_pose_axis, int _amount_of_points) {
     std::vector<double> aux_axis;
     std::vector<double> new_aux_axis;
-    for (int i = 0; i < _list_pose_axis.size(); i++) {
-        aux_axis.push_back(i);
+    if (mode_ == mode_interp1_) {
+        for (int i = 0; i < _list_pose_axis.size() - 1; i++) {
+            aux_axis.push_back(i);
+        }
+    } else {
+        for (int i = 0; i < _list_pose_axis.size(); i++) {
+            aux_axis.push_back(i);
+        }
     }
     double portion = (aux_axis.back() - aux_axis.front()) / (_amount_of_points);
     double new_pose = aux_axis.front();
@@ -257,7 +248,6 @@ nav_msgs::Path Generator::createPathInterp1(std::vector<double> _list_x, std::ve
         // Construct path
         interp1_path = constructPath(interp1_list_x, interp1_list_y, interp1_list_z);
     }
-
     return interp1_path;
 }
 
