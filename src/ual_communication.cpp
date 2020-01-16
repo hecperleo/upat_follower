@@ -332,7 +332,8 @@ void UALCommunication::runMission() {
                     break;
                 case go_to_end_:
                     ROS_INFO_COND(trajectory_, "[%d][UPAT] Path executed in %.2f seconds.", uav_id_, ros::Time::now().toSec() - start_count_time_);
-                    client_go_to_waypoint_.call(go_to_waypoint_back);
+                    client_go_to_waypoint_.call(go_to_waypoint_back);  // Comment to save data on experiments
+                    // client_land_.call(land);                        // Uncomment to save data on experiments
                     switchState(hover_);
 
                     break;

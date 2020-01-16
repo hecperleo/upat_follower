@@ -25,8 +25,8 @@
 #include <upat_follower/generator.h>
 #include <visualization_msgs/Marker.h>
 #include <Eigen/Eigen>
-#include <fstream>
 #include <ctime>
+#include <fstream>
 #include "geometry_msgs/PoseStamped.h"
 #include "nav_msgs/Path.h"
 
@@ -38,7 +38,7 @@ class Visualization {
     bool save_experiment = false;
     nav_msgs::Path current_path_;
     uav_abstraction_layer::State ual_state_;
-    std::ofstream csv_normal_distances_, csv_current_path_;
+    std::ofstream csv_normal_distances_, csv_current_path_, csv_reach_times_;
 
     void pubMsgs();
     void saveMissionData();
@@ -52,6 +52,7 @@ class Visualization {
     int calculateDistanceOnPath(int _prev_normal_pos_on_path, double _meters, nav_msgs::Path _path_search);
     int calculateNormalDistance(Eigen::Vector3f _current_point, double _search_range, int _prev_normal_pos_on_path, nav_msgs::Path _path_search);
     visualization_msgs::Marker readModel(std::string _model_type);
+    bool checkWaypointReached(double _check_distance);
     // Node handlers
     ros::NodeHandle nh_, pnh_;
     // Subscribers
@@ -68,6 +69,7 @@ class Visualization {
     double normal_distance_;
     int prev_normal_pos_on_init_path_ = 0;
     int prev_normal_pos_on_generated_path_ = 0;
+    int waypoint_to_check_ = 1;
     // Params
     int uav_id_;
     std::string model_, ns_prefix_;

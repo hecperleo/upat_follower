@@ -156,28 +156,46 @@ int Visualization::calculateDistanceOnPath(int _prev_normal_pos_on_path, double 
     return pos_equals_dist;
 }
 
+bool Visualization::checkWaypointReached(double _check_distance) {
+    Eigen::Vector3f current_p = Eigen::Vector3f(ual_pose_.pose.position.x, ual_pose_.pose.position.y, ual_pose_.pose.position.z);
+    Eigen::Vector3f targ_wp_p = Eigen::Vector3f(init_path_.poses.at(waypoint_to_check_).pose.position.x, init_path_.poses.at(waypoint_to_check_).pose.position.y, init_path_.poses.at(waypoint_to_check_).pose.position.z);
+    if ((targ_wp_p - current_p).norm() < _check_distance) {
+        // if (waypoint_to_check_ < init_path_.poses.size() - 1)
+        waypoint_to_check_++;
+        return true;
+    } else {
+        return false;
+    }
+}
+
 void Visualization::saveMissionData() {
     static double begin = ros::Time::now().toSec();
     static bool flag_once = true;
     if (flag_once) {
         csv_normal_distances_ << std::fixed << std::setprecision(5);
+        csv_reach_times_ << std::fixed << std::setprecision(5);
         upat_follower::Generator generator(2.0, 3.0, 1.0, 0);
         interp1_path_ = generator.generatePath(init_path_, 0);
         flag_once = false;
     }
     Eigen::Vector3f current_point = Eigen::Vector3f(ual_pose_.pose.position.x, ual_pose_.pose.position.y, ual_pose_.pose.position.z);
-    csv_normal_distances_ << ros::Time::now().toSec() - begin << ",";
+    csv_normal_distances_ << ros::Time::now().toSec() - begin << ", ";
     if (generated_path_.poses.size() > 1) {
         int normal_pos_on_generated_path = calculateNormalDistance(current_point, 2.0, prev_normal_pos_on_generated_path_, generated_path_);
         normal_dist_generated_path_.push_back(normal_distance_);
         prev_normal_pos_on_generated_path_ = normal_pos_on_generated_path;
-        csv_normal_distances_ << normal_distance_ << ",";
+        csv_normal_distances_ << normal_distance_ << ", ";
     }
     if (interp1_path_.poses.size() > 1) {
         int normal_pos_on_init_path = calculateNormalDistance(current_point, 2.0, prev_normal_pos_on_init_path_, interp1_path_);
         normal_dist_init_path_.push_back(normal_distance_);
         csv_normal_distances_ << normal_distance_ << std::endl;
         prev_normal_pos_on_init_path_ = normal_pos_on_init_path;
+    }
+    if (waypoint_to_check_ < init_path_.poses.size() - 1) {
+        if (checkWaypointReached(0.35)) {
+            csv_reach_times_ << ros::Time::now().toSec() - begin << std::endl;
+        }
     }
 }
 

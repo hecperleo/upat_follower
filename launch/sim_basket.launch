@@ -98,7 +98,7 @@
             <node pkg="upat_follower" type="ual_communication_node" name="ual_communication" output="screen" required="true">
                 <param name="uav_id" value="1"/>
                 <param name="ns_prefix" value="$(arg ns_prefix)"/>
-                <param name="save_test_data" value="false"/>
+                <param name="save_test_data" value="$(arg save_test_data)"/>
                 <param name="trajectory" value="$(arg trajectory)"/>
                 <param name="pub_rate" value="$(arg pub_rate)"/>
                 <param name="path" value="$(arg path)"/>

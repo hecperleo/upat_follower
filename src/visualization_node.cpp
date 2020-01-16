@@ -42,19 +42,23 @@ int main(int _argc, char **_argv) {
         if (trajectory) {
             visual.csv_normal_distances_.open(folder_data_name + "/normal_dist_trajectory_m" + std::to_string(generator_mode) + ".csv");
             visual.csv_current_path_.open(folder_data_name + "/current_trajectory_m" + std::to_string(generator_mode) + ".csv");
+            visual.csv_reach_times_.open(folder_data_name + "/reach_times_trajectory_m" + std::to_string(generator_mode) + ".csv");
         } else {
             switch (generator_mode) {
                 case 0:
                     visual.csv_normal_distances_.open(folder_data_name + "/normal_dist_linear_interp.csv");
                     visual.csv_current_path_.open(folder_data_name + "/current_path_linear_interp.csv");
+                    visual.csv_reach_times_.open(folder_data_name + "/reach_times_linear_interp.csv");
                     break;
                 case 1:
                     visual.csv_normal_distances_.open(folder_data_name + "/normal_dist_smooth_spline.csv");
                     visual.csv_current_path_.open(folder_data_name + "/current_path_smooth_spline.csv");
+                    visual.csv_reach_times_.open(folder_data_name + "/reach_times_smooth_spline.csv");
                     break;
                 case 2:
                     visual.csv_normal_distances_.open(folder_data_name + "/normal_dist_cubic_spline.csv");
                     visual.csv_current_path_.open(folder_data_name + "/current_path_cubic_spline.csv");
+                    visual.csv_reach_times_.open(folder_data_name + "/reach_times_cubic_spline.csv");
                     break;
             }
         }
