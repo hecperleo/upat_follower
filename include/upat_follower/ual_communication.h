@@ -73,6 +73,7 @@ class UALCommunication {
     // Callbacks
     void ualStateCallback(const uav_abstraction_layer::State &_ual_state);
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
+    void ualVelocityCallback(const geometry_msgs::TwistStamped::ConstPtr &_ual_velocity);
     void velocityCallback(const geometry_msgs::TwistStamped &_velocity);
     // Methods
     std::vector<double> csvToVector(std::string _file_name);
@@ -81,7 +82,7 @@ class UALCommunication {
     // Node handlers
     ros::NodeHandle nh_, pnh_;
     // Subscribers
-    ros::Subscriber sub_pose_, sub_state_, sub_velocity_;
+    ros::Subscriber sub_ual_pose_, sub_ual_state_, sub_ual_velocity_, sub_velocity_;
     // Publishers
     ros::Publisher pub_set_velocity_, pub_set_pose_;
     // Services
@@ -90,6 +91,7 @@ class UALCommunication {
     std::string folder_data_name_;
     nav_msgs::Path /* target_path_, */ vel_percentage_path_, /* init_path_, */ current_path_;
     geometry_msgs::PoseStamped ual_pose_;
+    geometry_msgs::TwistStamped ual_vel_;
     geometry_msgs::TwistStamped velocity_;
     uav_abstraction_layer::State ual_state_;
     std::vector<double> times_;

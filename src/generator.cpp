@@ -147,10 +147,16 @@ nav_msgs::Path Generator::generatePath(nav_msgs::Path _init_path, int _generator
             break;
         case 1:
             mode_ = mode_smooth_spline_;
+            list_pose_x.push_back(list_pose_x.back());
+            list_pose_y.push_back(list_pose_y.back());
+            list_pose_z.push_back(list_pose_z.back());
             out_path_ = pathManagement(list_pose_x, list_pose_y, list_pose_z);
             break;
         case 2:
             mode_ = mode_cubic_spline_;
+            list_pose_x.push_back(list_pose_x.back());
+            list_pose_y.push_back(list_pose_y.back());
+            list_pose_z.push_back(list_pose_z.back());
             out_path_ = pathManagement(list_pose_x, list_pose_y, list_pose_z);
             break;
     }
@@ -200,14 +206,8 @@ bool Generator::generateTrajectoryCb(upat_follower::GenerateTrajectory::Request 
 std::vector<double> Generator::interpWaypointList(std::vector<double> _list_pose_axis, int _amount_of_points) {
     std::vector<double> aux_axis;
     std::vector<double> new_aux_axis;
-    if (mode_ == mode_interp1_) {
-        for (int i = 0; i < _list_pose_axis.size() - 1; i++) {
-            aux_axis.push_back(i);
-        }
-    } else {
-        for (int i = 0; i < _list_pose_axis.size(); i++) {
-            aux_axis.push_back(i);
-        }
+    for (int i = 0; i < _list_pose_axis.size(); i++) {
+        aux_axis.push_back(i);
     }
     double portion = (aux_axis.back() - aux_axis.front()) / (_amount_of_points);
     double new_pose = aux_axis.front();
@@ -265,6 +265,10 @@ nav_msgs::Path Generator::createPathSmoothSpline(std::vector<double> _list_x, st
         }
         // Calculate number of joints
         int num_joints = _path_size - 1;
+        // Add last waypoint to the path [needed for splines]
+        // _list_x.push_back(_list_x.back());
+        // _list_y.push_back(_list_y.back());
+        // _list_z.push_back(_list_z.back());
         // Lineal interpolation
         std::vector<double> interp1_list_x, interp1_list_y, interp1_list_z;
         interp1_list_x = interpWaypointList(_list_x, num_joints);
@@ -334,6 +338,10 @@ nav_msgs::Path Generator::createPathCubicSpline(std::vector<double> _list_x, std
                 num_joints = _path_size - 1;
                 break;
         }
+        // Add last waypoint to the path [needed for splines]
+        // _list_x.push_back(_list_x.back());
+        // _list_y.push_back(_list_y.back());
+        // _list_z.push_back(_list_z.back());
         // Lineal interpolation
         std::vector<double> interp1_list_x, interp1_list_y, interp1_list_z;
         interp1_list_x = interpWaypointList(_list_x, num_joints);

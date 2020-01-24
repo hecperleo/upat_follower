@@ -45,8 +45,9 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     // ros::param::param<int>("generator_mode", generator_mode_, 0);
     ros::param::param<bool>("~debug", debug_, false);
     // Subscriptions
-    sub_pose_ = nh_.subscribe("/" + ns_prefix_ + std::to_string(uav_id_) + "/ual/pose", 0, &UALCommunication::ualPoseCallback, this);
-    sub_state_ = nh_.subscribe("/" + ns_prefix_ + std::to_string(uav_id_) + "/ual/state", 0, &UALCommunication::ualStateCallback, this);
+    sub_ual_pose_ = nh_.subscribe("/" + ns_prefix_ + std::to_string(uav_id_) + "/ual/pose", 0, &UALCommunication::ualPoseCallback, this);
+    sub_ual_state_ = nh_.subscribe("/" + ns_prefix_ + std::to_string(uav_id_) + "/ual/state", 0, &UALCommunication::ualStateCallback, this);
+    sub_ual_velocity_ = nh_.subscribe("/" + ns_prefix_ + std::to_string(uav_id_) + "/ual/velocity", 0, &UALCommunication::ualVelocityCallback, this);
     sub_velocity_ = nh_.subscribe("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/follower/output_vel", 0, &UALCommunication::velocityCallback, this);
     // Publishers
     pub_set_pose_ = nh_.advertise<geometry_msgs::PoseStamped>("/" + ns_prefix_ + std::to_string(uav_id_) + "/ual/set_pose", 1000);
@@ -145,6 +146,10 @@ void UALCommunication::ualStateCallback(const uav_abstraction_layer::State &_ual
     ual_state_.state = _ual_state.state;
 }
 
+void UALCommunication::ualVelocityCallback(const geometry_msgs::TwistStamped::ConstPtr &_ual_velocity) {
+    ual_vel_ = *_ual_velocity;
+}
+
 void UALCommunication::velocityCallback(const geometry_msgs::TwistStamped &_velocity) {
     velocity_ = _velocity;
 }
@@ -217,6 +222,8 @@ void UALCommunication::callVisualization() {
     visualize.request.init_path = init_path_;
     visualize.request.generated_path = target_path_;
     visualize.request.current_path = current_path_;
+    visualize.request.current_vel = velocity_;
+    visualize.request.desired_vel = ual_vel_;
     client_visualize_.call(visualize);
 }
 
@@ -332,8 +339,8 @@ void UALCommunication::runMission() {
                     break;
                 case go_to_end_:
                     ROS_INFO_COND(trajectory_, "[%d][UPAT] Path executed in %.2f seconds.", uav_id_, ros::Time::now().toSec() - start_count_time_);
-                    client_go_to_waypoint_.call(go_to_waypoint_back);  // Comment to save data on experiments
-                    // client_land_.call(land);                        // Uncomment to save data on experiments
+                    // client_go_to_waypoint_.call(go_to_waypoint_back);  // Comment to save data on experiments
+                    client_land_.call(land);  // Uncomment to save data on experiments
                     switchState(hover_);
 
                     break;

@@ -48,6 +48,8 @@ bool Visualization::visualCallback(upat_follower::Visualize::Request &_req_visua
     uav_model_.header.frame_id = init_path_.header.frame_id;
     generated_path_ = _req_visual.generated_path;
     current_path_ = _req_visual.current_path;
+    current_vel_ = _req_visual.current_vel;
+    desired_vel_ = _req_visual.desired_vel;
 
     return true;
 }
@@ -160,7 +162,6 @@ bool Visualization::checkWaypointReached(double _check_distance) {
     Eigen::Vector3f current_p = Eigen::Vector3f(ual_pose_.pose.position.x, ual_pose_.pose.position.y, ual_pose_.pose.position.z);
     Eigen::Vector3f targ_wp_p = Eigen::Vector3f(init_path_.poses.at(waypoint_to_check_).pose.position.x, init_path_.poses.at(waypoint_to_check_).pose.position.y, init_path_.poses.at(waypoint_to_check_).pose.position.z);
     if ((targ_wp_p - current_p).norm() < _check_distance) {
-        // if (waypoint_to_check_ < init_path_.poses.size() - 1)
         waypoint_to_check_++;
         return true;
     } else {
@@ -189,9 +190,15 @@ void Visualization::saveMissionData() {
     if (interp1_path_.poses.size() > 1) {
         int normal_pos_on_init_path = calculateNormalDistance(current_point, 2.0, prev_normal_pos_on_init_path_, interp1_path_);
         normal_dist_init_path_.push_back(normal_distance_);
-        csv_normal_distances_ << normal_distance_ << std::endl;
+        // csv_normal_distances_ << normal_distance_ << std::endl;
+        csv_normal_distances_ << normal_distance_ << ", ";
         prev_normal_pos_on_init_path_ = normal_pos_on_init_path;
     }
+
+    csv_normal_distances_ << ual_pose_.pose.position.x << ", " << ual_pose_.pose.position.y << ", " << ual_pose_.pose.position.z << ", "
+                          << current_vel_.twist.linear.x << ", " << current_vel_.twist.linear.y << ", " << current_vel_.twist.linear.z << ", "
+                          << desired_vel_.twist.linear.x << ", " << desired_vel_.twist.linear.y << ", " << desired_vel_.twist.linear.z << std::endl;
+
     if (waypoint_to_check_ < init_path_.poses.size() - 1) {
         if (checkWaypointReached(0.35)) {
             csv_reach_times_ << ros::Time::now().toSec() - begin << std::endl;

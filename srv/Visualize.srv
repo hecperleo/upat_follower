@@ -1,4 +1,6 @@
 nav_msgs/Path init_path
 nav_msgs/Path current_path
 nav_msgs/Path generated_path
+geometry_msgs/TwistStamped current_vel
+geometry_msgs/TwistStamped desired_vel
 ---

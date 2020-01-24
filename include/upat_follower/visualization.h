@@ -63,6 +63,7 @@ class Visualization {
     ros::ServiceServer server_visualize_;
     // Variables
     geometry_msgs::PoseStamped ual_pose_;
+    geometry_msgs::TwistStamped current_vel_, desired_vel_;
     nav_msgs::Path generated_path_, init_path_, interp1_path_;
     visualization_msgs::Marker uav_model_;
     std::vector<double> normal_dist_generated_path_, normal_dist_init_path_;
