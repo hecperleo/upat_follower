@@ -29,7 +29,7 @@
     <group if="$(eval mode=='sitl')">
         <!-- Launch Gazebo simulation -->
         <rosparam param="/use_sim_time">true</rosparam>
-        <node pkg="px4_bringup" type="launch_gzworld.py" name="gazebo_world" output="screen" args="-physics=ode -world=$(find obstacle_avoidance)/config/world/basket_court.world -add_model_path=$(find obstacle_avoidance)/config/models">
+        <node pkg="px4_bringup" type="launch_gzworld.py" name="gazebo_world" output="screen" args="-physics=ode -world=$(find upat_follower)/config/experiments/world/basket_court.world -add_model_path=$(find upat_follower)/config/experiments/models">
             <rosparam param="sim_origin">[37.41036, -6.002353, 6.48]</rosparam>
         </node>
     </group>
