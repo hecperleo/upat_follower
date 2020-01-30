@@ -44,6 +44,7 @@
   <build_depend>roslib</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>uav_abstraction_layer</build_depend>
+  <build_depend>handy_tools</build_depend>
   <build_depend>ual_backend_mavros</build_depend>
   <build_depend>ecl_geometry</build_depend>
   <build_depend>message_generation</build_depend>
@@ -54,6 +55,7 @@
   <run_depend>roslib</run_depend>
   <run_depend>std_msgs</run_depend>
   <run_depend>uav_abstraction_layer</run_depend>
+  <run_depend>handy_tools</run_depend>
   <run_depend>ual_backend_mavros</run_depend>
   <run_depend>ecl_geometry</run_depend>
   <run_depend>message_runtime</run_depend>

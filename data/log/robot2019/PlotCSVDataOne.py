@@ -8,7 +8,7 @@ from mpl_toolkits.mplot3d import Axes3D
 dir_default_splines = '/home/hector/ros/tfm_ws/src/upat_follower/tests/splines/' 
 dir_data = '/home/hector/ros/tfm_ws/src/upat_follower/data/'
 experiment_name = 'robot2019'
-case_name = 'la_0-8_spd_0-5'
+case_name = '2020-01-29_13-01-08'
 dir_experiment = dir_data + 'log/' + experiment_name + '/' + case_name + '/'
 dir_save_data = dir_data + 'img/' + experiment_name + '/' + case_name + '/'
 ''' Create folder to save data '''

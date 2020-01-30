@@ -17,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   uav_abstraction_layer
   ual_backend_mavros
   ecl_geometry
+  handy_tools
 )
 find_package(Eigen3 REQUIRED)
 find_package(rostest REQUIRED)
@@ -117,7 +118,7 @@ add_service_files(
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES upat_follower
-  CATKIN_DEPENDS roslib geometry_msgs nav_msgs roscpp uav_abstraction_layer std_msgs ecl_geometry message_runtime
+  CATKIN_DEPENDS roslib geometry_msgs nav_msgs roscpp uav_abstraction_layer handy_tools std_msgs ecl_geometry message_runtime
   DEPENDS EIGEN3
 )
 

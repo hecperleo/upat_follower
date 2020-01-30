@@ -94,8 +94,9 @@ nav_msgs::Path Follower::preparePath(nav_msgs::Path _init_path, int _generator_m
     return generator.out_path_;
 }
 
-nav_msgs::Path Follower::prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _times, int _generator_mode) {
+nav_msgs::Path Follower::prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _times, int _generator_mode, double _look_ahead) {
     follower_mode_ = 1;
+    look_ahead_ = _look_ahead;
     prev_normal_vel_on_path_ = prev_normal_pos_on_path_ = 0;
     upat_follower::Generator generator(vxy_, vz_up_, vz_dn_, debug_);
     generator.generateTrajectory(_init_path, _times, _generator_mode);
@@ -207,8 +208,8 @@ geometry_msgs::TwistStamped Follower::calculateVelocity(Eigen::Vector3f _current
             unit_vec = unit_vec / unit_vec.norm();
             mod_vel = (dist_target_projection) / ((generated_times_[_pos_look_ahead] - actual_time_));
             // std::cout << std::fixed << std::setprecision(3) << "|v| = " << dist_target_projection << " / (" << generated_times_[_pos_look_ahead] << "(" << _pos_look_ahead << ") - " << actual_time_ << ") = " << mod_vel;
-            if(mod_vel > max_vel_) mod_vel = max_vel_;
-            if(mod_vel < 0) mod_vel = max_vel_;
+            if (mod_vel > max_vel_) mod_vel = max_vel_;
+            if (mod_vel < 0) mod_vel = max_vel_;
             // std::cout << " -> " << mod_vel << std::endl;
             out_vel.twist.linear.x = unit_vec(0) * mod_vel;
             out_vel.twist.linear.y = unit_vec(1) * mod_vel;
@@ -294,15 +295,15 @@ geometry_msgs::TwistStamped Follower::getVelocity() {
         current_point = Eigen::Vector3f(ual_pose_.pose.position.x, ual_pose_.pose.position.y, ual_pose_.pose.position.z);
         target_path0_point = Eigen::Vector3f(target_path_.poses.at(0).pose.position.x, target_path_.poses.at(0).pose.position.y, target_path_.poses.at(0).pose.position.z);
         int pos_look_ahead;
-        if (follower_mode_ == 1) { // Trajectory
+        if (follower_mode_ == 1) {  // Trajectory
             double search_range_vel = look_ahead_ * 1.5;
             int normal_vel_on_path = calculatePosOnPath(current_point, search_range_vel, prev_normal_vel_on_path_, target_path_);
             prev_normal_vel_on_path_ = normal_vel_on_path;
-            look_ahead_ = 1.0 /* changeLookAhead(normal_vel_on_path) */ /* 0.4 */;
+            // look_ahead_ = 1.0 /* changeLookAhead(normal_vel_on_path) */ /* 0.4 */;
             pos_look_ahead = calculatePosLookAhead(normal_vel_on_path);
             out_velocity_ = calculateVelocity(current_point, pos_look_ahead, normal_vel_on_path);
             if (debug_) prepareDebug(search_range_vel, normal_vel_on_path, pos_look_ahead, prev_normal_vel_on_path_);
-        } else { // Path
+        } else {  // Path
             double search_range_normal_pos = look_ahead_ * 1.5;
             int normal_pos_on_path = calculatePosOnPath(current_point, search_range_normal_pos, prev_normal_pos_on_path_, target_path_);
             prev_normal_pos_on_path_ = normal_pos_on_path;
