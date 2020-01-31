@@ -71,6 +71,7 @@ class Visualization {
     int prev_normal_pos_on_init_path_ = 0;
     int prev_normal_pos_on_generated_path_ = 0;
     int waypoint_to_check_ = 1;
+    std::vector<std_msgs::Float32> generated_times_;
     // Params
     int uav_id_;
     std::string model_, ns_prefix_;

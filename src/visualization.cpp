@@ -47,6 +47,7 @@ bool Visualization::visualCallback(upat_follower::Visualize::Request &_req_visua
     init_path_ = _req_visual.init_path;
     uav_model_.header.frame_id = init_path_.header.frame_id;
     generated_path_ = _req_visual.generated_path;
+    generated_times_ = _req_visual.generated_times;
     current_path_ = _req_visual.current_path;
     current_vel_ = _req_visual.current_vel;
     desired_vel_ = _req_visual.desired_vel;
@@ -185,6 +186,11 @@ void Visualization::saveMissionData() {
         int normal_pos_on_generated_path = calculateNormalDistance(current_point, 2.0, prev_normal_pos_on_generated_path_, generated_path_);
         normal_dist_generated_path_.push_back(normal_distance_);
         prev_normal_pos_on_generated_path_ = normal_pos_on_generated_path;
+        if (generated_times_.size() == generated_path_.poses.size()) {
+            csv_normal_distances_ << generated_times_.at(normal_pos_on_generated_path).data << ", ";
+        } else {
+            csv_normal_distances_ << 0.0 << ", ";
+        }
         csv_normal_distances_ << normal_distance_ << ", ";
     }
     if (interp1_path_.poses.size() > 1) {

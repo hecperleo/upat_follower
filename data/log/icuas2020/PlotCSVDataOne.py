@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import itertools
 import os
+from scipy import interpolate
 from matplotlib import pyplot as plt
 import matplotlib.ticker as ticker
 from mpl_toolkits.mplot3d import Axes3D
@@ -41,17 +42,17 @@ except FileNotFoundError:
     print('cubic_spline.csv not found!')
 try:
     normal_dist_trajectory_m0 = pd.read_csv(
-        dir_experiment + 'normal_dist_trajectory_m0.csv', names=['Time', 'Spline', 'Linear', 'PosX', 'PosY', 'PosZ', 'curVelx', 'curVely', 'curVelz', 'desVelx', 'desVely', 'desVelz'])
+        dir_experiment + 'normal_dist_trajectory_m0.csv', names=['curTime', 'desTime', 'Spline', 'Linear', 'PosX', 'PosY', 'PosZ', 'curVelx', 'curVely', 'curVelz', 'desVelx', 'desVely', 'desVelz'])
 except FileNotFoundError:
     print('normal_dist_trajectory_m0.csv not found!')
 try:
     normal_dist_trajectory_m1 = pd.read_csv(
-        dir_experiment + 'normal_dist_trajectory_m1.csv', names=['Time', 'Spline', 'Linear', 'PosX', 'PosY', 'PosZ', 'curVelx', 'curVely', 'curVelz', 'desVelx', 'desVely', 'desVelz'])
+        dir_experiment + 'normal_dist_trajectory_m1.csv', names=['curTime', 'desTime', 'Spline', 'Linear', 'PosX', 'PosY', 'PosZ', 'curVelx', 'curVely', 'curVelz', 'desVelx', 'desVely', 'desVelz'])
 except FileNotFoundError:
     print('normal_dist_trajectory_m1.csv not found!')
 try:
     normal_dist_trajectory_m2 = pd.read_csv(
-        dir_experiment + 'normal_dist_trajectory_m2.csv', names=['Time', 'Spline', 'Linear', 'PosX', 'PosY', 'PosZ', 'curVelx', 'curVely', 'curVelz', 'desVelx', 'desVely', 'desVelz'])
+        dir_experiment + 'normal_dist_trajectory_m2.csv', names=['curTime', 'desTime', 'Spline', 'Linear', 'PosX', 'PosY', 'PosZ', 'curVelx', 'curVely', 'curVelz', 'desVelx', 'desVely', 'desVelz'])
 except FileNotFoundError:
     print('normal_dist_trajectory_m2.csv not found!')
 try:
@@ -71,17 +72,17 @@ except FileNotFoundError:
     print('current_trajectory_m2.csv not found!')
 try:
     reach_times_trajectory_m0 = pd.read_csv(
-        dir_experiment + 'reach_times_trajectory_m0.csv', names=['Time'])
+        dir_experiment + 'reach_times_trajectory_m0.csv', names=['curTime'])
 except FileNotFoundError:
     print('reach_times_trajectory_m0.csv not found!')
 try:
     reach_times_trajectory_m1 = pd.read_csv(
-        dir_experiment + 'reach_times_trajectory_m2.csv', names=['Time'])
+        dir_experiment + 'reach_times_trajectory_m2.csv', names=['curTime'])
 except FileNotFoundError:
     print('reach_times_trajectory_m2.csv not found!')
 try:
     reach_times_trajectory_m2 = pd.read_csv(
-        dir_experiment + 'reach_times_trajectory_m1.csv', names=['Time'])
+        dir_experiment + 'reach_times_trajectory_m1.csv', names=['curTime'])
 except FileNotFoundError:
     print('reach_times_trajectory_m1.csv not found!')
 
@@ -96,8 +97,8 @@ def getTimesWPsReached(_init_path, _normal_dist_trajectory):
         min_dist = 1000000
         jdx = 0
         for j in _normal_dist_trajectory.values:
-            p2 = np.asarray([_normal_dist_trajectory.values[jdx, 3],
-                             _normal_dist_trajectory.values[jdx, 4], _normal_dist_trajectory.values[jdx, 5]])
+            p2 = np.asarray([_normal_dist_trajectory.values[jdx, 4],
+                             _normal_dist_trajectory.values[jdx, 5], _normal_dist_trajectory.values[jdx, 6]])
             temp_dist = np.linalg.norm(p2 - p1)
             if temp_dist < min_dist:
                 min_dist = temp_dist
@@ -114,14 +115,47 @@ def getModVelocity(_normal_dist_trajectory):
     mod_des_vel = []
     idx = 0
     for i in _normal_dist_trajectory.values:
-        mod_cur_vel.append(np.sqrt(_normal_dist_trajectory.values[idx, 6] * _normal_dist_trajectory.values[idx, 6] +
-                                   _normal_dist_trajectory.values[idx, 7] * _normal_dist_trajectory.values[idx, 7] +
-                                   _normal_dist_trajectory.values[idx, 8] * _normal_dist_trajectory.values[idx, 8]))
-        mod_des_vel.append(np.sqrt(_normal_dist_trajectory.values[idx, 9] * _normal_dist_trajectory.values[idx, 9] +
-                                   _normal_dist_trajectory.values[idx, 10] * _normal_dist_trajectory.values[idx, 10] +
-                                   _normal_dist_trajectory.values[idx, 11] * _normal_dist_trajectory.values[idx, 11]))
+        mod_cur_vel.append(np.sqrt(_normal_dist_trajectory.values[idx, 7] * _normal_dist_trajectory.values[idx, 7] +
+                                   _normal_dist_trajectory.values[idx, 8] * _normal_dist_trajectory.values[idx, 8] +
+                                   _normal_dist_trajectory.values[idx, 9] * _normal_dist_trajectory.values[idx, 9]))
+        mod_des_vel.append(np.sqrt(_normal_dist_trajectory.values[idx, 10] * _normal_dist_trajectory.values[idx, 10] +
+                                   _normal_dist_trajectory.values[idx, 11] * _normal_dist_trajectory.values[idx, 11] +
+                                   _normal_dist_trajectory.values[idx, 12] * _normal_dist_trajectory.values[idx, 12]))
         idx += 1
     return mod_cur_vel, mod_des_vel
+
+
+def getDesiredTimesForNonTrajectory(_default_times, _normal_dist_trajectory):
+    generated_times = []
+    array_len_ndist = []
+    array_len_times = []
+    def_times = []
+    idx = 0
+    for i in _normal_dist_trajectory.values:
+        array_len_ndist.append(idx)
+        idx += 1
+    idx = 0
+    for i in _default_times.values:
+        array_len_times.append(idx)
+        idx += 1
+    idx = 0
+    for i in _default_times.values:
+        def_times.append(_default_times.values[idx, 0])
+        idx += 1
+
+    # generated_times = np.interp(array_len_ndist, array_len_times, def_times)
+    # print (array_len_ndist, len(array_len_ndist))
+    # print (array_len_times, len(array_len_times))
+    # print (def_times, len(def_times))
+    x2 = def_times
+    y2 = array_len_times
+    xinterp = np.arange(len(_normal_dist_trajectory))
+    yinterp1 = np.interp(xinterp, x2, y2)
+    generated_times = np.interp(array_len_ndist, array_len_times, def_times)
+    # generated_times = interpolate.interp1d(array_len_times, def_times, array_len_ndist)º
+    # generated_times = yinterp1
+
+    return generated_times
 
 
 def plot3DFigure(_compare_path, _current_trajectory, _num):
@@ -150,7 +184,7 @@ def plot3DFigure(_compare_path, _current_trajectory, _num):
 
 def plot2DFigures(_normal_dist_trajectory, _times_wps_reached, _default_times, _num):
     plt.figure(num='Mode ' + str(_num) + ' normal distance')
-    plt.plot(_normal_dist_trajectory.Time,
+    plt.plot(_normal_dist_trajectory.curTime,
              _normal_dist_trajectory.Spline, 'b', label="Normal distance to path")
     plt.xlabel('Time (s)')
     plt.ylabel('Distance (m)')
@@ -186,9 +220,9 @@ def plot2DFigures(_normal_dist_trajectory, _times_wps_reached, _default_times, _
     mod_des_vel = []
     mod_cur_vel, mod_des_vel = getModVelocity(_normal_dist_trajectory)
     plt.figure(num='Velocities trajectory mode '+str(_num))
+    plt.plot(_normal_dist_trajectory.curTime, mod_cur_vel, label="Current |v|")
+    plt.plot(_normal_dist_trajectory.curTime, mod_des_vel, label="Desired |v|", color='r', alpha=0.7)
     idx = 0
-    plt.plot(_normal_dist_trajectory.Time, mod_cur_vel, label="Current |v|")
-    plt.plot(_normal_dist_trajectory.Time, mod_des_vel, label="Desired |v|", color='r', alpha=0.7)
     for xc in _times_wps_reached:
         plt.axvline(x=xc, color='k', linestyle='--', alpha=0.7, label='WP ' + str(idx+1) + ' reached: ' +
                     str(_times_wps_reached[idx]))
@@ -198,6 +232,18 @@ def plot2DFigures(_normal_dist_trajectory, _times_wps_reached, _default_times, _
     plt.legend(['Current |v|', 'Desired |v|', 'WP reached'],fontsize='medium')
     plt.savefig(dir_save_data + 'vel_traj_m' +
                 str(_num)+'.eps', format='eps', dpi=1200)
+    plt.show(block=False)
+    plt.figure(num='Delta of Times mode '+str(_num))
+    plt.plot(_normal_dist_trajectory.curTime, _normal_dist_trajectory.desTime - _normal_dist_trajectory.curTime)
+    idx = 0
+    for xc in _times_wps_reached:
+        plt.axvline(x=xc, color='k', linestyle='--', alpha=0.7)
+        idx += 1
+    plt.xlabel('Current time (s)')
+    plt.ylabel('Desired time - Current time (s)')
+    plt.legend(['Difference of times', 'WP reached'])
+    plt.savefig(dir_save_data + 'deltaT_traj_m' +
+            str(_num)+'.eps', format='eps', dpi=1200)
     plt.show(block=False)
 
 
@@ -235,3 +281,18 @@ if 'default_init_path' in globals():
         print('Trajectory m2 -> max: {:.3f}, min: {:.3f}, mean: {:.3f}, std: {:.3f}, var: {:.3f}'.format(np.max(normal_dist_trajectory_m2.Spline), np.min(
             normal_dist_trajectory_m2.Spline), np.mean(normal_dist_trajectory_m2.Spline), np.std(normal_dist_trajectory_m2.Spline), np.var(normal_dist_trajectory_m2.Spline)))
 print('-----------------------------------------------------------------------------')
+
+# generated_times = getDesiredTimesForNonTrajectory(default_times, normal_dist_trajectory_m0)
+# ''' Create times to see how long the path follower takes following the path  '''
+# plt.figure(num='Fake delta of Times mode 0')
+# # plt.plot(normal_dist_trajectory_m0.curTime, generated_times - normal_dist_trajectory_m0.curTime)
+# plt.plot(generated_times)
+# idx = 0
+# for xc in times_wps_reached_m0:
+#     plt.axvline(x=xc, color='k', linestyle='--', alpha=0.7)
+#     idx += 1
+# plt.xlabel('Current time (s)')
+# plt.ylabel('Desired time - Current time (s)')
+# plt.legend(['Difference of times', 'WP reached'])
+# plt.savefig(dir_save_data + 'fake_deltaT_traj_m0.eps', format='eps', dpi=1200)
+# plt.show(block=True)

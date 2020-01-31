@@ -51,6 +51,7 @@ class Follower {
     nav_msgs::Path preparePath(nav_msgs::Path _init_path, int _generator_mode = 0, double _look_ahead = 1.0, double _cruising_speed = 1.0);
     int position_on_path_ = 0;
     double actual_time_;
+    std::vector<double> generated_times_;
 
    private:
     // Callbacks
@@ -90,7 +91,6 @@ class Follower {
     geometry_msgs::PoseStamped ual_pose_;
     nav_msgs::Path target_path_;
     double look_ahead_, cruising_speed_, max_vel_, increase_vel_;
-    std::vector<double> generated_times_;
     // Params
     int uav_id_;
     bool debug_ = false;
