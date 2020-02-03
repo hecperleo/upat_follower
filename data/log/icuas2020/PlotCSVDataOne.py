@@ -12,7 +12,7 @@ dir_config = '/home/hector/ros/ual_ws/src/upat_follower/config/'
 dir_default_splines = '/home/hector/ros/ual_ws/src/upat_follower/tests/splines/'
 dir_data = '/home/hector/ros/ual_ws/src/upat_follower/data/'
 experiment_name = 'icuas2020'
-case_name = 'optitrack_sim'
+case_name = 'test_optitrack'
 dir_experiment = dir_data + 'log/' + experiment_name + '/' + case_name + '/'
 dir_save_data = dir_data + 'img/' + experiment_name + '/' + case_name + '/'
 ''' Create folder to save data '''
@@ -144,14 +144,22 @@ def getDesiredTimesForNonTrajectory(_default_times, _normal_dist_trajectory):
         idx += 1
 
     # generated_times = np.interp(array_len_ndist, array_len_times, def_times)
+    def_times = [0.0, 30.0, 14.0, 42.0]
+    test_array = np.linspace(0.0, 42.0, 1118)
+    array_len_times = np.linspace(0.0, 42, 4)
+    # test_array = np.arange(0.0, 42.0, 42.0/1118.0)
+    print(len(test_array))
     # print (array_len_ndist, len(array_len_ndist))
-    # print (array_len_times, len(array_len_times))
-    # print (def_times, len(def_times))
-    x2 = def_times
-    y2 = array_len_times
-    xinterp = np.arange(len(_normal_dist_trajectory))
-    yinterp1 = np.interp(xinterp, x2, y2)
-    generated_times = np.interp(array_len_ndist, array_len_times, def_times)
+    print (array_len_times, len(array_len_times))
+    print (def_times, len(def_times))
+    # x2 = def_times
+    # y2 = array_len_times
+    # xinterp = np.arange(len(_normal_dist_trajectory))
+    # yinterp1 = np.interp(xinterp, x2, y2)
+    generated_times = np.interp(test_array, array_len_times, def_times)
+    plt.plot(generated_times)
+    plt.show()
+    print (generated_times)
     # generated_times = interpolate.interp1d(array_len_times, def_times, array_len_ndist)º
     # generated_times = yinterp1
 
