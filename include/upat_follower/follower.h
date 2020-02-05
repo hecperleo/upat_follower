@@ -51,7 +51,7 @@ class Follower {
     nav_msgs::Path preparePath(nav_msgs::Path _init_path, int _generator_mode = 0, double _look_ahead = 1.0, double _cruising_speed = 1.0);
     int position_on_path_ = 0;
     double actual_time_;
-    std::vector<double> generated_times_;
+    std::vector<double> generated_times_, init_times_;
 
    private:
     // Callbacks

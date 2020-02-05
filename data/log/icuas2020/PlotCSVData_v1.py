@@ -11,7 +11,7 @@ from mpl_toolkits.mplot3d import Axes3D
 dir_config = '/home/hector/ros/ual_ws/src/upat_follower/config/'
 dir_data = '/home/hector/ros/ual_ws/src/upat_follower/data/'
 experiment_name = 'icuas2020'
-case_name = 'sim_optitrack_rt02_la05_mbzirc'
+case_name = 'test_log'
 dir_experiment = dir_data + 'log/' + experiment_name + '/' + case_name + '/'
 dir_save_data = dir_data + 'img/' + experiment_name + '/' + case_name + '/'
 ''' Create folder to save data '''

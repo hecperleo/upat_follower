@@ -279,9 +279,9 @@ void UALCommunication::runMission() {
             }
             if (use_class_) {
                 target_path_ = follower_.prepareTrajectory(init_path_, times_, generator_mode_, look_ahead_);
-                for (int i = 0; i < times_.size(); i++){
+                for (int i = 0; i < follower_.init_times_.size(); i++){
                     std_msgs::Float32 time;
-                    time.data = times_.at(i);
+                    time.data = follower_.init_times_.at(i);
                     init_times_.push_back(time);
                 }
                 for (int i = 0; i < follower_.generated_times_.size(); i++){

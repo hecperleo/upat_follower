@@ -105,6 +105,46 @@ nav_msgs::Path Follower::prepareTrajectory(nav_msgs::Path _init_path, std::vecto
     }
     max_vel_ = generator.max_velocity_;
     target_path_ = generator.out_path_;
+
+    double extra_time = 1;
+    while (extra_time != 0.0) {
+        std::vector<int> no_valid_segment;
+        extra_time = 0.0;
+        for (int i = 1; i < _times.size(); i++) {
+            Eigen::Vector3f wp_1 = Eigen::Vector3f(_init_path.poses.at(i - 1).pose.position.x, _init_path.poses.at(i - 1).pose.position.y, _init_path.poses.at(i - 1).pose.position.z);
+            Eigen::Vector3f wp_2 = Eigen::Vector3f(_init_path.poses.at(i).pose.position.x, _init_path.poses.at(i).pose.position.y, _init_path.poses.at(i).pose.position.z);
+            double wanted_vel = (wp_2 - wp_1).norm() / (_times.at(i) - _times.at(i - 1));
+            std::cout << wanted_vel << " " << max_vel_ << std::endl;
+            if (wanted_vel > max_vel_) {
+                extra_time = extra_time + (wp_2 - wp_1).norm() / max_vel_ - (wp_2 - wp_1).norm() / wanted_vel;
+                no_valid_segment.push_back(i);
+            }
+        }
+        std::cout << "extra time: " << extra_time << "(s)" << std::endl;
+        std::cout << "no valid segments: ";
+        for (auto i : no_valid_segment)
+            std::cout << i << ", ";
+        std::cout << std::endl;
+        double added_time_per_segment = extra_time / (no_valid_segment.size()*2);
+        std::cout << "added time per segment: " << added_time_per_segment << std::endl;
+        for (int i = 0; i < no_valid_segment.size(); i++) {
+            _times[no_valid_segment.at(i) - 1] = _times[no_valid_segment.at(i) - 1] - added_time_per_segment;
+            _times[no_valid_segment.at(i)] = _times[no_valid_segment.at(i)] + added_time_per_segment;
+        }
+        std::cout << "times: ";
+        for (auto i : _times) {
+            std::cout << i << ", ";
+            init_times_.push_back(i);
+        }
+        std::cout << std::endl;
+    }
+    generator.generateTrajectory(_init_path, _times, _generator_mode);
+    for (int i = 0; i < generator.generated_times_.size(); i++) {
+        generated_times_.push_back(generator.generated_times_.at(i));
+    }
+    max_vel_ = generator.max_velocity_;
+    target_path_ = generator.out_path_;
+
     return generator.out_path_;
 }
 
