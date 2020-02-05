@@ -36,9 +36,11 @@ class Visualization {
     ~Visualization();
 
     bool save_experiment = false;
-    nav_msgs::Path current_path_;
     uav_abstraction_layer::State ual_state_;
-    std::ofstream csv_normal_distances_, csv_current_path_, csv_reach_times_;
+    nav_msgs::Path current_path_, init_path_, generated_path_;
+    std::vector<std_msgs::Float32> init_times_;
+
+    std::ofstream csv_normal_distances_, csv_current_path_, csv_generated_waypoints_, csv_init_waypoints_;
 
     void pubMsgs();
     void saveMissionData();
@@ -64,7 +66,7 @@ class Visualization {
     // Variables
     geometry_msgs::PoseStamped ual_pose_;
     geometry_msgs::TwistStamped current_vel_, desired_vel_;
-    nav_msgs::Path generated_path_, init_path_, interp1_path_;
+    nav_msgs::Path interp1_path_;
     visualization_msgs::Marker uav_model_;
     std::vector<double> normal_dist_generated_path_, normal_dist_init_path_;
     double normal_distance_;

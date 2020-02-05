@@ -95,7 +95,7 @@ class UALCommunication {
     geometry_msgs::TwistStamped velocity_;
     uav_abstraction_layer::State ual_state_;
     std::vector<double> times_;
-    std::vector<std_msgs::Float32> generated_times_;
+    std::vector<std_msgs::Float32> generated_times_, init_times_;
     // Params
     int uav_id_, generator_mode_;
     bool save_test_, trajectory_, use_class_, debug_;

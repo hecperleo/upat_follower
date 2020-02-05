@@ -225,6 +225,7 @@ void UALCommunication::callVisualization() {
     visualize.request.current_vel = ual_vel_;
     visualize.request.desired_vel = velocity_;
     visualize.request.generated_times = generated_times_;
+    visualize.request.init_times = init_times_;
     client_visualize_.call(visualize);
 }
 
@@ -278,6 +279,11 @@ void UALCommunication::runMission() {
             }
             if (use_class_) {
                 target_path_ = follower_.prepareTrajectory(init_path_, times_, generator_mode_, look_ahead_);
+                for (int i = 0; i < times_.size(); i++){
+                    std_msgs::Float32 time;
+                    time.data = times_.at(i);
+                    init_times_.push_back(time);
+                }
                 for (int i = 0; i < follower_.generated_times_.size(); i++){
                     std_msgs::Float32 generated_time;
                     generated_time.data = follower_.generated_times_.at(i);

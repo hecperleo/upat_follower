@@ -39,26 +39,27 @@ int main(int _argc, char **_argv) {
         oss << std::put_time(&tm, "%Y-%m-%d_%H-%M-%S");
         std::string folder_data_name = pkg_name_path + "/data/log/" + oss.str();
         if (mkdir((folder_data_name).c_str(), 0777) == -1) ROS_WARN("Directory creation failed");
+        visual.csv_init_waypoints_.open(folder_data_name + "/init_waypoints.csv");
         if (trajectory) {
             visual.csv_normal_distances_.open(folder_data_name + "/normal_dist_trajectory_m" + std::to_string(generator_mode) + ".csv");
             visual.csv_current_path_.open(folder_data_name + "/current_trajectory_m" + std::to_string(generator_mode) + ".csv");
-            visual.csv_reach_times_.open(folder_data_name + "/reach_times_trajectory_m" + std::to_string(generator_mode) + ".csv");
+            visual.csv_generated_waypoints_.open(folder_data_name + "/generated_trajectory_m" + std::to_string(generator_mode) + ".csv");
         } else {
             switch (generator_mode) {
                 case 0:
-                    visual.csv_normal_distances_.open(folder_data_name + "/normal_dist_linear_interp.csv");
-                    visual.csv_current_path_.open(folder_data_name + "/current_path_linear_interp.csv");
-                    visual.csv_reach_times_.open(folder_data_name + "/reach_times_linear_interp.csv");
+                    visual.csv_normal_distances_.open(folder_data_name + "/normal_dist_path_m0.csv");
+                    visual.csv_current_path_.open(folder_data_name + "/current_path_m0.csv");
+                    visual.csv_generated_waypoints_.open(folder_data_name + "/generated_path_m0.csv");
                     break;
                 case 1:
-                    visual.csv_normal_distances_.open(folder_data_name + "/normal_dist_smooth_spline.csv");
-                    visual.csv_current_path_.open(folder_data_name + "/current_path_smooth_spline.csv");
-                    visual.csv_reach_times_.open(folder_data_name + "/reach_times_smooth_spline.csv");
+                    visual.csv_normal_distances_.open(folder_data_name + "/normal_dist_path_m1.csv");
+                    visual.csv_current_path_.open(folder_data_name + "/current_path_m1.csv");
+                    visual.csv_generated_waypoints_.open(folder_data_name + "/generated_path_m1.csv");
                     break;
                 case 2:
-                    visual.csv_normal_distances_.open(folder_data_name + "/normal_dist_cubic_spline.csv");
-                    visual.csv_current_path_.open(folder_data_name + "/current_path_cubic_spline.csv");
-                    visual.csv_reach_times_.open(folder_data_name + "/reach_times_cubic_spline.csv");
+                    visual.csv_normal_distances_.open(folder_data_name + "/normal_dist_path_m2.csv");
+                    visual.csv_current_path_.open(folder_data_name + "/current_path_m2.csv");
+                    visual.csv_generated_waypoints_.open(folder_data_name + "/generated_path_m2.csv");
                     break;
             }
         }
@@ -76,14 +77,32 @@ int main(int _argc, char **_argv) {
     }
 
     if (visual.save_experiment) {
-        for (int i = 0; visual.current_path_.poses.size(); i++) {
+        visual.csv_init_waypoints_ << std::fixed << std::setprecision(5);
+        visual.csv_generated_waypoints_ << std::fixed << std::setprecision(5);
+        visual.csv_current_path_ << std::fixed << std::setprecision(5);
+        for (int i = 0; i < visual.init_path_.poses.size(); i++) {
+            visual.csv_init_waypoints_
+                << visual.init_path_.poses.at(i).pose.position.x << ", "
+                << visual.init_path_.poses.at(i).pose.position.y << ", "
+                << visual.init_path_.poses.at(i).pose.position.z << ", "
+                << visual.init_times_.at(i).data << std::endl;
+        }
+        for (int i = 0; i < visual.generated_path_.poses.size(); i++) {
+            visual.csv_generated_waypoints_
+                << visual.generated_path_.poses.at(i).pose.position.x << ", "
+                << visual.generated_path_.poses.at(i).pose.position.y << ", "
+                << visual.generated_path_.poses.at(i).pose.position.z << std::endl;
+        }
+        for (int i = 0; i < visual.current_path_.poses.size(); i++) {
             visual.csv_current_path_
                 << visual.current_path_.poses.at(i).pose.position.x << ", "
                 << visual.current_path_.poses.at(i).pose.position.y << ", "
                 << visual.current_path_.poses.at(i).pose.position.z << std::endl;
         }
-        visual.csv_normal_distances_.close();
+        visual.csv_init_waypoints_.close();
+        visual.csv_generated_waypoints_.close();
         visual.csv_current_path_.close();
+        visual.csv_normal_distances_.close();
     }
 
     return 0;

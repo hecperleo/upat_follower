@@ -48,6 +48,7 @@ bool Visualization::visualCallback(upat_follower::Visualize::Request &_req_visua
     uav_model_.header.frame_id = init_path_.header.frame_id;
     generated_path_ = _req_visual.generated_path;
     generated_times_ = _req_visual.generated_times;
+    init_times_ = _req_visual.init_times;
     current_path_ = _req_visual.current_path;
     current_vel_ = _req_visual.current_vel;
     desired_vel_ = _req_visual.desired_vel;
@@ -175,8 +176,7 @@ void Visualization::saveMissionData() {
     static bool flag_once = true;
     if (flag_once) {
         csv_normal_distances_ << std::fixed << std::setprecision(5);
-        csv_reach_times_ << std::fixed << std::setprecision(5);
-        upat_follower::Generator generator(2.0, 3.0, 1.0, 0);
+        upat_follower::Generator generator(1.0, 1.0, 1.0, 0);
         interp1_path_ = generator.generatePath(init_path_, 0);
         flag_once = false;
     }
@@ -204,12 +204,6 @@ void Visualization::saveMissionData() {
     csv_normal_distances_ << ual_pose_.pose.position.x << ", " << ual_pose_.pose.position.y << ", " << ual_pose_.pose.position.z << ", "
                           << current_vel_.twist.linear.x << ", " << current_vel_.twist.linear.y << ", " << current_vel_.twist.linear.z << ", "
                           << desired_vel_.twist.linear.x << ", " << desired_vel_.twist.linear.y << ", " << desired_vel_.twist.linear.z << std::endl;
-
-    if (waypoint_to_check_ < init_path_.poses.size() - 1) {
-        if (checkWaypointReached(0.35)) {
-            csv_reach_times_ << ros::Time::now().toSec() - begin << std::endl;
-        }
-    }
 }
 
 void Visualization::pubMsgs() {

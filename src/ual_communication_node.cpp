@@ -30,18 +30,31 @@ int main(int _argc, char **_argv) {
 
     upat_follower::UALCommunication ual_communication;
     int pub_rate, uav_id;
+    bool light;
     std::string ns_prefix;
     ros::param::param<int>("~uav_id", uav_id, 1);
     ros::param::param<std::string>("~ns_prefix", ns_prefix, "uav_");
     ros::param::param<int>("~pub_rate", pub_rate, 30);
+    ros::param::param<bool>("~light", light, false);
     ros::Rate rate(pub_rate);
     ros::NodeHandle nh;
     ros::Subscriber sub_state_ = nh.subscribe("/" + ns_prefix + std::to_string(uav_id) + "/ual/state", 0, ualStateCb);
 
     // Let UAL and MAVROS get ready
-    while (!ros::service::exists("/" + ns_prefix + std::to_string(uav_id) + "/mavros/param/get", false) || ual_state_.state == 0) {
-        ros::spinOnce();
-        sleep(1.0);
+    if (light) {
+        ROS_WARN("[UPAT] UAL %d not ready!", uav_id);
+        while (ual_state_.state == 0) {
+            ros::spinOnce();
+            sleep(1.0);
+        }
+        ROS_INFO("[UPAT] UAL %d ready!", uav_id);
+    } else {
+        ROS_WARN("[UPAT] UAL %d and MAVROS not ready!", uav_id);
+        while (!ros::service::exists("/" + ns_prefix + std::to_string(uav_id) + "/mavros/param/get", false) || ual_state_.state == 0) {
+            ros::spinOnce();
+            sleep(1.0);
+        }
+        ROS_INFO("[UPAT] UAL %d and MAVROS ready!", uav_id);
     }
     sleep(1.0);
 

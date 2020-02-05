@@ -2,7 +2,7 @@
     <!-- Arguments -->
     <arg name="mode" default="sitl"/>
     <arg name="ns_prefix" default="uav_"/>
-    <arg name="robot_model" default="mbzirc"/>
+    <arg name="robot_model" default="iris"/>
     <arg name="pub_rate" default="30.0"/>
     <arg name="debug" default="false"/>
     <arg name="save_test_data" default="false"/>
@@ -16,12 +16,18 @@
     <arg name="multi" default="false"/>
     <arg name="cruising_speed" default="1.0"/>
     <arg name="look_ahead" default="0.7"/>
+    <arg name="light" default="false"/>
 
     <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find upat_follower)/config/rviz/mision.rviz" required="true"/>
 
-    <include file="$(find upat_follower)/launch/sim_server_ual.launch">
+    <include file="$(find upat_follower)/launch/sim_server_ual.launch" unless="$(arg light)">
         <arg name="multi" value="$(arg multi)"/>
         <arg name="robot_model" value="$(arg robot_model)"/>
+    </include>
+
+        <include file="$(find ual_backend_gazebo_light)/launch/simulation.launch" if="$(arg light)">
+        <arg name="multi" value="$(arg multi)"/>
+        <!-- <arg name="robot_model" value="$(arg robot_model)"/> -->
     </include>
 
     <!-- UAV Path Manager nodes -->
@@ -40,6 +46,7 @@
                 <param name="debug" value="$(arg debug)"/>
                 <param name="cruising_speed" value="$(arg cruising_speed)"/>
                 <param name="look_ahead" value="$(arg look_ahead)"/>
+                <param name="light" value="$(arg light)"/>
             </node>
             <node pkg="upat_follower" type="visualization_node" name="visualization" required="true" output="screen">
                 <param name="uav_id" value="1"/>
