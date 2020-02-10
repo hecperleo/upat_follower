@@ -62,11 +62,12 @@ class Follower {
     bool updateTrajectoryCb(upat_follower::UpdateTrajectory::Request &_req_trajectory, upat_follower::UpdateTrajectory::Response &_res_trajectory);
     // Methods
     void capMaxVelocities();
+    void prepareDebug(double _search_range, int _normal_pos_on_path, int _pos_look_ahead, int _prev_normal);
     double changeLookAhead(int _pos_on_path);
     int calculatePosLookAhead(int _pos_on_path);
     int calculateDistanceOnPath(int _prev_normal_pos_on_path, double _meters);
     int calculatePosOnPath(Eigen::Vector3f _current_point, double _search_range, int _prev_normal_pos_on_path, nav_msgs::Path _path_search);
-    void prepareDebug(double _search_range, int _normal_pos_on_path, int _pos_look_ahead, int _prev_normal);
+    std::vector<double> fixInitialTimes(nav_msgs::Path _init_path, std::vector<double> _times);
     geometry_msgs::TwistStamped calculateVelocity(Eigen::Vector3f _current_point, int _pos_look_ahead, int _pos_on_path = 0);
     // Node handlers
     ros::NodeHandle nh_, pnh_;

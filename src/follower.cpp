@@ -106,38 +106,16 @@ nav_msgs::Path Follower::prepareTrajectory(nav_msgs::Path _init_path, std::vecto
     max_vel_ = generator.max_velocity_;
     target_path_ = generator.out_path_;
 
-    double extra_time = 1;
-    while (extra_time != 0.0) {
-        std::vector<int> no_valid_segment;
-        extra_time = 0.0;
-        for (int i = 1; i < _times.size(); i++) {
-            Eigen::Vector3f wp_1 = Eigen::Vector3f(_init_path.poses.at(i - 1).pose.position.x, _init_path.poses.at(i - 1).pose.position.y, _init_path.poses.at(i - 1).pose.position.z);
-            Eigen::Vector3f wp_2 = Eigen::Vector3f(_init_path.poses.at(i).pose.position.x, _init_path.poses.at(i).pose.position.y, _init_path.poses.at(i).pose.position.z);
-            double wanted_vel = (wp_2 - wp_1).norm() / (_times.at(i) - _times.at(i - 1));
-            std::cout << wanted_vel << " " << max_vel_ << std::endl;
-            if (wanted_vel > max_vel_) {
-                extra_time = extra_time + (wp_2 - wp_1).norm() / max_vel_ - (wp_2 - wp_1).norm() / wanted_vel;
-                no_valid_segment.push_back(i);
-            }
-        }
-        std::cout << "extra time: " << extra_time << "(s)" << std::endl;
-        std::cout << "no valid segments: ";
-        for (auto i : no_valid_segment)
-            std::cout << i << ", ";
-        std::cout << std::endl;
-        double added_time_per_segment = extra_time / (no_valid_segment.size()*2);
-        std::cout << "added time per segment: " << added_time_per_segment << std::endl;
-        for (int i = 0; i < no_valid_segment.size(); i++) {
-            _times[no_valid_segment.at(i) - 1] = _times[no_valid_segment.at(i) - 1] - added_time_per_segment;
-            _times[no_valid_segment.at(i)] = _times[no_valid_segment.at(i)] + added_time_per_segment;
-        }
-        std::cout << "times: ";
-        for (auto i : _times) {
-            std::cout << i << ", ";
+    bool fix_times = true;
+    if (fix_times) {
+        std::vector<double> fixed_times = fixInitialTimes(_init_path, _times);
+        for (auto i : fixed_times)
             init_times_.push_back(i);
-        }
-        std::cout << std::endl;
+    } else {
+        for (auto i : _times)
+            init_times_.push_back(i);
     }
+
     generator.generateTrajectory(_init_path, _times, _generator_mode);
     for (int i = 0; i < generator.generated_times_.size(); i++) {
         generated_times_.push_back(generator.generated_times_.at(i));
@@ -185,6 +163,83 @@ void Follower::capMaxVelocities() {
     velocities.push_back(vz_up_);
     velocities.push_back(vz_dn_);
     smallest_max_velocity_ = *std::min_element(velocities.begin(), velocities.end());
+}
+
+std::vector<double> Follower::fixInitialTimes(nav_msgs::Path _init_path, std::vector<double> _times) {
+    std::vector<double> fixed_times;
+
+    std::cout << std::fixed << std::setprecision(1) << std::endl;
+    std::cout << "init  times: ";
+    for (auto i : _times)
+        std::cout << i << " ";
+    std::cout << std::endl;
+    double extra_time = 0;
+    std::vector<int> modifiable_segments;
+    for (int i = 1; i < _times.size(); i++) {
+        Eigen::Vector3f wp_1 = Eigen::Vector3f(_init_path.poses.at(i - 1).pose.position.x, _init_path.poses.at(i - 1).pose.position.y, _init_path.poses.at(i - 1).pose.position.z);
+        Eigen::Vector3f wp_2 = Eigen::Vector3f(_init_path.poses.at(i).pose.position.x, _init_path.poses.at(i).pose.position.y, _init_path.poses.at(i).pose.position.z);
+        double wanted_vel = (wp_2 - wp_1).norm() / (_times.at(i) - _times.at(i - 1));
+        double time_difference = (wp_2 - wp_1).norm() / wanted_vel - (wp_2 - wp_1).norm() / max_vel_;
+        if (time_difference < 0) {
+            extra_time = extra_time + time_difference;
+            // std::cout << "[" << i << "](-) " << time_difference << std::endl;
+            for (int j = i; j < _times.size(); j++) {
+                _times[j] = _times[j] + abs(time_difference);
+            }
+        } else if (time_difference > 0) {
+            modifiable_segments.push_back(i);
+            // std::cout << "[" << i << "](+) " << time_difference << std::endl;
+        } else {
+            // std::cout << "[" << i << "](0) " << time_difference << std::endl;
+        }
+    }
+    // std::cout << "extra_time: " << extra_time << std::endl;
+    // std::cout << "modifiable_segments: ";
+    // for (auto i : modifiable_segments)
+    //     std::cout << i << " ";
+    // std::cout << std::endl;
+    // std::cout << "times: ";
+    // for (auto i : _times)
+    //     std::cout << i << " ";
+    // std::cout << std::endl;
+    extra_time = abs(extra_time);
+    while (extra_time != 0 && modifiable_segments.size() > 0) {
+        double div_extra_time = extra_time / modifiable_segments.size();
+        for (int i = 0; i < modifiable_segments.size(); i++) {
+            int j = modifiable_segments.at(i);
+            Eigen::Vector3f wp_1 = Eigen::Vector3f(_init_path.poses.at(j - 1).pose.position.x, _init_path.poses.at(j - 1).pose.position.y, _init_path.poses.at(j - 1).pose.position.z);
+            Eigen::Vector3f wp_2 = Eigen::Vector3f(_init_path.poses.at(j).pose.position.x, _init_path.poses.at(j).pose.position.y, _init_path.poses.at(j).pose.position.z);
+            double wanted_vel = (wp_2 - wp_1).norm() / (_times.at(j) - _times.at(j - 1));
+            double time_difference = (wp_2 - wp_1).norm() / wanted_vel - (wp_2 - wp_1).norm() / max_vel_;
+            double substract_time = 0.0;
+            if (time_difference >= div_extra_time) {
+                substract_time = div_extra_time;
+            } else {
+                substract_time = time_difference;
+            }
+            extra_time -= substract_time;
+            for (int k = j; k < _times.size(); k++) {
+                _times[k] = _times[k] - substract_time;
+            }
+            // std::cout << i << j << " tdiff: " << time_difference << " " << div_extra_time << std::endl;
+        }
+        modifiable_segments.clear();
+        for (int i = 1; i < _times.size(); i++) {
+            Eigen::Vector3f wp_1 = Eigen::Vector3f(_init_path.poses.at(i - 1).pose.position.x, _init_path.poses.at(i - 1).pose.position.y, _init_path.poses.at(i - 1).pose.position.z);
+            Eigen::Vector3f wp_2 = Eigen::Vector3f(_init_path.poses.at(i).pose.position.x, _init_path.poses.at(i).pose.position.y, _init_path.poses.at(i).pose.position.z);
+            double wanted_vel = (wp_2 - wp_1).norm() / (_times.at(i) - _times.at(i - 1));
+            double time_difference = (wp_2 - wp_1).norm() / wanted_vel - (wp_2 - wp_1).norm() / max_vel_;
+            if (time_difference > 0) modifiable_segments.push_back(i);
+        }
+    }
+    std::cout << "fixed times: ";
+    for (auto i : _times) {
+        fixed_times.push_back(i);
+        std::cout << i << " ";
+    }
+    std::cout << std::endl;
+
+    return fixed_times;
 }
 
 int Follower::calculatePosOnPath(Eigen::Vector3f _current_point, double _search_range, int _prev_normal_pos_on_path, nav_msgs::Path _path_search) {
