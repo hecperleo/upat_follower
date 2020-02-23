@@ -115,7 +115,8 @@ nav_msgs::Path Follower::prepareTrajectory(nav_msgs::Path _init_path, std::vecto
         for (auto i : _times)
             init_times_.push_back(i);
     }
-
+    generated_times_.clear();
+    generator.generated_times_.clear();
     generator.generateTrajectory(_init_path, _times, _generator_mode);
     for (int i = 0; i < generator.generated_times_.size(); i++) {
         generated_times_.push_back(generator.generated_times_.at(i));

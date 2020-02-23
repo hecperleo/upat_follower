@@ -11,7 +11,7 @@ from mpl_toolkits.mplot3d import Axes3D
 dir_config = '/home/hector/ros/ual_ws/src/upat_follower/config/'
 dir_data = '/home/hector/ros/ual_ws/src/upat_follower/data/'
 experiment_name = 'icuas2020'
-case_name = 'test_log'
+case_name = 'sim_large_vmax_4'
 dir_experiment = dir_data + 'log/' + experiment_name + '/' + case_name + '/'
 dir_save_data = dir_data + 'img/' + experiment_name + '/' + case_name + '/'
 ''' Create folder to save data '''
@@ -180,7 +180,7 @@ def plot3DFigure(_compare_path, _current_trajectory, _num):
              #  color="0.4"
              )
     axN.legend(['Waypoints', 'Generated path', 'Actual path'])
-    axN.set_zlim(0, 3)
+    # axN.set_zlim(0, 3)
     axN.set_xlabel('X axis')
     axN.set_ylabel('Y axis')
     axN.set_zlabel('Z axis')

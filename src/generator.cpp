@@ -142,7 +142,7 @@ nav_msgs::Path Generator::generatePath(nav_msgs::Path _init_path, int _generator
                 point_2 = Eigen::Vector3f(list_pose_x[i + 1], list_pose_y[i + 1], list_pose_z[i + 1]);
                 total_distance = total_distance + (point_2 - point_1).norm();
             }
-            interp1_final_size_ = total_distance / 0.001;
+            interp1_final_size_ = total_distance / 0.1;
             out_path_ = pathManagement(list_pose_x, list_pose_y, list_pose_z);
             break;
         case 1:
