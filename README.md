@@ -2,9 +2,9 @@
 
 This repository contains all the code for running this package on ROS. It is composed of two cpp-classes.
 
-- [Generator](https://github.com/hecperleo/upat_follower/blob/icuas/src/generator.cpp) is in charge of generating a trajectory $\Gamma$ based on the ordered lists of 4D waypoints received. The generated trajectory is a much more dense list of 3D waypoints, which can be approximated to the continuous curve $\gamma(\lambda)$. It also generates an interpolated list $\tau(\lambda)$ of the initial times that matches the amount of the more dense list of waypoints. Both interpolated list are necessary for the presented framework to follow a 4D trajectory. 
+- [Generator](https://github.com/hecperleo/upat_follower/blob/icuas/src/generator.cpp) is in charge of generating a trajectory based on the ordered lists of 4D waypoints received. The generated trajectory is a much more dense list of 3D waypoints, which can be approximated to the continuous curve. It also generates an interpolated list of the initial times that matches the amount of the more dense list of waypoints. Both interpolated list are necessary for the presented framework to follow a 4D trajectory. 
 
-- [Follower](https://github.com/hecperleo/upat_follower/blob/icuas/src/follower.cpp) receives the desired trajectory $\Gamma$ defined as a list of 4D waypoints. It may receive the look-ahead distance $d$ and the maximum speed $v_{max}$. Setting these parameters properly is key to get a good performance, depending on the desired 4D trajectory. A much more dense list of waypoints is required to apply the trajectory following method efficiently. Hence, it uses the trajectory generator to get a discrete curve $\gamma(\lambda)$ from the ordered list of waypoints $W$. Then, continuously, it receives the UAS pose $\mathbf{p}(t)$ and the actual time $t$ to generate the velocity commands $\mathbf{v}(t)$,
+- [Follower](https://github.com/hecperleo/upat_follower/blob/icuas/src/follower.cpp) receives the desired trajectory defined as a list of 4D waypoints. It may receive the look-ahead distance and the maximum velocity. Setting these parameters properly is key to get a good performance, depending on the desired 4D trajectory. A much more dense list of waypoints is required to apply the trajectory following method efficiently. Hence, it uses the trajectory generator to get a discrete curve from the ordered list of waypoints. Then, continuously, it receives the UAS pose and the actual time to generate the velocity commands.
 
 ## Installation Instructions - Ubuntu 16.04 with ROS Kinetic
 
@@ -54,16 +54,17 @@ $ roslaunch upat_follower sim_empty.launch multi:=true trajectory:=false use_cla
 The Follower class is defined in follower.h. You can create one object in your code and use its public methods:
 
 - `updatePose(const geometry_msgs::PoseStamped &_ual_pose)`
-- `prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _times)`
-- `preparePath(nav_msgs::Path _init_path, int _generator_mode, double _look_ahead, double _cruising_speed)`
+- `prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _times, int _generator_mode = 0, double _look_ahead = 1.0)`
+- `preparePath(nav_msgs::Path _init_path, int _generator_mode = 0, double _look_ahead = 1.0, double _cruising_speed = 1.0)`
 - `updateTrajectory(nav_msgs::Path _new_target_path, nav_msgs::Path _new_target_vel_path)`
 - `updatePath(nav_msgs::Path _new_target_path)`
+- `updateTrajectory(nav_msgs::Path _new_target_path)`
 - `getVelocity()`
 
 The Generator class is defined in generator.h. You can create one object in your code and use its public methods:
 
-- `generateTrajectory(nav_msgs::Path _init_path, std::vector<double> _times)`
-- `generatePath(nav_msgs::Path _init_path, int _generator_mode)`
+- `generateTrajectory(nav_msgs::Path _init_path, std::vector<double> _times, int _generator_mode = 0)`
+- `generatePath(nav_msgs::Path _init_path, int _generator_mode = 0)`
 
 
 ## ROS interface
@@ -84,7 +85,7 @@ Generator:
 
 Each service will interact with the corresponding cpp method. Create a client of these services with each corresponding requests and you will be able to interact with it and receive exactly the same response as using the cpp class interface.
 
-## Generator and Follower Modes
+<!-- ## Generator and Follower Modes
 
 Generator:
 
@@ -105,4 +106,4 @@ Generator:
 Follower:
 
 - `Mode 0`: Follow a path
-- `Mode 1`: Follow a trajectory
+- `Mode 1`: Follow a trajectory -->
