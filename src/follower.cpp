@@ -111,18 +111,18 @@ nav_msgs::Path Follower::prepareTrajectory(nav_msgs::Path _init_path, std::vecto
         std::vector<double> fixed_times = fixInitialTimes(_init_path, _times);
         for (auto i : fixed_times)
             init_times_.push_back(i);
+        generated_times_.clear();
+        generator.generated_times_.clear();
+        generator.generateTrajectory(_init_path, init_times_, _generator_mode);
+        for (int i = 0; i < generator.generated_times_.size(); i++) {
+            generated_times_.push_back(generator.generated_times_.at(i));
+        }
+        max_vel_ = generator.max_velocity_;
+        target_path_ = generator.out_path_;
     } else {
         for (auto i : _times)
             init_times_.push_back(i);
     }
-    generated_times_.clear();
-    generator.generated_times_.clear();
-    generator.generateTrajectory(_init_path, _times, _generator_mode);
-    for (int i = 0; i < generator.generated_times_.size(); i++) {
-        generated_times_.push_back(generator.generated_times_.at(i));
-    }
-    max_vel_ = generator.max_velocity_;
-    target_path_ = generator.out_path_;
 
     return generator.out_path_;
 }
