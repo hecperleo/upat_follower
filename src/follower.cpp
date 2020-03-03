@@ -59,11 +59,11 @@ Follower::Follower(int _uav_id, bool _debug) {
 Follower::~Follower() {
 }
 
-void Follower::updatePath(nav_msgs::Path _new_target_path) {
+void Follower::updatePath(nav_msgs::Path &_new_target_path) {
     target_path_ = _new_target_path;
 }
 
-void Follower::updateTrajectory(nav_msgs::Path _new_target_path) {
+void Follower::updateTrajectory(nav_msgs::Path &_new_target_path) {
     target_path_ = _new_target_path;
 }
 
@@ -77,7 +77,7 @@ bool Follower::updateTrajectoryCb(upat_follower::UpdateTrajectory::Request &_req
     return true;
 }
 
-nav_msgs::Path Follower::preparePath(nav_msgs::Path _init_path, int _generator_mode, double _look_ahead, double _cruising_speed) {
+nav_msgs::Path Follower::preparePath(nav_msgs::Path &_init_path, int _generator_mode, double _look_ahead, double _cruising_speed) {
     follower_mode_ = 0;
     prev_normal_vel_on_path_ = prev_normal_pos_on_path_ = 0;
     upat_follower::Generator generator(vxy_, vz_up_, vz_dn_, debug_);
@@ -94,7 +94,7 @@ nav_msgs::Path Follower::preparePath(nav_msgs::Path _init_path, int _generator_m
     return generator.out_path_;
 }
 
-nav_msgs::Path Follower::prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _times, int _generator_mode, double _look_ahead) {
+nav_msgs::Path Follower::prepareTrajectory(nav_msgs::Path &_init_path, std::vector<double> &_times, int _generator_mode, double _look_ahead) {
     follower_mode_ = 1;
     look_ahead_ = _look_ahead;
     prev_normal_vel_on_path_ = prev_normal_pos_on_path_ = 0;
@@ -166,11 +166,11 @@ void Follower::capMaxVelocities() {
     smallest_max_velocity_ = *std::min_element(velocities.begin(), velocities.end());
 }
 
-std::vector<double> Follower::fixInitialTimes(nav_msgs::Path _init_path, std::vector<double> _times) {
+std::vector<double> Follower::fixInitialTimes(nav_msgs::Path &_init_path, std::vector<double> &_times) {
     std::vector<double> fixed_times;
 
-    std::cout << std::fixed << std::setprecision(1) << std::endl;
-    std::cout << "init  times: ";
+    std::cout << std::fixed << std::setprecision(1);
+    std::cout << "[" << uav_id_ << "][UPAT] Init  times: ";
     for (auto i : _times)
         std::cout << i << " ";
     std::cout << std::endl;
@@ -183,26 +183,14 @@ std::vector<double> Follower::fixInitialTimes(nav_msgs::Path _init_path, std::ve
         double time_difference = (wp_2 - wp_1).norm() / wanted_vel - (wp_2 - wp_1).norm() / max_vel_;
         if (time_difference < 0) {
             extra_time = extra_time + time_difference;
-            // std::cout << "[" << i << "](-) " << time_difference << std::endl;
             for (int j = i; j < _times.size(); j++) {
                 _times[j] = _times[j] + abs(time_difference);
             }
         } else if (time_difference > 0) {
             modifiable_segments.push_back(i);
-            // std::cout << "[" << i << "](+) " << time_difference << std::endl;
         } else {
-            // std::cout << "[" << i << "](0) " << time_difference << std::endl;
         }
     }
-    // std::cout << "extra_time: " << extra_time << std::endl;
-    // std::cout << "modifiable_segments: ";
-    // for (auto i : modifiable_segments)
-    //     std::cout << i << " ";
-    // std::cout << std::endl;
-    // std::cout << "times: ";
-    // for (auto i : _times)
-    //     std::cout << i << " ";
-    // std::cout << std::endl;
     extra_time = abs(extra_time);
     while (extra_time != 0 && modifiable_segments.size() > 0) {
         double div_extra_time = extra_time / modifiable_segments.size();
@@ -222,7 +210,6 @@ std::vector<double> Follower::fixInitialTimes(nav_msgs::Path _init_path, std::ve
             for (int k = j; k < _times.size(); k++) {
                 _times[k] = _times[k] - substract_time;
             }
-            // std::cout << i << j << " tdiff: " << time_difference << " " << div_extra_time << std::endl;
         }
         modifiable_segments.clear();
         for (int i = 1; i < _times.size(); i++) {
@@ -233,7 +220,7 @@ std::vector<double> Follower::fixInitialTimes(nav_msgs::Path _init_path, std::ve
             if (time_difference > 0) modifiable_segments.push_back(i);
         }
     }
-    std::cout << "fixed times: ";
+    std::cout << "[" << uav_id_ << "][UPAT] Fixed times: ";
     for (auto i : _times) {
         fixed_times.push_back(i);
         std::cout << i << " ";
@@ -243,7 +230,7 @@ std::vector<double> Follower::fixInitialTimes(nav_msgs::Path _init_path, std::ve
     return fixed_times;
 }
 
-int Follower::calculatePosOnPath(Eigen::Vector3f _current_point, double _search_range, int _prev_normal_pos_on_path, nav_msgs::Path _path_search) {
+int Follower::calculatePosOnPath(Eigen::Vector3f &_current_point, double _search_range, int _prev_normal_pos_on_path, nav_msgs::Path &_path_search) {
     std::vector<double> vec_distances;
     int start_search_pos_on_path = calculateDistanceOnPath(_prev_normal_pos_on_path, -_search_range);
     int end_search_pos_on_path = calculateDistanceOnPath(_prev_normal_pos_on_path, _search_range);
@@ -282,7 +269,7 @@ double Follower::changeLookAhead(int _pos_on_path) {
     return max_vel_ * generated_times_[_pos_on_path];
 }
 
-geometry_msgs::TwistStamped Follower::calculateVelocity(Eigen::Vector3f _current_point, int _pos_look_ahead, int _pos_on_path) {
+geometry_msgs::TwistStamped Follower::calculateVelocity(Eigen::Vector3f &_current_point, int _pos_look_ahead, int _pos_on_path) {
     geometry_msgs::TwistStamped out_vel;
     Eigen::Vector3f target_p, unit_vec, hypo_vec, projection_p;
     projection_p = Eigen::Vector3f(target_path_.poses.at(_pos_on_path).pose.position.x, target_path_.poses.at(_pos_on_path).pose.position.y, target_path_.poses.at(_pos_on_path).pose.position.z);

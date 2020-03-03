@@ -77,7 +77,7 @@ class UALCommunication {
     void velocityCallback(const geometry_msgs::TwistStamped &_velocity);
     // Methods
     std::vector<double> csvToVector(std::string _file_name);
-    nav_msgs::Path constructPath(std::vector<double> _wps_x, std::vector<double> _wps_y, std::vector<double> _wps_z, std::string frame_id);
+    nav_msgs::Path constructPath(std::vector<double> &_wps_x, std::vector<double> &_wps_y, std::vector<double> &_wps_z, std::string frame_id);
     void saveDataForTesting();
     // Node handlers
     ros::NodeHandle nh_, pnh_;

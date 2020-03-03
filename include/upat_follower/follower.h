@@ -45,10 +45,10 @@ class Follower {
     geometry_msgs::TwistStamped out_velocity_;
     geometry_msgs::TwistStamped getVelocity();
     void updatePose(const geometry_msgs::PoseStamped &_ual_pose);
-    void updatePath(nav_msgs::Path _new_target_path);
-    void updateTrajectory(nav_msgs::Path _new_target_path);
-    nav_msgs::Path prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _times, int _generator_mode = 0, double _look_ahead = 1.0);
-    nav_msgs::Path preparePath(nav_msgs::Path _init_path, int _generator_mode = 0, double _look_ahead = 1.0, double _cruising_speed = 1.0);
+    void updatePath(nav_msgs::Path &_new_target_path);
+    void updateTrajectory(nav_msgs::Path &_new_target_path);
+    nav_msgs::Path prepareTrajectory(nav_msgs::Path &_init_path, std::vector<double> &_times, int _generator_mode = 0, double _look_ahead = 1.0);
+    nav_msgs::Path preparePath(nav_msgs::Path &_init_path, int _generator_mode = 0, double _look_ahead = 1.0, double _cruising_speed = 1.0);
     int position_on_path_ = 0;
     double actual_time_;
     std::vector<double> generated_times_, init_times_;
@@ -66,9 +66,9 @@ class Follower {
     double changeLookAhead(int _pos_on_path);
     int calculatePosLookAhead(int _pos_on_path);
     int calculateDistanceOnPath(int _prev_normal_pos_on_path, double _meters);
-    int calculatePosOnPath(Eigen::Vector3f _current_point, double _search_range, int _prev_normal_pos_on_path, nav_msgs::Path _path_search);
-    std::vector<double> fixInitialTimes(nav_msgs::Path _init_path, std::vector<double> _times);
-    geometry_msgs::TwistStamped calculateVelocity(Eigen::Vector3f _current_point, int _pos_look_ahead, int _pos_on_path = 0);
+    int calculatePosOnPath(Eigen::Vector3f &_current_point, double _search_range, int _prev_normal_pos_on_path, nav_msgs::Path &_path_search);
+    std::vector<double> fixInitialTimes(nav_msgs::Path &_init_path, std::vector<double> &_times);
+    geometry_msgs::TwistStamped calculateVelocity(Eigen::Vector3f &_current_point, int _pos_look_ahead, int _pos_on_path = 0);
     // Node handlers
     ros::NodeHandle nh_, pnh_;
     // Subscribers

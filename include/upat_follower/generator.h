@@ -40,8 +40,8 @@ class Generator {
     double max_velocity_;
     nav_msgs::Path out_path_;
     std::vector<double> generated_times_;
-    nav_msgs::Path generateTrajectory(nav_msgs::Path _init_path, std::vector<double> _times, int _generator_mode = 0);
-    nav_msgs::Path generatePath(nav_msgs::Path _init_path, int _generator_mode = 0);
+    nav_msgs::Path generateTrajectory(nav_msgs::Path &_init_path, std::vector<double> &_times, int _generator_mode = 0);
+    nav_msgs::Path generatePath(nav_msgs::Path &_init_path, int _generator_mode = 0);
 
    private:
     // Callbacks
@@ -51,13 +51,13 @@ class Generator {
     double checkSmallestMaxVel();
     double updateParam(const std::string &_param_id);
     int nearestNeighbourIndex(std::vector<double> &_x, double &_value);
-    std::vector<double> interpWaypointList(std::vector<double> _list_pose_axis, int _amount_of_points);
+    std::vector<double> interpWaypointList(std::vector<double> &_list_pose_axis, int _amount_of_points);
     std::vector<double> linealInterp1(std::vector<double> &_x, std::vector<double> &_y, std::vector<double> &_x_new);
-    nav_msgs::Path constructPath(std::vector<double> _wps_x, std::vector<double> _wps_y, std::vector<double> _wps_z);
-    nav_msgs::Path pathManagement(std::vector<double> _list_pose_x, std::vector<double> _list_pose_y, std::vector<double> _list_pose_z);
-    nav_msgs::Path createPathCubicSpline(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size);
-    nav_msgs::Path createPathSmoothSpline(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size);
-    nav_msgs::Path createPathInterp1(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size, int _new_path_size);
+    nav_msgs::Path constructPath(std::vector<double> &_wps_x, std::vector<double> &_wps_y, std::vector<double> &_wps_z);
+    nav_msgs::Path pathManagement(std::vector<double> &_list_pose_x, std::vector<double> &_list_pose_y, std::vector<double> &_list_pose_z);
+    nav_msgs::Path createPathCubicSpline(std::vector<double> &_list_x, std::vector<double> &_list_y, std::vector<double> &_list_z, int _path_size);
+    nav_msgs::Path createPathSmoothSpline(std::vector<double> &_list_x, std::vector<double> &_list_y, std::vector<double> &_list_z, int _path_size);
+    nav_msgs::Path createPathInterp1(std::vector<double> &_list_x, std::vector<double> &_list_y, std::vector<double> &_list_z, int _path_size, int _new_path_size);
     // Node handlers
     ros::NodeHandle nh_, pnh_;
     // Services

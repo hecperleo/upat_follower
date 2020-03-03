@@ -98,7 +98,7 @@ visualization_msgs::Marker Visualization::readModel(std::string _model) {
     return model_;
 }
 
-int Visualization::calculateNormalDistance(Eigen::Vector3f _current_point, double _search_range, int _prev_normal_pos_on_path, nav_msgs::Path _path_search) {
+int Visualization::calculateNormalDistance(Eigen::Vector3f &_current_point, double _search_range, int _prev_normal_pos_on_path, nav_msgs::Path &_path_search) {
     std::vector<double> vec_distances;
     int start_search_pos_on_path = calculateDistanceOnPath(_prev_normal_pos_on_path, -_search_range, _path_search);
     int end_search_pos_on_path = calculateDistanceOnPath(_prev_normal_pos_on_path, _search_range, _path_search);
@@ -114,7 +114,7 @@ int Visualization::calculateNormalDistance(Eigen::Vector3f _current_point, doubl
     return pos_on_path + start_search_pos_on_path;
 }
 
-int Visualization::calculateDistanceOnPath(int _prev_normal_pos_on_path, double _meters, nav_msgs::Path _path_search) {
+int Visualization::calculateDistanceOnPath(int _prev_normal_pos_on_path, double _meters, nav_msgs::Path &_path_search) {
     int pos_equals_dist;
     double dist_to_front, dist_to_back, temp_dist;
     std::vector<double> vec_distances;

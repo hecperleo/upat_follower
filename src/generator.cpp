@@ -125,7 +125,7 @@ std::vector<double> Generator::linealInterp1(std::vector<double> &_x, std::vecto
     return y_new;
 }
 
-nav_msgs::Path Generator::generatePath(nav_msgs::Path _init_path, int _generator_mode) {
+nav_msgs::Path Generator::generatePath(nav_msgs::Path &_init_path, int _generator_mode) {
     std::vector<double> list_pose_x, list_pose_y, list_pose_z;
     for (int i = 0; i < _init_path.poses.size(); i++) {
         list_pose_x.push_back(_init_path.poses.at(i).pose.position.x);
@@ -142,7 +142,7 @@ nav_msgs::Path Generator::generatePath(nav_msgs::Path _init_path, int _generator
                 point_2 = Eigen::Vector3f(list_pose_x[i + 1], list_pose_y[i + 1], list_pose_z[i + 1]);
                 total_distance = total_distance + (point_2 - point_1).norm();
             }
-            interp1_final_size_ = total_distance / 0.1;
+            interp1_final_size_ = total_distance / 0.01;
             out_path_ = pathManagement(list_pose_x, list_pose_y, list_pose_z);
             break;
         case 1:
@@ -165,7 +165,7 @@ nav_msgs::Path Generator::generatePath(nav_msgs::Path _init_path, int _generator
     return out_path_;
 }
 
-nav_msgs::Path Generator::generateTrajectory(nav_msgs::Path _init_path, std::vector<double> _times, int _generator_mode) {
+nav_msgs::Path Generator::generateTrajectory(nav_msgs::Path &_init_path, std::vector<double> &_times, int _generator_mode) {
     if (_init_path.poses.size() == _times.size()) {
         out_path_ = generatePath(_init_path, _generator_mode);
         max_velocity_ = abs(checkSmallestMaxVel());
@@ -203,7 +203,7 @@ bool Generator::generateTrajectoryCb(upat_follower::GenerateTrajectory::Request 
     return true;
 }
 
-std::vector<double> Generator::interpWaypointList(std::vector<double> _list_pose_axis, int _amount_of_points) {
+std::vector<double> Generator::interpWaypointList(std::vector<double> &_list_pose_axis, int _amount_of_points) {
     std::vector<double> aux_axis;
     std::vector<double> new_aux_axis;
     for (int i = 0; i < _list_pose_axis.size(); i++) {
@@ -220,7 +220,7 @@ std::vector<double> Generator::interpWaypointList(std::vector<double> _list_pose
     return interp1_path;
 }
 
-nav_msgs::Path Generator::constructPath(std::vector<double> _wps_x, std::vector<double> _wps_y, std::vector<double> _wps_z) {
+nav_msgs::Path Generator::constructPath(std::vector<double> &_wps_x, std::vector<double> &_wps_y, std::vector<double> &_wps_z) {
     nav_msgs::Path path_msg;
     std::vector<geometry_msgs::PoseStamped> poses(_wps_x.size());
     for (int i = 0; i < _wps_x.size(); i++) {
@@ -237,7 +237,7 @@ nav_msgs::Path Generator::constructPath(std::vector<double> _wps_x, std::vector<
     return path_msg;
 }
 
-nav_msgs::Path Generator::createPathInterp1(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size, int _new_path_size) {
+nav_msgs::Path Generator::createPathInterp1(std::vector<double> &_list_x, std::vector<double> &_list_y, std::vector<double> &_list_z, int _path_size, int _new_path_size) {
     nav_msgs::Path interp1_path;
     std::vector<double> interp1_list_x, interp1_list_y, interp1_list_z;
     if (_path_size > 1) {
@@ -251,7 +251,7 @@ nav_msgs::Path Generator::createPathInterp1(std::vector<double> _list_x, std::ve
     return interp1_path;
 }
 
-nav_msgs::Path Generator::createPathSmoothSpline(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size) {
+nav_msgs::Path Generator::createPathSmoothSpline(std::vector<double> &_list_x, std::vector<double> &_list_y, std::vector<double> &_list_z, int _path_size) {
     nav_msgs::Path smooth_spline_path;
     double max_curvature = 40.0;  // PX4 Default Max Acceleration = 10.0
     if (_path_size > 1) {
@@ -317,7 +317,7 @@ nav_msgs::Path Generator::createPathSmoothSpline(std::vector<double> _list_x, st
     return smooth_spline_path;
 }
 
-nav_msgs::Path Generator::createPathCubicSpline(std::vector<double> _list_x, std::vector<double> _list_y, std::vector<double> _list_z, int _path_size) {
+nav_msgs::Path Generator::createPathCubicSpline(std::vector<double> &_list_x, std::vector<double> &_list_y, std::vector<double> &_list_z, int _path_size) {
     nav_msgs::Path cubic_spline_path;
     if (_path_size > 1) {
         // Calculate total distance
@@ -375,7 +375,7 @@ nav_msgs::Path Generator::createPathCubicSpline(std::vector<double> _list_x, std
     return cubic_spline_path;
 }
 
-nav_msgs::Path Generator::pathManagement(std::vector<double> _list_pose_x, std::vector<double> _list_pose_y, std::vector<double> _list_pose_z) {
+nav_msgs::Path Generator::pathManagement(std::vector<double> &_list_pose_x, std::vector<double> &_list_pose_y, std::vector<double> &_list_pose_z) {
     switch (mode_) {
         case mode_interp1_:
             return createPathInterp1(_list_pose_x, _list_pose_y, _list_pose_z, _list_pose_x.size(), interp1_final_size_);

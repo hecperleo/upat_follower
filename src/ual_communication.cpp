@@ -72,7 +72,7 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
 UALCommunication::~UALCommunication() {
 }
 
-nav_msgs::Path UALCommunication::constructPath(std::vector<double> _wps_x, std::vector<double> _wps_y, std::vector<double> _wps_z, std::string frame_id) {
+nav_msgs::Path UALCommunication::constructPath(std::vector<double> &_wps_x, std::vector<double> &_wps_y, std::vector<double> &_wps_z, std::string frame_id) {
     nav_msgs::Path out_path;
     std::vector<geometry_msgs::PoseStamped> poses(_wps_x.size());
     out_path.header.frame_id = frame_id;

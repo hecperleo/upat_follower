@@ -51,8 +51,8 @@ class Visualization {
     void ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose);
     bool visualCallback(upat_follower::Visualize::Request &_req_visual, upat_follower::Visualize::Response &_res_visual);
     // Methods
-    int calculateDistanceOnPath(int _prev_normal_pos_on_path, double _meters, nav_msgs::Path _path_search);
-    int calculateNormalDistance(Eigen::Vector3f _current_point, double _search_range, int _prev_normal_pos_on_path, nav_msgs::Path _path_search);
+    int calculateDistanceOnPath(int _prev_normal_pos_on_path, double _meters, nav_msgs::Path &_path_search);
+    int calculateNormalDistance(Eigen::Vector3f &_current_point, double _search_range, int _prev_normal_pos_on_path, nav_msgs::Path &_path_search);
     visualization_msgs::Marker readModel(std::string _model_type);
     bool checkWaypointReached(double _check_distance);
     // Node handlers
