@@ -11,7 +11,7 @@ from mpl_toolkits.mplot3d import Axes3D
 dir_config = '/home/hector/ros/ual_ws/src/upat_follower/config/'
 dir_data = '/home/hector/ros/ual_ws/src/upat_follower/data/'
 experiment_name = 'icuas2020'
-case_name = 'sim_large_vmax_4'
+case_name = 'novalid_segments/error_pol_2/sim_large_vmax_4'
 dir_experiment = dir_data + 'log/' + experiment_name + '/' + case_name + '/'
 dir_save_data = dir_data + 'img/' + experiment_name + '/' + case_name + '/'
 ''' Create folder to save data '''
@@ -166,7 +166,7 @@ def getDesiredTimesForNonTrajectory(_default_times, _normal_dist_trajectory):
 
 def plot3DFigure(_compare_path, _current_trajectory, _num):
     figN = plt.figure(num='Mode ' + str(_num) +
-                      ' 3D behaviour', figsize=(10, 8))
+                      ' 3D behaviour', figsize=(6, 4))
     axN = Axes3D(figN)
     axN.plot(default_init_path.x, default_init_path.y, default_init_path.z, 'ko',
              #  color="0.5"
@@ -190,27 +190,28 @@ def plot3DFigure(_compare_path, _current_trajectory, _num):
 
 
 def plot2DFigures(_normal_dist_trajectory, _times_wps_reached, _default_times, _num):
-    plt.figure(num='Mode ' + str(_num) + ' normal distance', figsize=(10, 8))
+    plt.figure(num='Mode ' + str(_num) + ' normal distance', figsize=(6, 3))
     plt.plot(_normal_dist_trajectory.curTime,
              _normal_dist_trajectory.Spline, 'b', label="Normal distance to path")
     plt.xlabel('Time (s)')
     plt.ylabel('Distance (m)')
     # plt.ylim(top=2)
     # plt.axes().xaxis.set_major_locator(ticker.MultipleLocator(5))
-    idx = 0
-    for xc in _default_times:
-        plt.axvline(x=xc, color='r', linestyle='--', alpha=0.7,
-                    label='WP ' + str(idx+1) + ' desired time ' +
-                    str(_default_times[idx])
-                    )
-        idx += 1
+    # idx = 0
+    # for xc in _default_times:
+    #     plt.axvline(x=xc, color='r', linestyle='--', alpha=0.7,
+    #                 label='WP ' + str(idx+1) + ' desired time ' +
+    #                 str(_default_times[idx])
+    #                 )
+    #     idx += 1
     idx = 0
     for xc in _times_wps_reached:
-        plt.axvline(x=xc, color='k', linestyle='--', alpha=0.7,
+        plt.axvline(x=xc, color='grey', linestyle='--', alpha=0.7,
                     label='WP ' + str(idx+1) + ' reached at ' +
                     str(_times_wps_reached[idx])
                     )
         idx += 1
+
     # str_times_wps_reached = "WPs reached at " + str(_times_wps_reached[0]) + "s, " + str(_times_wps_reached[1]) + "s, " + str(_times_wps_reached[2]) + "s, " + str(_times_wps_reached[3]) + "s"
     # str_default_times = "WPs desired time " + str(_default_times[0, 0]) + "s, " + str(_default_times[1, 0]) + "s, " + str(_default_times[2, 0]) + "s, " + str(_default_times[3, 0]) + "s"
     # plt.legend(['Normal distance to path', str_default_times,
@@ -218,41 +219,44 @@ def plot2DFigures(_normal_dist_trajectory, _times_wps_reached, _default_times, _
     # plt.gca().get_legend().legendHandles[0].set_color('blue')
     # plt.gca().get_legend().legendHandles[1].set_color('green')
     # plt.gca().get_legend().legendHandles[2].set_color('red')
-    plt.legend(fontsize='x-small')
+    plt.legend(['Normal distance', 'WP reached'])
+    # plt.legend(fontsize='x-small')
     plt.savefig(dir_save_data + 'ndist_traj_m' +
-                str(_num)+'.eps', format='eps', dpi=1200, bbox_inches="tight")
+                str(_num)+'.eps', format='eps', dpi=1200, bbox_inches='tight')
     plt.show(block=False)
     ''' Plot Velocities trajectory m0 '''
     mod_cur_vel = []
     mod_des_vel = []
     mod_cur_vel, mod_des_vel = getModVelocity(_normal_dist_trajectory)
-    plt.figure(num='Velocities trajectory mode '+str(_num), figsize=(10, 8))
-    plt.plot(_normal_dist_trajectory.curTime, mod_cur_vel, label="Current |v|")
+    plt.figure(num='Velocities trajectory mode '+str(_num), figsize=(6, 3))
+    plt.plot(_normal_dist_trajectory.curTime,
+             mod_cur_vel, label="Current |v|", color='b')
     plt.plot(_normal_dist_trajectory.curTime, mod_des_vel,
              label="Desired |v|", color='r', alpha=0.7)
     idx = 0
     for xc in _times_wps_reached:
-        plt.axvline(x=xc, color='k', linestyle='--', alpha=0.7, label='WP ' + str(idx+1) + ' reached: ' +
+        plt.axvline(x=xc, color='grey', linestyle='--', alpha=0.7, label='WP ' + str(idx+1) + ' reached: ' +
                     str(_times_wps_reached[idx]))
         idx += 1
     plt.xlabel('Time (s)')
     plt.ylabel('Velocity (m/s)')
-    plt.legend(['Current |v|', 'Desired |v|', 'WP reached'], fontsize='medium')
+    plt.legend(['Current |v|', 'Desired |v|', 'WP reached'])
     plt.savefig(dir_save_data + 'vel_traj_m' +
-                str(_num)+'.eps', format='eps', dpi=1200)
+                str(_num)+'.eps', format='eps', dpi=1200, bbox_inches='tight')
     plt.show(block=False)
-    plt.figure(num='Delta of Times mode '+str(_num), figsize=(10, 8))
+    plt.figure(num='Delta of Times mode '+str(_num), figsize=(6, 3))
     plt.plot(_normal_dist_trajectory.curTime,
-             _normal_dist_trajectory.desTime - _normal_dist_trajectory.curTime)
+             _normal_dist_trajectory.desTime - _normal_dist_trajectory.curTime, color='b')
     idx = 0
     for xc in _times_wps_reached:
-        plt.axvline(x=xc, color='k', linestyle='--', alpha=0.7)
+        plt.axvline(x=xc, color='grey', linestyle='--', alpha=0.7)
         idx += 1
     plt.xlabel('Current time (s)')
     plt.ylabel('Desired time - Current time (s)')
+    plt.ylim(bottom=-6)
     plt.legend(['Difference of times', 'WP reached'])
     plt.savefig(dir_save_data + 'deltaT_traj_m' +
-                str(_num)+'.eps', format='eps', dpi=1200, bbox_inches="tight")
+                str(_num)+'.eps', format='eps', dpi=1200, bbox_inches='tight')
     plt.show(block=False)
 
 
@@ -263,7 +267,7 @@ if 'default_init_path' in globals():
         plot3DFigure(generated_trajectory_m0, current_trajectory_m0, 0)
         plot2DFigures(normal_dist_trajectory_m0,
                       times_wps_reached_m0, default_init_path.Times, 0)
-        plt.show(block=True)
+        plt.show(block=False)
         ''' Print results of the normal distance through path '''
         print(
             '-----------------------------------------------------------------------------')
@@ -293,6 +297,56 @@ if 'default_init_path' in globals():
             normal_dist_trajectory_m2.Spline), np.mean(normal_dist_trajectory_m2.Spline), np.std(normal_dist_trajectory_m2.Spline), np.var(normal_dist_trajectory_m2.Spline)))
 print('-----------------------------------------------------------------------------')
 
+plt.figure(num='Delta of Times methods', figsize=(6, 3))
+times_wps_reached_m0 = getTimesWPsReached(
+    default_init_path, normal_dist_trajectory_m0)
+print(times_wps_reached_m0)
+plt.plot(normal_dist_trajectory_m0.curTime,
+         normal_dist_trajectory_m0.desTime - normal_dist_trajectory_m0.curTime, color='r',label='Method 1 $t_d$')
+idx = 0
+for xc in times_wps_reached_m0:
+    plt.axvline(x=xc, color='r', linestyle='--', alpha=0.5)
+    idx += 1
+
+case_name = 'novalid_segments/error_pol_1/sim_large_vmax_4'
+dir_experiment = dir_data + 'log/' + experiment_name + '/' + case_name + '/'
+dir_save_data = dir_data + 'img/' + experiment_name + '/' + case_name + '/'
+try:
+    normal_dist_trajectory_m0 = pd.read_csv(
+        dir_experiment + 'normal_dist_trajectory_m0.csv', names=['curTime', 'desTime', 'Spline', 'Linear', 'PosX', 'PosY', 'PosZ', 'curVelx', 'curVely', 'curVelz', 'desVelx', 'desVely', 'desVelz'])
+except FileNotFoundError:
+    print('normal_dist_trajectory_m0.csv not found!')
+try:
+    default_init_path = pd.read_csv(
+        dir_experiment + 'init_waypoints.csv', names=['x', 'y', 'z', 'Times'])
+except FileNotFoundError:
+    print('init.csv not found!')
+
+times_wps_reached_m0 = getTimesWPsReached(
+    default_init_path, normal_dist_trajectory_m0)
+print(times_wps_reached_m0)
+plt.plot(normal_dist_trajectory_m0.curTime,
+         normal_dist_trajectory_m0.desTime - normal_dist_trajectory_m0.curTime, color='b', label='Method 1 $t_d$')
+idx = 0
+for xc in times_wps_reached_m0:
+    plt.axvline(x=xc, color='b', linestyle='--', alpha=0.5)
+    idx += 1
+
+plt.xlabel('Current time (s)')
+plt.ylabel('Desired time - Current time (s)')
+plt.ylim(bottom=-6)
+plt.legend(['Method 1 difference of times', 'Method 1 WP reached', 'Method 2 difference of times', 'Method 2 WP reached'])
+ax = plt.gca()
+leg = ax.get_legend()
+leg.legendHandles[0].set_color('red')
+leg.legendHandles[1].set_color('red')
+leg.legendHandles[2].set_color('blue')
+leg.legendHandles[2].set_linestyle('-')
+leg.legendHandles[3].set_color('blue')
+# plt.legend()
+plt.savefig(dir_save_data + 'deltaT_methods.eps',
+            format='eps', dpi=1200, bbox_inches='tight')
+plt.show(block=True)
 # generated_times = getDesiredTimesForNonTrajectory(default_times, normal_dist_trajectory_m0)
 # ''' Create times to see how long the path follower takes following the path  '''
 # plt.figure(num='Fake delta of Times mode 0')
@@ -300,7 +354,7 @@ print('-------------------------------------------------------------------------
 # plt.plot(generated_times)
 # idx = 0
 # for xc in times_wps_reached_m0:
-#     plt.axvline(x=xc, color='k', linestyle='--', alpha=0.7)
+#     plt.axvline(x=xc, color='grey', linestyle='--', alpha=0.7)
 #     idx += 1
 # plt.xlabel('Current time (s)')
 # plt.ylabel('Desired time - Current time (s)')
