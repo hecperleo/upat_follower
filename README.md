@@ -99,4 +99,4 @@ Generator:
 
 - `Mode 2`: Generate a path using cubic spline interpolations
 
-![Alt text](data/img/generator_modes/mode1.png?raw=true)
+![Alt text](data/img/generator_modes/mode2.png?raw=true)

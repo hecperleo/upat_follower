@@ -55,7 +55,7 @@ def plot3DFigure(_compare_path, _num):
     axN.set_ylabel('Y axis')
     axN.set_zlabel('Z axis')
     figN.savefig(dir_save_data + 'mode' +
-                 str(_num) + '.eps', format='eps', dpi=1200, bbox_inches="tight")
+                 str(_num) + '.png', format='png', bbox_inches="tight")
     return figN
 
 if 'default_init_path' in globals():
