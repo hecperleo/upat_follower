@@ -66,7 +66,7 @@ int main(int _argc, char **_argv) {
     }
     double start_time;
     bool do_once = true;
-    ros::Rate rate(50);
+    ros::Rate rate(30);
     while (ros::ok()) {
         visual.pubMsgs();
         if (visual.current_path_.poses.size() > 0 && visual.ual_state_.state == 4 && visual.save_experiment == true) {
@@ -84,8 +84,11 @@ int main(int _argc, char **_argv) {
             visual.csv_init_waypoints_
                 << visual.init_path_.poses.at(i).pose.position.x << ", "
                 << visual.init_path_.poses.at(i).pose.position.y << ", "
-                << visual.init_path_.poses.at(i).pose.position.z << ", "
-                << visual.init_times_.at(i).data << std::endl;
+                << visual.init_path_.poses.at(i).pose.position.z << ", ";
+            if(trajectory)
+                visual.csv_init_waypoints_ << visual.init_times_.at(i).data << std::endl;
+            else
+                visual.csv_init_waypoints_ << std::endl;
         }
         for (int i = 0; i < visual.generated_path_.poses.size(); i++) {
             visual.csv_generated_waypoints_

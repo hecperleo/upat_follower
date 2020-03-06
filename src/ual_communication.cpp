@@ -179,21 +179,21 @@ void UALCommunication::saveDataForTesting() {
     for (int i = 0; i < target_path_.poses.size(); i++) {
         csv_trajectory_m0 << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
     }
-    // csv_trajectory_m0.close();
-    // target_path_ = follower_save_tests.prepareTrajectory(init_path_, times_, 1);
-    // csv_trajectory_m1.open(folder_data_name_ + "/trajectory_m1.csv");
-    // csv_trajectory_m1 << std::fixed << std::setprecision(5);
-    // for (int i = 0; i < target_path_.poses.size(); i++) {
-    //     csv_trajectory_m1 << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
-    // }
-    // csv_trajectory_m1.close();
-    // target_path_ = follower_save_tests.prepareTrajectory(init_path_, times_, 2);
-    // csv_trajectory_m2.open(folder_data_name_ + "/trajectory_m2.csv");
-    // csv_trajectory_m2 << std::fixed << std::setprecision(5);
-    // for (int i = 0; i < target_path_.poses.size(); i++) {
-    //     csv_trajectory_m2 << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
-    // }
-    // csv_trajectory_m2.close();
+    csv_trajectory_m0.close();
+    target_path_ = follower_save_tests.prepareTrajectory(init_path_, times_, 1);
+    csv_trajectory_m1.open(folder_data_name_ + "/trajectory_m1.csv");
+    csv_trajectory_m1 << std::fixed << std::setprecision(5);
+    for (int i = 0; i < target_path_.poses.size(); i++) {
+        csv_trajectory_m1 << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
+    }
+    csv_trajectory_m1.close();
+    target_path_ = follower_save_tests.prepareTrajectory(init_path_, times_, 2);
+    csv_trajectory_m2.open(folder_data_name_ + "/trajectory_m2.csv");
+    csv_trajectory_m2 << std::fixed << std::setprecision(5);
+    for (int i = 0; i < target_path_.poses.size(); i++) {
+        csv_trajectory_m2 << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
+    }
+    csv_trajectory_m2.close();
     target_path_ = follower_save_tests.preparePath(init_path_, 0);
     csv_interp1.open(folder_data_name_ + "/interp1.csv");
     csv_interp1 << std::fixed << std::setprecision(5);
@@ -201,20 +201,20 @@ void UALCommunication::saveDataForTesting() {
         csv_interp1 << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
     }
     csv_interp1.close();
-    // target_path_ = follower_save_tests.preparePath(init_path_, 1);
-    // csv_smooth_spline.open(folder_data_name_ + "/smooth_spline.csv");
-    // csv_smooth_spline << std::fixed << std::setprecision(5);
-    // for (int i = 0; i < target_path_.poses.size(); i++) {
-    //     csv_smooth_spline << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
-    // }
-    // csv_smooth_spline.close();
-    // target_path_ = follower_save_tests.preparePath(init_path_, 2);
-    // csv_cubic_spline.open(folder_data_name_ + "/cubic_spline.csv");
-    // csv_cubic_spline << std::fixed << std::setprecision(5);
-    // for (int i = 0; i < target_path_.poses.size(); i++) {
-    //     csv_cubic_spline << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
-    // }
-    // csv_cubic_spline.close();
+    target_path_ = follower_save_tests.preparePath(init_path_, 1);
+    csv_smooth_spline.open(folder_data_name_ + "/smooth_spline.csv");
+    csv_smooth_spline << std::fixed << std::setprecision(5);
+    for (int i = 0; i < target_path_.poses.size(); i++) {
+        csv_smooth_spline << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
+    }
+    csv_smooth_spline.close();
+    target_path_ = follower_save_tests.preparePath(init_path_, 2);
+    csv_cubic_spline.open(folder_data_name_ + "/cubic_spline.csv");
+    csv_cubic_spline << std::fixed << std::setprecision(5);
+    for (int i = 0; i < target_path_.poses.size(); i++) {
+        csv_cubic_spline << target_path_.poses.at(i).pose.position.x << ", " << target_path_.poses.at(i).pose.position.y << ", " << target_path_.poses.at(i).pose.position.z << std::endl;
+    }
+    csv_cubic_spline.close();
 }
 
 void UALCommunication::callVisualization() {

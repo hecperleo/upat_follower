@@ -11,7 +11,7 @@ from mpl_toolkits.mplot3d import Axes3D
 dir_config = '/home/hector/ros/ual_ws/src/upat_follower/config/'
 dir_data = '/home/hector/ros/ual_ws/src/upat_follower/data/'
 experiment_name = 'icuas2020'
-case_name = 'novalid_segments/error_pol_2/sim_large_vmax_4'
+case_name = 'test_log'
 dir_experiment = dir_data + 'log/' + experiment_name + '/' + case_name + '/'
 dir_save_data = dir_data + 'img/' + experiment_name + '/' + case_name + '/'
 ''' Create folder to save data '''
@@ -297,56 +297,60 @@ if 'default_init_path' in globals():
             normal_dist_trajectory_m2.Spline), np.mean(normal_dist_trajectory_m2.Spline), np.std(normal_dist_trajectory_m2.Spline), np.var(normal_dist_trajectory_m2.Spline)))
 print('-----------------------------------------------------------------------------')
 
-plt.figure(num='Delta of Times methods', figsize=(6, 3))
-times_wps_reached_m0 = getTimesWPsReached(
-    default_init_path, normal_dist_trajectory_m0)
-print(times_wps_reached_m0)
-plt.plot(normal_dist_trajectory_m0.curTime,
-         normal_dist_trajectory_m0.desTime - normal_dist_trajectory_m0.curTime, color='r',label='Method 1 $t_d$')
-idx = 0
-for xc in times_wps_reached_m0:
-    plt.axvline(x=xc, color='r', linestyle='--', alpha=0.5)
-    idx += 1
+# plt.figure(num='Delta of Times methods', figsize=(6, 3))
+# times_wps_reached_m0 = getTimesWPsReached(
+#     default_init_path, normal_dist_trajectory_m0)
+# print(times_wps_reached_m0)
+# plt.plot(normal_dist_trajectory_m0.curTime,
+#          normal_dist_trajectory_m0.desTime - normal_dist_trajectory_m0.curTime, color='r',label='Method 1 $t_d$')
+# idx = 0
+# for xc in times_wps_reached_m0:
+#     plt.axvline(x=xc, color='r', linestyle='--', alpha=0.5)
+#     idx += 1
 
-case_name = 'novalid_segments/error_pol_1/sim_large_vmax_4'
-dir_experiment = dir_data + 'log/' + experiment_name + '/' + case_name + '/'
-dir_save_data = dir_data + 'img/' + experiment_name + '/' + case_name + '/'
-try:
-    normal_dist_trajectory_m0 = pd.read_csv(
-        dir_experiment + 'normal_dist_trajectory_m0.csv', names=['curTime', 'desTime', 'Spline', 'Linear', 'PosX', 'PosY', 'PosZ', 'curVelx', 'curVely', 'curVelz', 'desVelx', 'desVely', 'desVelz'])
-except FileNotFoundError:
-    print('normal_dist_trajectory_m0.csv not found!')
-try:
-    default_init_path = pd.read_csv(
-        dir_experiment + 'init_waypoints.csv', names=['x', 'y', 'z', 'Times'])
-except FileNotFoundError:
-    print('init.csv not found!')
+# case_name = 'novalid_segments/error_pol_1/sim_large_vmax_4'
+# dir_experiment = dir_data + 'log/' + experiment_name + '/' + case_name + '/'
+# dir_save_data = dir_data + 'img/' + experiment_name + '/' + case_name + '/'
+# try:
+#     normal_dist_trajectory_m0 = pd.read_csv(
+#         dir_experiment + 'normal_dist_trajectory_m0.csv', names=['curTime', 'desTime', 'Spline', 'Linear', 'PosX', 'PosY', 'PosZ', 'curVelx', 'curVely', 'curVelz', 'desVelx', 'desVely', 'desVelz'])
+# except FileNotFoundError:
+#     print('normal_dist_trajectory_m0.csv not found!')
+# try:
+#     default_init_path = pd.read_csv(
+#         dir_experiment + 'init_waypoints.csv', names=['x', 'y', 'z', 'Times'])
+# except FileNotFoundError:
+#     print('init.csv not found!')
 
-times_wps_reached_m0 = getTimesWPsReached(
-    default_init_path, normal_dist_trajectory_m0)
-print(times_wps_reached_m0)
-plt.plot(normal_dist_trajectory_m0.curTime,
-         normal_dist_trajectory_m0.desTime - normal_dist_trajectory_m0.curTime, color='b', label='Method 1 $t_d$')
-idx = 0
-for xc in times_wps_reached_m0:
-    plt.axvline(x=xc, color='b', linestyle='--', alpha=0.5)
-    idx += 1
+# times_wps_reached_m0 = getTimesWPsReached(
+#     default_init_path, normal_dist_trajectory_m0)
+# print(times_wps_reached_m0)
+# plt.plot(normal_dist_trajectory_m0.curTime,
+#          normal_dist_trajectory_m0.desTime - normal_dist_trajectory_m0.curTime, color='b', label='Method 1 $t_d$')
+# idx = 0
+# for xc in times_wps_reached_m0:
+#     plt.axvline(x=xc, color='b', linestyle='--', alpha=0.5)
+#     idx += 1
 
-plt.xlabel('Current time (s)')
-plt.ylabel('Desired time - Current time (s)')
-plt.ylim(bottom=-6)
-plt.legend(['Method 1 difference of times', 'Method 1 WP reached', 'Method 2 difference of times', 'Method 2 WP reached'])
-ax = plt.gca()
-leg = ax.get_legend()
-leg.legendHandles[0].set_color('red')
-leg.legendHandles[1].set_color('red')
-leg.legendHandles[2].set_color('blue')
-leg.legendHandles[2].set_linestyle('-')
-leg.legendHandles[3].set_color('blue')
-# plt.legend()
-plt.savefig(dir_save_data + 'deltaT_methods.eps',
-            format='eps', dpi=1200, bbox_inches='tight')
-plt.show(block=True)
+# plt.xlabel('Current time (s)')
+# plt.ylabel('Desired time - Current time (s)')
+# plt.ylim(bottom=-6)
+# plt.legend(['Method 1 difference of times', 'Method 1 WP reached', 'Method 2 difference of times', 'Method 2 WP reached'])
+# ax = plt.gca()
+# leg = ax.get_legend()
+# leg.legendHandles[0].set_color('red')
+# leg.legendHandles[1].set_color('red')
+# leg.legendHandles[2].set_color('blue')
+# leg.legendHandles[2].set_linestyle('-')
+# leg.legendHandles[3].set_color('blue')
+# # plt.legend()
+# plt.savefig(dir_save_data + 'deltaT_methods.eps',
+#             format='eps', dpi=1200, bbox_inches='tight')
+# plt.show(block=True)
+
+
+
+
 # generated_times = getDesiredTimesForNonTrajectory(default_times, normal_dist_trajectory_m0)
 # ''' Create times to see how long the path follower takes following the path  '''
 # plt.figure(num='Fake delta of Times mode 0')
