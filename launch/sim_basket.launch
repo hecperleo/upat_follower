@@ -9,7 +9,7 @@
     <arg name="save_experiment_data" default="false"/>
     <arg name="trajectory" default="false"/>
     <arg name="reach_tolerance" default="0.1"/>
-    <arg name="path" default="square"/>
+    <arg name="path" default="basket"/>
     <arg name="generator_mode" default="0"/>
     <arg name="pkg_name" default="upat_follower"/>
     <arg name="use_class" default="true"/>

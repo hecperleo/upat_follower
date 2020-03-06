@@ -18,7 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     <arg name="save_experiment_data" default="false"/>
     <arg name="trajectory" default="false"/>
     <arg name="reach_tolerance" default="1.0"/>
-    <arg name="path" default="atlas_pista"/>
+    <arg name="path" default="cubic"/>
     <arg name="generator_mode" default="0"/>
     <arg name="pkg_name" default="upat_follower"/>
     <arg name="use_class" default="true"/>

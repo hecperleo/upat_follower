@@ -23,13 +23,13 @@ $ sudo apt-get install ros-kinetic-ecl-geometry
 $ cd ~/catkin_ws
 $ catkin build
 ```
-<!-- 5. Run tests to check everything. For this step, you need two terminals.
+5. Run tests to check everything. For this step, you need two terminals.
 
     terminal 1: `$ roscore`  
 terminal 2: `$ catkin run_tests`
 
 > **Note**: After this step, you can use just one terminal to run tests without roscore using this command.    
->`$ rostest upat_follower tests_run.tests`. -->
+>`$ rostest upat_follower tests_run.tests`.
 
 
 ## How to use
@@ -54,17 +54,17 @@ $ roslaunch upat_follower sim_empty.launch multi:=true trajectory:=false use_cla
 The Follower class is defined in follower.h. You can create one object in your code and use its public methods:
 
 - `updatePose(const geometry_msgs::PoseStamped &_ual_pose)`
-- `prepareTrajectory(nav_msgs::Path _init_path, std::vector<double> _times, int _generator_mode = 0, double _look_ahead = 1.0)`
-- `preparePath(nav_msgs::Path _init_path, int _generator_mode = 0, double _look_ahead = 1.0, double _cruising_speed = 1.0)`
-- `updateTrajectory(nav_msgs::Path _new_target_path, nav_msgs::Path _new_target_vel_path)`
-- `updatePath(nav_msgs::Path _new_target_path)`
-- `updateTrajectory(nav_msgs::Path _new_target_path)`
+- `prepareTrajectory(nav_msgs::Path &_init_path, std::vector<double> &_times, int _generator_mode = 0, double _look_ahead = 1.0)`
+- `preparePath(nav_msgs::Path &_init_path, int _generator_mode = 0, double _look_ahead = 1.0, double _cruising_speed = 1.0)`
+- `updateTrajectory(nav_msgs::Path &_new_target_path, nav_msgs::Path &_new_target_vel_path)`
+- `updatePath(nav_msgs::Path &_new_target_path)`
+- `updateTrajectory(nav_msgs::Path &_new_target_path)`
 - `getVelocity()`
 
 The Generator class is defined in generator.h. You can create one object in your code and use its public methods:
 
-- `generateTrajectory(nav_msgs::Path _init_path, std::vector<double> _times, int _generator_mode = 0)`
-- `generatePath(nav_msgs::Path _init_path, int _generator_mode = 0)`
+- `generateTrajectory(nav_msgs::Path &_init_path, std::vector<double> &_times, int _generator_mode = 0)`
+- `generatePath(nav_msgs::Path &_init_path, int _generator_mode = 0)`
 
 
 ## ROS interface
