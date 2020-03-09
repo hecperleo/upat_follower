@@ -113,6 +113,8 @@ nav_msgs::Path UALCommunication::csvToPath(std::string _file_name) {
             list_y.push_back(dy);
             list_z.push_back(dz);
         }
+    } else {
+        ROS_ERROR_STREAM(folder_name << " not found!");
     }
 
     return constructPath(list_x, list_y, list_z, ns_prefix_ + std::to_string(uav_id_) + "/odom");
