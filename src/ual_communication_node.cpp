@@ -54,6 +54,10 @@ int main(int _argc, char **_argv) {
             ros::spinOnce();
             sleep(1.0);
         }
+
+        // while (!ual_communication.setPX4Param("MPC_XY_VEL_MAX",   ual_communication.max_vxy_)) sleep(1.0);
+        // while (!ual_communication.setPX4Param("MPC_Z_VEL_MAX_UP", ual_communication.max_vz_up_)) sleep(1.0);
+        // while (!ual_communication.setPX4Param("MPC_Z_VEL_MAX_DN", ual_communication.max_vz_dn_)) sleep(1.0);
         ROS_INFO("[UPAT] UAL %d and MAVROS ready!", uav_id);
     }
     sleep(1.0);

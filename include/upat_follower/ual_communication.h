@@ -52,6 +52,9 @@ class UALCommunication {
     void callVisualization();
     bool flag_update_ = false;
     bool flag_redo_ = true;
+    double max_vxy_ = 4.0;
+    double max_vz_up_ = 3.0;
+    double max_vz_dn_ = 1.0;
     int position_on_path_ = 0;
     std::string pkg_name_ = "upat_follower";
     nav_msgs::Path init_path_, target_path_;
@@ -59,16 +62,14 @@ class UALCommunication {
                    go_to_start_,
                    go_to_end_,
                    execute_path_,
-                   hover_emergency_};
+                   hover_emergency_ };
     state_t state_ = go_to_start_;
     void switchState(state_t new_state);
+    bool setPX4Param(const std::string &_param_id, const double &_value);
     nav_msgs::Path csvToPath(std::string _file_name);
     geometry_msgs::PoseStamped hover_emergency_pose_;
 
    private:
-    double vxy_ = 2.0;
-    double vz_up_ = 3.0;
-    double vz_dn_ = 1.0;
     double start_count_time_;
     // Callbacks
     void ualStateCallback(const uav_abstraction_layer::State &_ual_state);
@@ -86,7 +87,7 @@ class UALCommunication {
     // Publishers
     ros::Publisher pub_set_velocity_, pub_set_pose_;
     // Services
-    ros::ServiceClient client_go_to_waypoint_, client_take_off_, client_land_, client_generate_path_, client_prepare_path_, client_prepare_trajectory_, client_visualize_;
+    ros::ServiceClient client_go_to_waypoint_, client_take_off_, client_land_, client_generate_path_, client_prepare_path_, client_prepare_trajectory_, client_visualize_, client_set_param_;
     // Variables
     std::string folder_data_name_;
     nav_msgs::Path /* target_path_, */ vel_percentage_path_, /* init_path_, */ current_path_;

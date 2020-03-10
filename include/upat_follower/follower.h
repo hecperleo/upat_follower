@@ -38,7 +38,7 @@ namespace upat_follower {
 class Follower {
    public:
     Follower();
-    Follower(int _uav_id, bool _debug = false);
+    Follower(int _uav_id, bool _debug = false, double _max_vxy = 1.0, double _max_vz_up = 1.0, double _max_vz_dn = 1.0);
     ~Follower();
 
     void pubMsgs();
@@ -78,9 +78,7 @@ class Follower {
     // Services
     ros::ServiceServer server_prepare_path_, server_prepare_trajectory_;
     // Variables
-    double vxy_ = 4.0;
-    double vz_up_ = 4.0;
-    double vz_dn_ = 4.0;
+    double vxy_, vz_up_, vz_dn_;
     double smallest_max_velocity_;
     std::vector<double> mpc_xy_vel_max_ = {0.0, 20.0};   // Default PX4 parameter limits
     std::vector<double> mpc_z_vel_max_up_ = {0.5, 8.0};  // Default PX4 parameter limits

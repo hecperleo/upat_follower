@@ -25,7 +25,7 @@
         <arg name="robot_model" value="$(arg robot_model)"/>
     </include>
 
-        <include file="$(find ual_backend_gazebo_light)/launch/simulation.launch" if="$(arg light)">
+        <include file="$(find upat_follower)/launch/sim_server_ual_light.launch" if="$(arg light)">
         <arg name="multi" value="$(arg multi)"/>
         <!-- <arg name="robot_model" value="$(arg robot_model)"/> -->
     </include>

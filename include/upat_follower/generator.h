@@ -20,6 +20,7 @@
 #define GENERATOR_H
 
 #include <mavros_msgs/ParamGet.h>
+#include <mavros_msgs/ParamSet.h>
 #include <ros/ros.h>
 #include <upat_follower/GeneratePath.h>
 #include <upat_follower/GenerateTrajectory.h>

@@ -59,6 +59,7 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     client_prepare_path_ = nh_.serviceClient<upat_follower::PreparePath>("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/follower/prepare_path");
     client_prepare_trajectory_ = nh_.serviceClient<upat_follower::PrepareTrajectory>("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/follower/prepare_trajectory");
     client_visualize_ = nh_.serviceClient<upat_follower::Visualize>("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/visualization/visualize");
+    client_set_param_ = nh_.serviceClient<mavros_msgs::ParamSet>("/" + ns_prefix_ + std::to_string(uav_id_) + "/mavros/param/set");
     // Initialize path
     init_path_ = csvToPath("/config/" + init_path_name_ + ".csv");
     times_ = csvToVector("/config/" + init_path_name_ + "_t.csv");
@@ -136,6 +137,20 @@ std::vector<double> UALCommunication::csvToVector(std::string _file_name) {
     }
 
     return out_vector;
+}
+
+bool UALCommunication::setPX4Param(const std::string &_param_id, const double &_value) {
+    mavros_msgs::ParamSet set_param_srv;
+    set_param_srv.request.param_id = _param_id;
+    set_param_srv.request.value.integer = 0;
+    set_param_srv.request.value.real = _value;
+    client_set_param_.call(set_param_srv);
+    if (set_param_srv.response.success) {
+        ROS_WARN("Parameter [%s] value is [%.2f]", set_param_srv.request.param_id.c_str(), set_param_srv.response.value.real);
+    } else {
+        ROS_ERROR("Error in set param [%s] service calling", set_param_srv.request.param_id.c_str());
+    }
+    return set_param_srv.response.success;
 }
 
 void UALCommunication::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &_ual_pose) {
@@ -254,7 +269,7 @@ void UALCommunication::switchState(state_t new_state) {
 }
 
 void UALCommunication::runMission() {
-    static upat_follower::Follower follower_(uav_id_, debug_);
+    static upat_follower::Follower follower_(uav_id_, debug_, max_vxy_, max_vz_up_, max_vz_dn_);
 
     uav_abstraction_layer::TakeOff take_off;
     uav_abstraction_layer::Land land;
@@ -279,12 +294,12 @@ void UALCommunication::runMission() {
             }
             if (use_class_) {
                 target_path_ = follower_.prepareTrajectory(init_path_, times_, generator_mode_, look_ahead_);
-                for (int i = 0; i < follower_.init_times_.size(); i++){
+                for (int i = 0; i < follower_.init_times_.size(); i++) {
                     std_msgs::Float32 time;
                     time.data = follower_.init_times_.at(i);
                     init_times_.push_back(time);
                 }
-                for (int i = 0; i < follower_.generated_times_.size(); i++){
+                for (int i = 0; i < follower_.generated_times_.size(); i++) {
                     std_msgs::Float32 generated_time;
                     generated_time.data = follower_.generated_times_.at(i);
                     generated_times_.push_back(generated_time);

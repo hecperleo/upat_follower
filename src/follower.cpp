@@ -44,9 +44,13 @@ Follower::Follower() : nh_(), pnh_("~") {
     capMaxVelocities();
 }
 
-Follower::Follower(int _uav_id, bool _debug) {
+Follower::Follower(int _uav_id, bool _debug, double _max_vxy, double _max_vz_up, double _max_vz_dn) {
     debug_ = debug_class_ = _debug;
     uav_id_ = _uav_id;
+    vxy_ = _max_vxy;
+    vz_up_ = _max_vz_up;
+    vz_dn_ = _max_vz_dn;
+    ROS_WARN_STREAM(vxy_ << " " << vz_up_ << " " << vz_dn_);
     if (debug_class_) {
         pub_point_look_ahead_ = nh_.advertise<geometry_msgs::PointStamped>("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/follower/debug_point_look_ahead", 1000);
         pub_point_normal_ = nh_.advertise<geometry_msgs::PointStamped>("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/follower/debug_point_normal", 1000);
