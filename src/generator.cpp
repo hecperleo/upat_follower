@@ -40,7 +40,6 @@ Generator::Generator() : nh_(), pnh_("~") {
 Generator::Generator(double _vxy, double _vz_up, double _vz_dn, bool _debug) {
     debug_ = _debug;
     get_param_client_ = nh_.serviceClient<mavros_msgs::ParamGet>("/uav_1/mavros/param/get");
-    ROS_WARN_STREAM(_vxy << " " << _vz_up << " " << _vz_dn);
     mavros_params_["MPC_XY_VEL_MAX"] = _vxy;
     mavros_params_["MPC_Z_VEL_MAX_UP"] = _vz_up;
     mavros_params_["MPC_Z_VEL_MAX_DN"] = _vz_dn;
@@ -53,7 +52,6 @@ double Generator::checkSmallestMaxVel() {
     double mpc_xy_vel_max = updateParam("MPC_XY_VEL_MAX");
     double mpc_z_vel_max_up = updateParam("MPC_Z_VEL_MAX_UP");
     double mpc_z_vel_max_dn = updateParam("MPC_Z_VEL_MAX_DN");
-    ROS_WARN_STREAM("------------- " << mpc_xy_vel_max << " " << mpc_z_vel_max_up << " " << mpc_z_vel_max_dn);
     double min_max_vel;
     mpc_z_vel_max_dn = mpc_z_vel_max_dn;
     std::vector<double> velocities;
@@ -73,12 +71,12 @@ double Generator::updateParam(const std::string &_param_id) {
         mavros_params_[_param_id] = get_param_service.response.value.integer ? get_param_service.response.value.integer : get_param_service.response.value.real;
         ROS_WARN_COND(debug_, "Parameter [%s] value is [%.2f]", get_param_service.request.param_id.c_str(), mavros_params_[_param_id]);
     } else if (mavros_params_.count(_param_id)) {
-        ROS_WARN("Error in get param [%s] service calling, leaving current value [%.2f]",
-                 get_param_service.request.param_id.c_str(), mavros_params_[_param_id]);
+        ROS_WARN_COND(debug_, "Error in get param [%s] service calling, leaving current value [%.2f]",
+                      get_param_service.request.param_id.c_str(), mavros_params_[_param_id]);
     } else {
         mavros_params_[_param_id] = 0.0;
-        ROS_ERROR("Error in get param [%s] service calling, initializing it to zero",
-                  get_param_service.request.param_id.c_str());
+        ROS_ERROR_COND(debug_, "Error in get param [%s] service calling, initializing it to zero",
+                       get_param_service.request.param_id.c_str());
     }
     return mavros_params_[_param_id];
 }

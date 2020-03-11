@@ -65,8 +65,6 @@ class Generator {
     ros::ServiceClient get_param_client_;
     ros::ServiceServer server_generate_path_, server_generate_trajectory_;
     // Variables
-    double smallest_max_vel_ = 1.0;
-    int size_vec_percentage_ = 0;
     int interp1_final_size_ = 10000;
     enum mode_t { mode_interp1_,
                   mode_smooth_spline_,
