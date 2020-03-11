@@ -42,7 +42,7 @@ class Generator {
     nav_msgs::Path out_path_;
     std::vector<double> generated_times_;
     nav_msgs::Path generateTrajectory(nav_msgs::Path &_init_path, std::vector<double> &_times, int _generator_mode = 0);
-    nav_msgs::Path generatePath(nav_msgs::Path &_init_path, int _generator_mode = 0);
+    nav_msgs::Path generatePath(nav_msgs::Path &_init_path, int _generator_mode = 0, double _d_between_wps = 0.01);
 
    private:
     // Callbacks

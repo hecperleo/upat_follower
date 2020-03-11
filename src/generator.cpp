@@ -125,7 +125,7 @@ std::vector<double> Generator::linealInterp1(std::vector<double> &_x, std::vecto
     return y_new;
 }
 
-nav_msgs::Path Generator::generatePath(nav_msgs::Path &_init_path, int _generator_mode) {
+nav_msgs::Path Generator::generatePath(nav_msgs::Path &_init_path, int _generator_mode, double _d_between_wps) {
     std::vector<double> list_pose_x, list_pose_y, list_pose_z;
     for (int i = 0; i < _init_path.poses.size(); i++) {
         list_pose_x.push_back(_init_path.poses.at(i).pose.position.x);
@@ -142,7 +142,7 @@ nav_msgs::Path Generator::generatePath(nav_msgs::Path &_init_path, int _generato
                 point_2 = Eigen::Vector3f(list_pose_x[i + 1], list_pose_y[i + 1], list_pose_z[i + 1]);
                 total_distance = total_distance + (point_2 - point_1).norm();
             }
-            interp1_final_size_ = total_distance / 0.01;
+            interp1_final_size_ = total_distance / _d_between_wps;
             out_path_ = pathManagement(list_pose_x, list_pose_y, list_pose_z);
             break;
         case 1:
