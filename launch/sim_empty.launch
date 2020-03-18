@@ -17,6 +17,7 @@
     <arg name="cruising_speed" default="1.0"/>
     <arg name="look_ahead" default="0.7"/>
     <arg name="light" default="false"/>
+    <arg name="sitl" default="true"/>
 
     <node pkg="rviz" type="rviz" name="rviz_node" args="-d $(find upat_follower)/config/rviz/mision.rviz" required="true"/>
 
@@ -47,6 +48,7 @@
                 <param name="cruising_speed" value="$(arg cruising_speed)"/>
                 <param name="look_ahead" value="$(arg look_ahead)"/>
                 <param name="light" value="$(arg light)"/>
+                <param name="sitl" value="$(arg sitl)"/>
             </node>
             <node pkg="upat_follower" type="visualization_node" name="visualization" required="true" output="screen">
                 <param name="uav_id" value="1"/>
@@ -72,6 +74,7 @@
                 <param name="debug" value="$(arg debug)"/>
                 <param name="cruising_speed" value="$(arg cruising_speed)"/>
                 <param name="look_ahead" value="$(arg look_ahead)"/>
+                <param name="sitl" value="$(arg sitl)"/>
             </node>
             <node pkg="upat_follower" type="visualization_node" name="visualization" required="true" output="screen">
                 <param name="uav_id" value="2"/>
