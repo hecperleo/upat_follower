@@ -1,3 +1,3 @@
 nav_msgs/Path new_target_path
-nav_msgs/Path new_target_vel_path
+std_msgs/Float32[] times
 ---

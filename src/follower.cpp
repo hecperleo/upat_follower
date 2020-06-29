@@ -66,8 +66,12 @@ void Follower::updatePath(nav_msgs::Path &_new_target_path) {
     target_path_ = _new_target_path;
 }
 
-void Follower::updateTrajectory(nav_msgs::Path &_new_target_path) {
+void Follower::updateTrajectory(nav_msgs::Path &_new_target_path, std::vector<double> &_times) {
     target_path_ = _new_target_path;
+    generated_times_.clear();
+    for (int i = 0; i < _times.size(); i++){
+        generated_times_.push_back(_times.at(i));
+    }
 }
 
 bool Follower::updatePathCb(upat_follower::UpdatePath::Request &_req_path, upat_follower::UpdatePath::Response &_res_path) {
@@ -76,7 +80,11 @@ bool Follower::updatePathCb(upat_follower::UpdatePath::Request &_req_path, upat_
 }
 
 bool Follower::updateTrajectoryCb(upat_follower::UpdateTrajectory::Request &_req_trajectory, upat_follower::UpdateTrajectory::Response &_res_trajectory) {
-    updateTrajectory(_req_trajectory.new_target_path);
+    std::vector<double> times;
+    for (int i = 0; i < _req_trajectory.times.size(); i++){
+        times.push_back(_req_trajectory.times.at(i).data);
+    }
+    updateTrajectory(_req_trajectory.new_target_path, times);
     return true;
 }
 
