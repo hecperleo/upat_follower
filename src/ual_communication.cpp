@@ -312,7 +312,11 @@ void UALCommunication::runMission() {
         }
         flag_redo_ = false;
     } else if (flag_update_) {
-        follower_.updatePath(target_path_);
+        if (trajectory_){
+            follower_.updateTrajectory(target_path_, times_);
+        } else {
+            follower_.updatePath(target_path_);
+        }
         flag_update_ = false;
     }
 

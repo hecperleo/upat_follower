@@ -120,6 +120,7 @@ nav_msgs::Path Follower::prepareTrajectory(nav_msgs::Path &_init_path, std::vect
     bool fix_times = true;
     if (fix_times) {
         std::vector<double> fixed_times = fixInitialTimes(_init_path, _times);
+        init_times_.clear();
         for (auto i : fixed_times)
             init_times_.push_back(i);
         generated_times_.clear();
