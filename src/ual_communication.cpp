@@ -320,10 +320,10 @@ void UALCommunication::runMission() {
         flag_update_ = false;
     }
 
-    go_to_waypoint_back.request.waypoint.header = target_path_.poses.back().header;
+    go_to_waypoint_back.request.waypoint.header = target_path_.header;
     go_to_waypoint_back.request.waypoint.pose = target_path_.poses.back().pose;
     go_to_waypoint_back.request.blocking = true;
-    go_to_waypoint_front.request.waypoint.header = target_path_.poses.front().header;
+    go_to_waypoint_front.request.waypoint.header = target_path_.header;
     go_to_waypoint_front.request.waypoint.pose = target_path_.poses.front().pose;
     go_to_waypoint_front.request.blocking = true;
     go_to_waypoint_hover.request.waypoint.header = hover_emergency_pose_.header;
