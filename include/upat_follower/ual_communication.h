@@ -52,9 +52,9 @@ class UALCommunication {
     void callVisualization();
     bool flag_update_ = false;
     bool flag_redo_ = true;
-    double max_vxy_ = 1.0;
-    double max_vz_up_ = 1.0;
-    double max_vz_dn_ = 1.0;
+    double max_vxy_ = 4.0;
+    double max_vz_up_ = 4.0;
+    double max_vz_dn_ = 4.0;
     int position_on_path_ = 0;
     std::string pkg_name_ = "upat_follower";
     nav_msgs::Path init_path_, target_path_;
