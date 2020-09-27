@@ -11,9 +11,9 @@ from mpl_toolkits.mplot3d import Axes3D
 dir_config = '/home/hector/ros/ual_ws/src/upat_follower/config/'
 dir_data = '/home/hector/ros/ual_ws/src/upat_follower/data/'
 experiment_name = 'jint2020'
-case_name = '3UAV-3D-2Conflict'
+case_name = '2UAV-4D-pyviz'
 dir_experiment = dir_data + 'log/' + experiment_name + '/' + case_name + '/'
-dir_save_data = dir_data + 'img/' + experiment_name + '/'
+dir_save_data = dir_data + 'img/' + experiment_name + '/' + case_name + '/'
 ''' Create folder to save data '''
 if not os.path.exists(dir_save_data):
     os.makedirs(dir_save_data)
@@ -21,7 +21,11 @@ if not os.path.exists(dir_save_data):
 print(dir_experiment)
 try:
     multi_uav = pd.read_csv(
-        dir_experiment + 'multi_uav_log.csv', names=['curTime', 'dist_01', 'dist_02', 'dist_12'])
+        dir_experiment + 'multi_uav_log.csv', names=['curTime', 
+                                                     'dist_01', 'dist_02', 'dist_12',
+                                                     'ual_0_x', 'ual_0_y', 'ual_0_z',
+                                                     'ual_1_x', 'ual_1_y', 'ual_1_z',
+                                                     'ual_2_x', 'ual_2_y', 'ual_2_z'])
 except FileNotFoundError:
     print('multi_uav_log.csv not found!')
 
@@ -36,13 +40,31 @@ def plot2D():
 
     plt.xlabel('Time (s)')
     plt.ylabel('Distance (m)')
-    # plt.xticks(np.arange(1, 5, step=1))
-    plt.legend(['Limit', 'Distance 01', 'Distance 02', 'Distance 12'])
-
+    plt.legend(['Limit = 10m', 'Distance 01', 'Distance 02', 'Distance 12'])
+    plt.savefig(dir_save_data + case_name + '.eps', format='eps', dpi=1200, bbox_inches='tight')
     plt.show()
 
+def plot3D():
+    figN = plt.figure(num='3D Visualization')
+    axN = Axes3D(figN)
+    axN.plot(multi_uav.ual_0_x, multi_uav.ual_0_y, multi_uav.ual_0_z, 'r')
+    axN.plot(multi_uav.ual_1_x, multi_uav.ual_1_y, multi_uav.ual_1_z, 'b')
+    # axN.plot(multi_uav.ual_2_x, multi_uav.ual_2_y, multi_uav.ual_2_z, 'g')
 
-plot2D()
+    axN.legend(['UAV 0', 'UAV 1'])
+    # axN.set_xlim(-50, 100)
+    # axN.set_ylim(-50, 100)
+    axN.set_zlim(0, 15)
+    # axN.view_init(elev= 25, azim=-70)
+    axN.view_init(elev= 20, azim=-40)
+    axN.set_xlabel('X axis')
+    axN.set_ylabel('Y axis')
+    axN.set_zlabel('Z axis')
+    figN.savefig(dir_save_data + '3DVisualization.eps', format='eps', dpi=1200, bbox_inches="tight")
+    return figN
+
+# plot2D()
+plot3D()
 plt.show()
 print('-----------------------------------------------------------------------------')
 # https://towardsdatascience.com/using-standard-deviation-in-python-77872c32ba9b

@@ -17,43 +17,44 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //----------------------------------------------------------------------------------------------------------------------
 
-#include <fstream>
-#include <sys/stat.h>
-#include <Eigen/Eigen>
-#include <ros/ros.h>
-#include <ros/package.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <ros/package.h>
+#include <ros/ros.h>
+#include <sys/stat.h>
 #include <uav_abstraction_layer/State.h>
 #include <upat_follower/visualization.h>
 
-geometry_msgs::PoseStamped ual_pose_0_, ual_pose_1_, ual_pose_2_; 
-uav_abstraction_layer::State ual_state_0_, ual_state_1_, ual_state_2_; 
+#include <Eigen/Eigen>
+#include <fstream>
 
-void ualPose0Cb(const geometry_msgs::PoseStamped &_msg){
+geometry_msgs::PoseStamped ual_pose_0_, ual_pose_1_, ual_pose_2_;
+uav_abstraction_layer::State ual_state_0_, ual_state_1_, ual_state_2_;
+
+void ualPose0Cb(const geometry_msgs::PoseStamped &_msg) {
     ual_pose_0_ = _msg;
 }
 
-void ualPose1Cb(const geometry_msgs::PoseStamped &_msg){
+void ualPose1Cb(const geometry_msgs::PoseStamped &_msg) {
     ual_pose_1_ = _msg;
 }
 
-void ualPose2Cb(const geometry_msgs::PoseStamped &_msg){
+void ualPose2Cb(const geometry_msgs::PoseStamped &_msg) {
     ual_pose_2_ = _msg;
 }
 
-void ualState0Cb(const uav_abstraction_layer::State &_msg){
+void ualState0Cb(const uav_abstraction_layer::State &_msg) {
     ual_state_0_ = _msg;
 }
 
-void ualState1Cb(const uav_abstraction_layer::State &_msg){
+void ualState1Cb(const uav_abstraction_layer::State &_msg) {
     ual_state_1_ = _msg;
 }
 
-void ualState2Cb(const uav_abstraction_layer::State &_msg){
+void ualState2Cb(const uav_abstraction_layer::State &_msg) {
     ual_state_2_ = _msg;
 }
 
-double dist2UAVs(const geometry_msgs::PoseStamped &_p1, const geometry_msgs::PoseStamped &_p2){
+double dist2UAVs(const geometry_msgs::PoseStamped &_p1, const geometry_msgs::PoseStamped &_p2) {
     Eigen::Vector3f p1 = Eigen::Vector3f(_p1.pose.position.x, _p1.pose.position.y, _p1.pose.position.z);
     Eigen::Vector3f p2 = Eigen::Vector3f(_p2.pose.position.x, _p2.pose.position.y, _p2.pose.position.z);
 
@@ -67,12 +68,12 @@ int main(int _argc, char **_argv) {
     std::string ns_prefix;
     ros::param::param<std::string>("~ns_prefix", ns_prefix, "uav_");
 
-    ros::Subscriber sub_state_0_ = nh.subscribe("/" + ns_prefix +  "0/ual/state", 0, ualState0Cb);
-    ros::Subscriber sub_state_1_ = nh.subscribe("/" + ns_prefix +  "1/ual/state", 0, ualState1Cb);
-    ros::Subscriber sub_state_2_ = nh.subscribe("/" + ns_prefix +  "2/ual/state", 0, ualState2Cb);
-    ros::Subscriber sub_pose_0_ = nh.subscribe("/" + ns_prefix +  "0/ual/pose", 0, ualPose0Cb);
-    ros::Subscriber sub_pose_1_ = nh.subscribe("/" + ns_prefix +  "1/ual/pose", 0, ualPose1Cb);
-    ros::Subscriber sub_pose_2_ = nh.subscribe("/" + ns_prefix +  "2/ual/pose", 0, ualPose2Cb);
+    ros::Subscriber sub_state_0_ = nh.subscribe("/" + ns_prefix + "0/ual/state", 0, ualState0Cb);
+    ros::Subscriber sub_state_1_ = nh.subscribe("/" + ns_prefix + "1/ual/state", 0, ualState1Cb);
+    ros::Subscriber sub_state_2_ = nh.subscribe("/" + ns_prefix + "2/ual/state", 0, ualState2Cb);
+    ros::Subscriber sub_pose_0_ = nh.subscribe("/" + ns_prefix + "0/ual/pose", 0, ualPose0Cb);
+    ros::Subscriber sub_pose_1_ = nh.subscribe("/" + ns_prefix + "1/ual/pose", 0, ualPose1Cb);
+    ros::Subscriber sub_pose_2_ = nh.subscribe("/" + ns_prefix + "2/ual/pose", 0, ualPose2Cb);
 
     std::string pkg_name_path = ros::package::getPath("upat_follower");
     auto t = std::time(nullptr);
@@ -89,19 +90,26 @@ int main(int _argc, char **_argv) {
 
     ros::Rate rate(2);
     while (ros::ok()) {
-        if (ual_state_0_.state == 4 || ual_state_1_.state == 4 || ual_state_2_.state == 4){
+        if (ual_state_0_.state == 4 && ual_state_1_.state == 4 && ual_state_2_.state == 4 ||
+            ual_state_0_.state == 6 || ual_state_1_.state == 6 || ual_state_2_.state == 6
+            ) {
             static double initial_time = ros::Time::now().toSec();
             actual_time = ros::Time::now().toSec() - initial_time;
             dist_01 = dist2UAVs(ual_pose_0_, ual_pose_1_);
             dist_02 = dist2UAVs(ual_pose_0_, ual_pose_2_);
             dist_12 = dist2UAVs(ual_pose_1_, ual_pose_2_);
-            csv_multi_uav << actual_time << ", " << dist_01 << ", " << dist_02 << ", " << dist_12 << std::endl;
+            csv_multi_uav << actual_time
+                          << ", " << dist_01 << ", " << dist_02 << ", " << dist_12
+                          << ", " << ual_pose_0_.pose.position.x << ", " << ual_pose_0_.pose.position.y << ", " << ual_pose_0_.pose.position.z
+                          << ", " << ual_pose_1_.pose.position.x << ", " << ual_pose_1_.pose.position.y << ", " << ual_pose_1_.pose.position.z
+                          << ", " << ual_pose_2_.pose.position.x << ", " << ual_pose_2_.pose.position.y << ", " << ual_pose_2_.pose.position.z
+                          << std::endl;
         }
 
-        if (ual_state_0_.state == 6 && ual_state_1_.state == 6 && ual_state_2_.state == 6){
+        if (ros::Time::now().toSec() > 20.0 && ual_state_0_.state == 2 && ual_state_1_.state == 2 && ual_state_2_.state == 2) {
             csv_multi_uav.close();
         }
-        
+
         ros::spinOnce();
         rate.sleep();
     }
