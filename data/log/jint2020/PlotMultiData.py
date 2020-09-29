@@ -6,12 +6,13 @@ from scipy import interpolate
 from matplotlib import pyplot as plt
 import matplotlib.ticker as ticker
 from mpl_toolkits.mplot3d import Axes3D
+import copy
 
 ''' Get directory '''
 dir_config = '/home/hector/ros/ual_ws/src/upat_follower/config/'
 dir_data = '/home/hector/ros/ual_ws/src/upat_follower/data/'
 experiment_name = 'jint2020'
-case_name = '2UAV-4D-pyviz'
+case_name = '3UAV-4D-pyviz'
 dir_experiment = dir_data + 'log/' + experiment_name + '/' + case_name + '/'
 dir_save_data = dir_data + 'img/' + experiment_name + '/' + case_name + '/'
 ''' Create folder to save data '''
@@ -47,23 +48,32 @@ def plot2D():
 def plot3D():
     figN = plt.figure(num='3D Visualization')
     axN = Axes3D(figN)
+    uav_0_plan_x = copy.deepcopy(multi_uav.ual_0_x)
+    uav_0_plan_y = copy.deepcopy(multi_uav.ual_0_y)
+    uav_0_plan_z = copy.deepcopy(multi_uav.ual_0_z)
+    idx = 0;
+    for i in uav_0_plan_z:
+        if uav_0_plan_z[idx] != 5:
+            uav_0_plan_z[idx] = 5
+        idx +=1
+    axN.plot(uav_0_plan_x, uav_0_plan_y, uav_0_plan_z, 'k--')
     axN.plot(multi_uav.ual_0_x, multi_uav.ual_0_y, multi_uav.ual_0_z, 'r')
     axN.plot(multi_uav.ual_1_x, multi_uav.ual_1_y, multi_uav.ual_1_z, 'b')
-    # axN.plot(multi_uav.ual_2_x, multi_uav.ual_2_y, multi_uav.ual_2_z, 'g')
+    axN.plot(multi_uav.ual_2_x, multi_uav.ual_2_y, multi_uav.ual_2_z, 'g')
 
-    axN.legend(['UAV 0', 'UAV 1'])
+    axN.legend(['UAV 0 flight plan', 'UAV 0 trajectory', 'UAV 1 trajectory', 'UAV 2 trajectory'])
     # axN.set_xlim(-50, 100)
     # axN.set_ylim(-50, 100)
     axN.set_zlim(0, 15)
-    # axN.view_init(elev= 25, azim=-70)
-    axN.view_init(elev= 20, azim=-40)
+    # axN.view_init(elev= 20, azim=-40) # for 2 UAV
+    axN.view_init(elev= 25, azim=-70) # for 3 UAV
     axN.set_xlabel('X axis')
     axN.set_ylabel('Y axis')
     axN.set_zlabel('Z axis')
     figN.savefig(dir_save_data + '3DVisualization.eps', format='eps', dpi=1200, bbox_inches="tight")
     return figN
 
-# plot2D()
+plot2D()
 plot3D()
 plt.show()
 print('-----------------------------------------------------------------------------')
