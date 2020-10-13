@@ -24,10 +24,11 @@ int main(int _argc, char **_argv) {
     ros::init(_argc, _argv, "visualization_node");
 
     bool save_experiment_data, trajectory;
-    int generator_mode;
+    int generator_mode, uav_id;
     ros::param::param<bool>("~save_experiment_data", save_experiment_data, false);
     ros::param::param<bool>("~trajectory", trajectory, true);
     ros::param::param<int>("~generator_mode", generator_mode, 0);
+    ros::param::param<int>("~uav_id", uav_id, 0);
 
     Visualization visual;
     visual.save_experiment = save_experiment_data;
@@ -37,8 +38,8 @@ int main(int _argc, char **_argv) {
         auto tm = *std::localtime(&t);
         std::ostringstream oss;
         oss << std::put_time(&tm, "%Y-%m-%d_%H-%M-%S");
-        std::string folder_data_name = pkg_name_path + "/data/log/" + oss.str();
-        if (mkdir((folder_data_name).c_str(), 0777) == -1) ROS_WARN("Directory creation failed");
+        std::string folder_data_name = pkg_name_path + "/data/log/uav_" + std::to_string(uav_id) + "-" + oss.str();
+        if (mkdir((folder_data_name).c_str(), 0777) == -1) ROS_ERROR("Directory creation failed");
         visual.csv_init_waypoints_.open(folder_data_name + "/init_waypoints.csv");
         if (trajectory) {
             visual.csv_normal_distances_.open(folder_data_name + "/normal_dist_trajectory_m" + std::to_string(generator_mode) + ".csv");

@@ -83,6 +83,11 @@ visualization_msgs::Marker Visualization::readModel(std::string _model) {
     }
     model_.mesh_use_embedded_materials = true;
     switch (uav_id_) {
+        case 0:
+            model_.color.r = 0.9;
+            model_.color.g = 0.7;
+            model_.color.b = 0.9;
+            break;
         case 1:
             model_.color.r = 0.0;
             model_.color.g = 1.0;

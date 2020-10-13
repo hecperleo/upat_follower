@@ -203,6 +203,11 @@ add_executable(visualization_node src/visualization_node.cpp)
 target_link_libraries(visualization_node visualization ${catkin_LIBRARIES})
 add_dependencies(visualization_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+
+add_executable(multi_uav_log_node src/multi_uav_log_node.cpp)
+target_link_libraries(multi_uav_log_node visualization ${catkin_LIBRARIES})
+add_dependencies(multi_uav_log_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
 # add_executable(ual_set_pose tests/ual_set_pose.cpp)
 # target_link_libraries(ual_set_pose ${catkin_LIBRARIES})
 # add_dependencies(ual_set_pose ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
