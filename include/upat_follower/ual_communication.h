@@ -100,7 +100,7 @@ class UALCommunication {
     // Params
     int uav_id_, generator_mode_;
     bool save_test_, trajectory_, use_class_, debug_, sitl_;
-    double reach_tolerance_, cruising_speed_, look_ahead_;
+    double reach_tolerance_, cruising_speed_, look_ahead_, sitl_take_off_height_;
     std::string init_path_name_, ns_prefix_;
 };
 

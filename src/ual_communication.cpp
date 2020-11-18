@@ -30,6 +30,7 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
     pnh_.getParam("path", init_path_name_);
     pnh_.getParam("pkg_name", pkg_name_);
     pnh_.getParam("reach_tolerance", reach_tolerance_);
+    pnh_.getParam("sitl_take_off_height", sitl_take_off_height_);
     pnh_.getParam("use_class", use_class_);
     pnh_.getParam("generator_mode", generator_mode_);
     pnh_.getParam("cruising_speed", cruising_speed_);
@@ -337,7 +338,7 @@ void UALCommunication::runMission() {
         case 2:  // Landed armed
             if (sitl_) {
                 take_off.request.blocking = false;
-                take_off.request.height = 3.0;
+                take_off.request.height = sitl_take_off_height_;
                 client_take_off_.call(take_off);
                 sitl_ = false;
             }
