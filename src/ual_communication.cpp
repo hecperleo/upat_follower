@@ -141,9 +141,9 @@ bool UALCommunication::setPX4Param(const std::string &_param_id, const double &_
     set_param_srv.request.value.real = _value;
     client_set_param_.call(set_param_srv);
     if (set_param_srv.response.success) {
-        ROS_WARN("Parameter [%s] value is [%.2f]", set_param_srv.request.param_id.c_str(), set_param_srv.response.value.real);
+        ROS_INFO("[%d][UPAT] Parameter [%s] value is [%.2f]", uav_id_, set_param_srv.request.param_id.c_str(), set_param_srv.response.value.real);
     } else {
-        ROS_ERROR("Error in set param [%s] service calling", set_param_srv.request.param_id.c_str());
+        ROS_ERROR("[%d][UPAT] Error in set param [%s] service calling", uav_id_, set_param_srv.request.param_id.c_str());
     }
     return set_param_srv.response.success;
 }

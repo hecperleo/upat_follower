@@ -69,7 +69,7 @@ void Follower::updatePath(nav_msgs::Path &_new_target_path) {
 void Follower::updateTrajectory(nav_msgs::Path &_new_target_path, std::vector<double> &_times) {
     target_path_ = _new_target_path;
     generated_times_.clear();
-    for (int i = 0; i < _times.size(); i++){
+    for (int i = 0; i < _times.size(); i++) {
         generated_times_.push_back(_times.at(i));
     }
 }
@@ -81,7 +81,7 @@ bool Follower::updatePathCb(upat_follower::UpdatePath::Request &_req_path, upat_
 
 bool Follower::updateTrajectoryCb(upat_follower::UpdateTrajectory::Request &_req_trajectory, upat_follower::UpdateTrajectory::Response &_res_trajectory) {
     std::vector<double> times;
-    for (int i = 0; i < _req_trajectory.times.size(); i++){
+    for (int i = 0; i < _req_trajectory.times.size(); i++) {
         times.push_back(_req_trajectory.times.at(i).data);
     }
     updateTrajectory(_req_trajectory.new_target_path, times);
@@ -164,13 +164,13 @@ void Follower::updatePose(const geometry_msgs::PoseStamped &_ual_pose) {
 }
 
 void Follower::capMaxVelocities() {
-    // Cap input max velocities with default PX4 max velocities
-    if (vxy_ < mpc_xy_vel_max_[0]) vxy_ = mpc_xy_vel_max_[0];
-    if (vxy_ > mpc_xy_vel_max_[1]) vxy_ = mpc_xy_vel_max_[1];
-    if (vz_up_ < mpc_z_vel_max_up_[0]) vz_up_ = mpc_z_vel_max_up_[0];
-    if (vz_up_ > mpc_z_vel_max_up_[1]) vz_up_ = mpc_z_vel_max_up_[1];
-    if (vz_dn_ < mpc_z_vel_max_dn_[0]) vz_dn_ = mpc_z_vel_max_dn_[0];
-    if (vz_dn_ > mpc_z_vel_max_dn_[1]) vz_dn_ = mpc_z_vel_max_dn_[1];
+    // Warning if input value is out of range defined by PX4
+    if (vxy_ < mpc_xy_vel_max_[0]) ROS_WARN("[%d] MPC_XY_VEL_MAX value   (%.2f) is out of range [%.2f, %.2f]", uav_id_, vxy_, mpc_xy_vel_max_[0], mpc_xy_vel_max_[1]);
+    if (vxy_ > mpc_xy_vel_max_[1]) ROS_WARN("[%d] MPC_XY_VEL_MAX value   (%.2f) is out of range [%.2f, %.2f]", uav_id_, vxy_, mpc_xy_vel_max_[0], mpc_xy_vel_max_[1]);
+    if (vz_up_ < mpc_z_vel_max_up_[0]) ROS_WARN("[%d] MPC_Z_VEL_MAX_UP value (%.2f) is out of range [%.2f, %.2f]", uav_id_, vz_up_, mpc_z_vel_max_up_[0], mpc_z_vel_max_up_[1]);
+    if (vz_up_ > mpc_z_vel_max_up_[1]) ROS_WARN("[%d] MPC_Z_VEL_MAX_UP value (%.2f) is out of range [%.2f, %.2f]", uav_id_, vz_up_, mpc_z_vel_max_up_[0], mpc_z_vel_max_up_[1]);
+    if (vz_dn_ < mpc_z_vel_max_dn_[0]) ROS_WARN("[%d] MPC_Z_VEL_MAX_DN value (%.2f) is out of range [%.2f, %.2f]", uav_id_, vz_dn_, mpc_z_vel_max_dn_[0], mpc_z_vel_max_dn_[1]);
+    if (vz_dn_ > mpc_z_vel_max_dn_[1]) ROS_WARN("[%d] MPC_Z_VEL_MAX_DN value (%.2f) is out of range [%.2f, %.2f]", uav_id_, vz_dn_, mpc_z_vel_max_dn_[0], mpc_z_vel_max_dn_[1]);
     std::vector<double> velocities;
     velocities.push_back(vxy_);
     velocities.push_back(vz_up_);
