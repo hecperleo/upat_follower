@@ -60,6 +60,8 @@ UALCommunication::UALCommunication() : nh_(), pnh_("~") {
         std::string pkg_name_path = ros::package::getPath(pkg_name_);
         folder_data_name_ = pkg_name_path + "/tests/splines";
     }
+    // Frame initialization to avoid warnings using RVIZ
+    current_path_.header.frame_id = "map";
 }
 
 UALCommunication::~UALCommunication() {

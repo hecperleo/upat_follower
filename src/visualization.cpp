@@ -36,6 +36,11 @@ Visualization::Visualization() : nh_(), pnh_("~") {
     // Services
     server_visualize_ = nh_.advertiseService("/" + ns_prefix_ + std::to_string(uav_id_) + "/upat_follower/visualization/visualize", &Visualization::visualCallback, this);
 
+    // frame id initialization to avoid rviz warnings
+    current_path_.header.frame_id = "map";
+    generated_path_.header.frame_id = "map";
+    init_path_.header.frame_id = "map";
+    
     uav_model_ = readModel(robot_model);
 }
 
@@ -66,6 +71,8 @@ void Visualization::ualPoseCallback(const geometry_msgs::PoseStamped::ConstPtr &
 
 visualization_msgs::Marker Visualization::readModel(std::string _model) {
     visualization_msgs::Marker model_;
+    
+    model_.header.frame_id = "map";
     model_.id = uav_id_;
     model_.type = visualization_msgs::Marker::MESH_RESOURCE;
     model_.mesh_resource = "package://robots_description/models/" + _model + "/meshes/multirotor.dae";
